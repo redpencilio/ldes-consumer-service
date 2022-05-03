@@ -150,7 +150,7 @@ async function main() {
 				const timeStamp = lastInsertedMember.quads.find(
 					(quadObj) =>
 						quadObj.predicate.value ===
-						prov("generatedAtTime").value
+						process.env.LDES_RELATION_PATH
 				);
 				if (timeStamp) {
 					const genericTimeQuad: Quad = quad(
