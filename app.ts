@@ -113,15 +113,6 @@ async function main() {
 			fromTime: endTime,
 			mimeType: "application/ld+json",
 			emitMemberOnce: true,
-			// jsonLdContext: {
-			// 	//Only necessary for Object representation
-			// 	"@context": [
-			// 		{
-			// 			"@base": BASEURI,
-			// 			prov: prov().value,
-			// 		},
-			// 	],
-			// },
 		};
 		let LDESClient = new newEngine();
 		let eventstreamSync = LDESClient.createReadStream(url, options);
