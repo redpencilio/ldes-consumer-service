@@ -1,5 +1,6 @@
 import { newEngine } from "@treecg/actor-init-ldes-client";
 import { Quad } from "n3";
+import { purl } from "./namespaces";
 import {
 	executeInsertQuery,
 	getEndTime,
@@ -11,7 +12,7 @@ let lastInsertedMember: any;
 async function main() {
 	try {
 		const endTime = await getEndTime();
-		console.log(endTime);
+		console.log("Start time: ", endTime);
 		let url = process.env.LDES_ENDPOINT_VIEW;
 		let options = {
 			pollingInterval: parseInt(process.env.LDES_POLLING_INTERVAL), // millis
@@ -21,13 +22,20 @@ async function main() {
 			emitMemberOnce: true,
 		};
 		let LDESClient = new newEngine();
+
 		let eventstreamSync = LDESClient.createReadStream(url, options);
 		eventstreamSync.on("data", (member) => {
 			if (options.representation && options.representation === "Quads") {
 				lastInsertedMember = member;
-				const quads = member.quads.filter(
+				const quads: Quad[] = member.quads.filter(
 					(quadObj) => quadObj.subject.value === member.id.value
 				);
+				const baseResourceUri = quads.filter((quadObj) =>
+					quadObj.predicate.equals(purl("isVersionOf"))
+				);
+				if (baseResourceUri && baseResourceUri[0]) {
+					console.log(baseResourceUri[0].object);
+				}
 				executeInsertQuery(quads);
 			}
 		});
@@ -35,7 +43,6 @@ async function main() {
 		eventstreamSync.on("pause", async () => {
 			console.log("PAUSE");
 			if (lastInsertedMember) {
-				console.log(lastInsertedMember.quads[1].object);
 				const timeStamp: Quad = lastInsertedMember.quads.find(
 					(quadObj) =>
 						quadObj.predicate.value ===

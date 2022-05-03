@@ -20,7 +20,7 @@ export async function executeInsertQuery(quads: Quad[]) {
   `;
 	try {
 		const response = await update(sparql_query);
-		console.log(response);
+		console.log("Sparql insert response: ", response);
 	} catch (e) {
 		console.error(e);
 	}
@@ -61,9 +61,10 @@ export async function getEndTime() {
 
 	try {
 		const response = await query(sparql_query);
-		console.log(response);
-		if (response.bindings && response.bindings.length) {
-			const timeString = response.bindings[0].t.value.split("^^")[0];
+		const bindings = response.results.bindings;
+		console.log("End Time Response: ", response.results.bindings);
+		if (bindings && bindings.length) {
+			const timeString = bindings[0].t.value.split("^^")[0];
 			let time: Date = new Date(timeString);
 			time.setMilliseconds(time.getMilliseconds() + 1);
 

@@ -7,3 +7,5 @@ export const ldes = namespace(
 export const prov = namespace("http://www.w3.org/ns/prov#");
 
 export const example = namespace("http://example.org/");
+
+export const purl = namespace("http://purl.org/dc/terms/");
