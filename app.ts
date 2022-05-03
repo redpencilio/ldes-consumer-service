@@ -4,6 +4,7 @@ import { Quad, DataFactory } from "n3";
 import { prov } from "./namespaces";
 import SC2 from "sparql-client-2";
 
+console.log(process.env);
 const { SparqlClient } = SC2;
 
 const SPARQL_CLIENT = new SparqlClient(process.env.MU_SPARQL_ENDPOINT, {
@@ -108,7 +109,7 @@ async function main() {
 		console.log(endTime);
 		let url = process.env.LDES_ENDPOINT_VIEW;
 		let options = {
-			pollingInterval: 500, // millis
+			pollingInterval: parseInt(process.env.LDES_POLLING_INTERVAL), // millis
 			representation: "Quads", //Object or Quads
 			fromTime: endTime,
 			mimeType: "application/ld+json",
@@ -116,22 +117,14 @@ async function main() {
 		};
 		let LDESClient = new newEngine();
 		let eventstreamSync = LDESClient.createReadStream(url, options);
-
-		// const timeoutms = 2000; // amount of milliseconds before timeout
-		// const timeout = setTimeout(() => eventstreamSync.pause(), timeoutms);
 		eventstreamSync.on("data", (member) => {
 			if (options.representation && options.representation === "Quads") {
 				lastInsertedMember = member;
-				const memberURI = member.id.value;
-				console.log("Member:", memberURI);
 				const quads = member.quads.filter(
 					(quadObj) => quadObj.subject.value === member.id.value
 				);
 				executeInsertQuery(quads);
 			}
-
-			// Want to pause event stream?
-			// eventstreamSync.pause();
 		});
 
 		eventstreamSync.on("pause", async () => {
