@@ -2,37 +2,14 @@ import { newEngine } from "@treecg/actor-init-ldes-client";
 import * as RDFJS from "rdf-js";
 import { Quad, DataFactory } from "n3";
 import { prov } from "./namespaces";
-import SC2 from "sparql-client-2";
-
-console.log(process.env);
-const { SparqlClient } = SC2;
-
-const SPARQL_CLIENT = new SparqlClient(process.env.MU_SPARQL_ENDPOINT, {
-	requestDefaults: { headers: { "mu-auth-sudo": true } },
-});
+import { toString } from "./utils";
+import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 
 const { quad, namedNode, variable } = DataFactory;
 
 const stream = namedNode(process.env.LDES_STREAM);
 
 let lastInsertedMember: any;
-
-function toString(term: RDFJS.Term) {
-	switch (term.termType) {
-		case "NamedNode":
-			return `<${term.value}>`;
-		case "Literal":
-			return `"${term.value}"`;
-		case "Quad":
-			return `${toString(term.subject)} ${toString(
-				term.predicate
-			)} ${toString(term.object)}.`;
-		case "Variable":
-			return `?${term.value}`;
-		default:
-			return term.value;
-	}
-}
 
 async function executeInsertQuery(quads: RDFJS.Quad[]) {
 	let triplesString = "";
@@ -47,7 +24,7 @@ async function executeInsertQuery(quads: RDFJS.Quad[]) {
     }
   `;
 	try {
-		const response = await SPARQL_CLIENT.query(sparql_query).execute();
+		const response = await update(sparql_query);
 		console.log(response);
 	} catch (e) {
 		console.error(e);
@@ -72,7 +49,7 @@ async function executeDeleteQuery(quads: RDFJS.Quad[]) {
   `;
 	console.log(sparql_query);
 	try {
-		await SPARQL_CLIENT.query(sparql_query).execute();
+		await update(sparql_query);
 	} catch (e) {
 		console.error(e);
 	}
@@ -88,7 +65,7 @@ async function getEndTime() {
   `;
 
 	try {
-		const response = await SPARQL_CLIENT.query(sparql_query).execute();
+		const response = await query(sparql_query);
 		console.log(response);
 		if (response.bindings && response.bindings.length) {
 			const timeString = response.bindings[0].t.value.split("^^")[0];

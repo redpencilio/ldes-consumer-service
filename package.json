@@ -3,6 +3,7 @@
     "@comunica/actor-http-native": "^2.2.0",
     "@comunica/actor-rdf-serialize-jsonld": "^2.2.0",
     "@comunica/actor-rdf-serialize-n3": "^2.2.0",
+    "@lblod/mu-auth-sudo": "^0.5.1",
     "@rdfjs/namespace": "^1.1.0",
     "@treecg/actor-init-ldes-client": "^2.5.10",
     "n3": "^1.16.1",
