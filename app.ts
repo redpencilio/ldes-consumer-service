@@ -1,11 +1,10 @@
 import { newEngine } from "@treecg/actor-init-ldes-client";
 import * as RDFJS from "rdf-js";
-import { query } from "mu";
 import { Quad, DataFactory } from "n3";
-import { example, ldes, prov } from "./namespaces";
+import { prov } from "./namespaces";
 import SC2 from "sparql-client-2";
 
-const { SparqlClient, SPARQL } = SC2;
+const { SparqlClient } = SC2;
 
 const SPARQL_CLIENT = new SparqlClient(process.env.MU_SPARQL_ENDPOINT, {
 	requestDefaults: { headers: { "mu-auth-sudo": true } },
@@ -13,9 +12,7 @@ const SPARQL_CLIENT = new SparqlClient(process.env.MU_SPARQL_ENDPOINT, {
 
 const { quad, namedNode, variable } = DataFactory;
 
-const BASEURI = "http://ldes-time-fragmenter:3000";
-
-const stream = example("post-stream");
+const stream = namedNode(process.env.LDES_STREAM);
 
 let lastInsertedMember: any;
 
@@ -109,22 +106,22 @@ async function main() {
 	try {
 		const endTime = await getEndTime();
 		console.log(endTime);
-		let url = `${BASEURI}/social-media-posts/1`;
+		let url = process.env.LDES_ENDPOINT_VIEW;
 		let options = {
 			pollingInterval: 500, // millis
 			representation: "Quads", //Object or Quads
 			fromTime: endTime,
 			mimeType: "application/ld+json",
 			emitMemberOnce: true,
-			jsonLdContext: {
-				//Only necessary for Object representation
-				"@context": [
-					{
-						"@base": BASEURI,
-						prov: prov().value,
-					},
-				],
-			},
+			// jsonLdContext: {
+			// 	//Only necessary for Object representation
+			// 	"@context": [
+			// 		{
+			// 			"@base": BASEURI,
+			// 			prov: prov().value,
+			// 		},
+			// 	],
+			// },
 		};
 		let LDESClient = new newEngine();
 		let eventstreamSync = LDESClient.createReadStream(url, options);
@@ -175,7 +172,7 @@ async function main() {
 			console.log("No more data!");
 		});
 	} catch (e) {
-		console.error(e);
+		throw e;
 	}
 }
 
