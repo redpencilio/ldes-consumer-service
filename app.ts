@@ -3,19 +3,20 @@ import { Quad } from "n3";
 import { purl } from "./namespaces";
 import {
 	executeDeleteInsertQuery,
-	executeDeleteQuery,
-	executeInsertQuery,
 	getEndTime,
 	replaceEndTime,
 } from "./sparql-queries";
 
 import { DataFactory } from "n3";
 import PromiseQueue from "./promise-queue";
+import { NamedNode } from "rdf-js";
 const { quad, namedNode, variable } = DataFactory;
 
-let lastInsertedMember: any;
+const QUEUE_MAP: Map<string, PromiseQueue<void>> = new Map();
 
 let PROMISE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
+
+let TIMESTAMP_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
 
 function extractTimeStamp(member) {
 	const timeStamp: Quad = member.quads.find(
@@ -24,31 +25,35 @@ function extractTimeStamp(member) {
 	return timeStamp.object;
 }
 
+function extractBaseResourceUri(member): NamedNode {
+	const baseResourceMatches = member.quads.filter((quadObj) =>
+		quadObj.predicate.equals(purl("isVersionOf"))
+	);
+	if (baseResourceMatches && baseResourceMatches.length) {
+		return baseResourceMatches[0].object;
+	}
+	return;
+}
+
 async function processMember(member) {
 	console.log("process start");
 	const quadsToAdd: Quad[] = member.quads.filter(
 		(quadObj) => quadObj.subject.value === member.id.value
 	);
 	const quadsToRemove: Quad[] = [];
-	const baseResourceMatches = quadsToAdd.filter((quadObj) =>
-		quadObj.predicate.equals(purl("isVersionOf"))
-	);
-	if (baseResourceMatches && baseResourceMatches.length) {
-		const baseResourceUri = baseResourceMatches[0];
+	const baseResourceUri = extractBaseResourceUri(member);
+	if (baseResourceUri) {
 		quadsToRemove.push(
-			quad(variable("s"), purl("isVersionOf"), baseResourceUri.object)
+			quad(variable("s"), purl("isVersionOf"), baseResourceUri)
 		);
 		quadsToAdd.forEach((quadObj, i) => {
 			quadsToRemove.push(
 				quad(variable("s"), quadObj.predicate, variable(`o${i}`))
 			);
 		});
-
-		// the old versions should be removed from the virtuoso triplestore
 	}
 
 	await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
-	await processTimeStamp(member);
 	console.log("process end");
 }
 
@@ -71,7 +76,7 @@ async function main() {
 		let options = {
 			pollingInterval: parseInt(process.env.LDES_POLLING_INTERVAL), // millis
 			representation: "Quads", //Object or Quads
-			fromTime: undefined,
+			fromTime: endTime,
 			mimeType: "application/ld+json",
 			emitMemberOnce: true,
 		};
@@ -79,11 +84,16 @@ async function main() {
 
 		let eventstreamSync = LDESClient.createReadStream(url, options);
 		eventstreamSync.on("data", (member) => {
-			lastInsertedMember = member;
-			PROMISE_QUEUE.push(() => processMember(member));
-		});
-		eventstreamSync.on("end", () => {
-			console.log("No more data!");
+			const baseResourceUri = extractBaseResourceUri(member);
+			if (baseResourceUri) {
+				if (!QUEUE_MAP.has(baseResourceUri.value)) {
+					QUEUE_MAP.set(baseResourceUri.value, new PromiseQueue());
+				}
+				QUEUE_MAP.get(baseResourceUri.value).push(() =>
+					processMember(member)
+				);
+				TIMESTAMP_QUEUE.push(() => processTimeStamp(member));
+			}
 		});
 	} catch (e) {
 		throw e;
