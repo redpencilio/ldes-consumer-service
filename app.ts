@@ -2,20 +2,27 @@ import { newEngine } from "@treecg/actor-init-ldes-client";
 import { Quad } from "n3";
 import { purl } from "./namespaces";
 import {
+	executeDeleteInsertQuery,
 	executeDeleteQuery,
 	executeInsertQuery,
 	getEndTime,
-	getVersion,
 	replaceEndTime,
 } from "./sparql-queries";
 
 import { DataFactory } from "n3";
 import PromiseQueue from "./promise-queue";
-const { quad, namedNode, variable, blankNode } = DataFactory;
+const { quad, namedNode, variable } = DataFactory;
 
 let lastInsertedMember: any;
 
 let PROMISE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
+
+function extractTimeStamp(member) {
+	const timeStamp: Quad = member.quads.find(
+		(quadObj) => quadObj.predicate.value === process.env.LDES_RELATION_PATH
+	);
+	return timeStamp.object;
+}
 
 async function processMember(member) {
 	console.log("process start");
@@ -37,11 +44,23 @@ async function processMember(member) {
 			);
 		});
 
-		// the old version should be removed from the virtuoso triplestore
+		// the old versions should be removed from the virtuoso triplestore
 	}
-	await executeDeleteQuery(quadsToRemove);
-	await executeInsertQuery(quadsToAdd);
+
+	await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
+	await processTimeStamp(member);
 	console.log("process end");
+}
+
+async function processTimeStamp(member) {
+	try {
+		let timestamp = extractTimeStamp(member);
+		if (timestamp) {
+			await replaceEndTime(timestamp);
+		}
+	} catch (e) {
+		throw e;
+	}
 }
 
 async function main() {
@@ -63,20 +82,6 @@ async function main() {
 			lastInsertedMember = member;
 			PROMISE_QUEUE.push(() => processMember(member));
 		});
-
-		// eventstreamSync.on("pause", async () => {
-		// 	console.log("PAUSE");
-		// 	if (lastInsertedMember) {
-		// 		const timeStamp: Quad = lastInsertedMember.quads.find(
-		// 			(quadObj) =>
-		// 				quadObj.predicate.value ===
-		// 				process.env.LDES_RELATION_PATH
-		// 		);
-		// 		if (timeStamp) {
-		// 			await replaceEndTime(timeStamp.object);
-		// 		}
-		// 	}
-		// });
 		eventstreamSync.on("end", () => {
 			console.log("No more data!");
 		});

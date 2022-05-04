@@ -1,6 +1,6 @@
 import { Term } from "rdf-js";
 
-export function toString(term: Term) {
+export function toString(term: Term): string {
 	switch (term.termType) {
 		case "NamedNode":
 			return `<${term.value}>`;

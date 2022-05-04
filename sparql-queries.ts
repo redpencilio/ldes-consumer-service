@@ -1,16 +1,22 @@
-import { Quad, Quad_Object, Term } from "rdf-js";
+import { Quad, Quad_Object, Term, Variable } from "rdf-js";
 import { toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
-import { DataFactory } from "n3";
+import { DataFactory, NamedNode } from "n3";
 import { prov, purl } from "./namespaces";
 const { quad, namedNode, variable } = DataFactory;
 
 const stream = namedNode(process.env.LDES_STREAM);
-export async function executeInsertQuery(quads: Quad[]) {
+
+function constructTriplesString(quads: Quad[]) {
 	let triplesString = "";
 	quads.forEach((quadObj) => {
 		triplesString += toString(quadObj) + "\n";
 	});
+	return triplesString;
+}
+
+export function constructInsertQuery(quads: Quad[]) {
+	let triplesString = constructTriplesString(quads);
 	const sparql_query = `
     INSERT DATA {
         GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
@@ -18,20 +24,11 @@ export async function executeInsertQuery(quads: Quad[]) {
         }
     }
   `;
-	// console.log(sparql_query);
-	try {
-		const response = await update(sparql_query);
-		// console.log("Sparql insert response: ", response);
-	} catch (e) {
-		console.error(e);
-	}
+	return sparql_query;
 }
 
-export async function executeDeleteQuery(quads: Quad[]) {
-	let triplesString = "";
-	quads.forEach((quadObj) => {
-		triplesString += toString(quadObj) + "\n";
-	});
+export function constructDeleteQuery(quads: Quad[]) {
+	let triplesString = constructTriplesString(quads);
 	const sparql_query = `
     DELETE {
       GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
@@ -43,32 +40,78 @@ export async function executeDeleteQuery(quads: Quad[]) {
         }
     }
   `;
-	// console.log(sparql_query);
-	try {
-		await update(sparql_query);
-	} catch (e) {
-		console.error(e);
-	}
+	return sparql_query;
 }
 
-export async function getEndTime() {
+export function constructDeleteInsertQuery(
+	quadsToDelete: Quad[],
+	quadsToInsert: Quad[]
+) {
+	let deleteTriplesString = constructTriplesString(quadsToDelete);
+	let insertTriplesString = constructTriplesString(quadsToInsert);
 	const sparql_query = `
-    SELECT ?t where {
+	DELETE {
+		GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+			${deleteTriplesString}
+		}
+	  }
+	INSERT  {
+        GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+            ${insertTriplesString}
+        }
+    }
+	WHERE {
+        GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+            ${deleteTriplesString}
+        }
+    }
+	`;
+	return sparql_query;
+}
+
+export function constructSelectQuery(variables: Variable[], quads: Quad[]) {
+	let triplesString = constructTriplesString(quads);
+	let variablesString = variables.map(toString).join(" ");
+	const sparql_query = `
+    SELECT ${variablesString} where {
       GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
-        ${toString(stream)} ${toString(prov("endedAtTime"))} ?t.
+        ${triplesString}
       }
     }
   `;
+	return sparql_query;
+}
+
+export async function executeInsertQuery(quads: Quad[]) {
+	let queryStr = constructInsertQuery(quads);
+	await update(queryStr);
+}
+
+export async function executeDeleteQuery(quads: Quad[]) {
+	let queryStr = constructDeleteQuery(quads);
+	await update(queryStr);
+}
+
+export async function executeDeleteInsertQuery(
+	quadsToDelete: Quad[],
+	quadsToInsert: Quad[]
+) {
+	let queryStr = constructDeleteInsertQuery(quadsToDelete, quadsToInsert);
+	await update(queryStr);
+}
+
+export async function getEndTime() {
+	let quads = [quad(stream, prov("endedAtTime"), variable("t"))];
+	let variables = [variable("t")];
+	const sparql_query = constructSelectQuery(variables, quads);
 
 	try {
 		const response = await query(sparql_query);
-		const bindings = response.results.bindings;
-		console.log("End Time Response: ", response.results.bindings);
-		if (bindings && bindings.length) {
-			const timeString = bindings[0].t.value.split("^^")[0];
+		const timeStrings = extractVariableFromResponse(response, "t");
+		if (timeStrings) {
+			const timeString = timeStrings[0].split("^^")[0];
 			let time: Date = new Date(timeString);
 			time.setMilliseconds(time.getMilliseconds() + 1);
-
 			return time;
 		}
 		return;
@@ -77,24 +120,24 @@ export async function getEndTime() {
 	}
 }
 
-export async function getVersion(resource: Term) {
-	const sparql_query = `
-    SELECT ?v where {
-      GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
-        ?v ${toString(purl("isVersionOf"))} ${toString(resource)}.
-      }
-    }
-  `;
+function extractVariableFromResponse(response, variable: string): string[] {
+	const bindings = response.results.bindings;
+	if (bindings && bindings.length) {
+		return bindings.map((binding) => binding[variable].value);
+	}
+	return;
+}
 
-	// console.log(sparql_query);
+export async function getVersion(resource: NamedNode) {
+	let quads = [quad(variable("v"), purl("isVersionOf"), resource)];
+	let variables = [variable("v")];
+	const sparql_query = constructSelectQuery(variables, quads);
 
 	try {
 		const response = await query(sparql_query);
-		const bindings = response.results.bindings;
-		console.log(bindings);
-		if (bindings && bindings.length) {
-			const versionUri = bindings[0].v.value;
-			return namedNode(versionUri);
+		const versionUris = extractVariableFromResponse(response, "v");
+		if (versionUris) {
+			return namedNode(versionUris[0]);
 		}
 		return;
 	} catch (e) {
@@ -108,7 +151,6 @@ export async function replaceEndTime(timeStamp: Quad_Object) {
 		prov("endedAtTime"),
 		variable("t")
 	);
-	await executeDeleteQuery([genericTimeQuad]);
 	const newTimeQuad: Quad = quad(stream, prov("endedAtTime"), timeStamp);
-	await executeInsertQuery([newTimeQuad]);
+	await executeDeleteInsertQuery([genericTimeQuad], [newTimeQuad]);
 }
