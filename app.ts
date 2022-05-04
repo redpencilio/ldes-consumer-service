@@ -13,9 +13,7 @@ import { NamedNode } from "rdf-js";
 const { quad, namedNode, variable } = DataFactory;
 
 const QUEUE_MAP: Map<string, PromiseQueue<void>> = new Map();
-
-let PROMISE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
-
+const UPDATE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
 let TIMESTAMP_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
 
 function extractTimeStamp(member) {
@@ -86,12 +84,13 @@ async function main() {
 		eventstreamSync.on("data", (member) => {
 			const baseResourceUri = extractBaseResourceUri(member);
 			if (baseResourceUri) {
-				if (!QUEUE_MAP.has(baseResourceUri.value)) {
-					QUEUE_MAP.set(baseResourceUri.value, new PromiseQueue());
-				}
-				QUEUE_MAP.get(baseResourceUri.value).push(() =>
-					processMember(member)
-				);
+				UPDATE_QUEUE.push(() => processMember(member));
+				// if (!QUEUE_MAP.has(baseResourceUri.value)) {
+				// 	QUEUE_MAP.set(baseResourceUri.value, new PromiseQueue());
+				// }
+				// QUEUE_MAP.get(baseResourceUri.value).push(() =>
+				// 	processMember(member)
+				// );
 				TIMESTAMP_QUEUE.push(() => processTimeStamp(member));
 			}
 		});

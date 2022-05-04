@@ -84,12 +84,20 @@ export function constructSelectQuery(variables: Variable[], quads: Quad[]) {
 
 export async function executeInsertQuery(quads: Quad[]) {
 	let queryStr = constructInsertQuery(quads);
-	await update(queryStr);
+	try {
+		await update(queryStr);
+	} catch (e) {
+		console.error(e);
+	}
 }
 
 export async function executeDeleteQuery(quads: Quad[]) {
 	let queryStr = constructDeleteQuery(quads);
-	await update(queryStr);
+	try {
+		await update(queryStr);
+	} catch (e) {
+		console.error(e);
+	}
 }
 
 export async function executeDeleteInsertQuery(
@@ -97,7 +105,11 @@ export async function executeDeleteInsertQuery(
 	quadsToInsert: Quad[]
 ) {
 	let queryStr = constructDeleteInsertQuery(quadsToDelete, quadsToInsert);
-	await update(queryStr);
+	try {
+		await update(queryStr);
+	} catch (e) {
+		console.error(e);
+	}
 }
 
 export async function getEndTime() {
