@@ -2,7 +2,7 @@ import { Quad, Quad_Object, Term } from "rdf-js";
 import { toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
-import { prov } from "./namespaces";
+import { prov, purl } from "./namespaces";
 const { quad, namedNode, variable } = DataFactory;
 
 const stream = namedNode(process.env.LDES_STREAM);
@@ -18,9 +18,10 @@ export async function executeInsertQuery(quads: Quad[]) {
         }
     }
   `;
+	// console.log(sparql_query);
 	try {
 		const response = await update(sparql_query);
-		console.log("Sparql insert response: ", response);
+		// console.log("Sparql insert response: ", response);
 	} catch (e) {
 		console.error(e);
 	}
@@ -42,7 +43,7 @@ export async function executeDeleteQuery(quads: Quad[]) {
         }
     }
   `;
-	console.log(sparql_query);
+	// console.log(sparql_query);
 	try {
 		await update(sparql_query);
 	} catch (e) {
@@ -69,6 +70,31 @@ export async function getEndTime() {
 			time.setMilliseconds(time.getMilliseconds() + 1);
 
 			return time;
+		}
+		return;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+export async function getVersion(resource: Term) {
+	const sparql_query = `
+    SELECT ?v where {
+      GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+        ?v ${toString(purl("isVersionOf"))} ${toString(resource)}.
+      }
+    }
+  `;
+
+	// console.log(sparql_query);
+
+	try {
+		const response = await query(sparql_query);
+		const bindings = response.results.bindings;
+		console.log(bindings);
+		if (bindings && bindings.length) {
+			const versionUri = bindings[0].v.value;
+			return namedNode(versionUri);
 		}
 		return;
 	} catch (e) {

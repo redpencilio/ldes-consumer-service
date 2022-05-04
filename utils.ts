@@ -12,6 +12,8 @@ export function toString(term: Term) {
 			)} ${toString(term.object)}.`;
 		case "Variable":
 			return `?${term.value}`;
+		case "BlankNode":
+			return "[]";
 		default:
 			return term.value;
 	}
