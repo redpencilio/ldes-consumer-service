@@ -8,7 +8,15 @@
     "@treecg/actor-init-ldes-client": "^2.5.10",
     "n3": "^1.16.1",
     "rdf-js": "^4.0.2",
-    "rdf-parse": "^2.0.0",
-    "sparql-client-2": "^0.6.3"
-  }
+    "rdf-parse": "^2.0.0"
+  },
+  "name": "ldes-consumer-service",
+  "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
 }
