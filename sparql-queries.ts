@@ -1,6 +1,5 @@
 import { Quad, Quad_Object, Term, Variable } from "rdf-js";
 import { toString } from "./utils";
-// import { query, update } from "mu";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory, NamedNode } from "n3";
 import { prov, purl } from "./namespaces";
@@ -9,10 +8,7 @@ const { quad, namedNode, variable } = DataFactory;
 const stream = namedNode(process.env.LDES_STREAM);
 
 function constructTriplesString(quads: Quad[]) {
-	let triplesString = "";
-	quads.forEach((quadObj) => {
-		triplesString += toString(quadObj) + "\n";
-	});
+	let triplesString = quads.map(toString).join("\n");
 	return triplesString;
 }
 
@@ -68,7 +64,6 @@ export function constructSelectQuery(variables: Variable[], quads: Quad[]) {
 
 export async function executeInsertQuery(quads: Quad[]) {
 	let queryStr = constructInsertQuery(quads);
-	// console.log(queryStr);
 	try {
 		await update(queryStr);
 	} catch (e) {
@@ -108,7 +103,7 @@ export async function getEndTime() {
 		if (timeStrings) {
 			const timeString = timeStrings[0].split("^^")[0];
 			let time: Date = new Date(timeString);
-			time.setMilliseconds(time.getMilliseconds() + 1);
+			// time.setMilliseconds(time.getMilliseconds());
 			return time;
 		}
 		return;
