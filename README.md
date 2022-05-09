@@ -10,5 +10,6 @@ The following environment variables can be provided:
 -   `LDES_RELATION_PATH`: the predicate which is being used to define relations. For time-based streams, this will almost always be http://www.w3.org/ns/prov#generatedAtTime.
 
 -   `LDES_POLLING_INTERVAL`: the polling interval in milliseconds of the client which fetches resources from and endpoint
+-   `REPLACE_VERSIONS`: boolean which indicates whether to remove old versions of a resource when adding a new version or not
 
 Note, when using this service you can either choose to send the sparql queries to a mu-authorization endpoint or to the virtuoso triplestore directly. When consuming a large dataset, sending the sparql queries to the triplestore directly will be more performant.
