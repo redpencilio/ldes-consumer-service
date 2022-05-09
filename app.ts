@@ -40,11 +40,15 @@ async function processMember(member) {
 	);
 	const quadsToRemove: Quad[] = [];
 	const baseResourceUri = extractBaseResourceUri(member);
-	if (baseResourceUri) {
+	if (baseResourceUri && process.env.REPLACE_VERSIONS) {
 		quadsToRemove.push(
 			quad(variable("s"), purl("isVersionOf"), baseResourceUri)
 		);
-		quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+		quadsToAdd.forEach((quadObj, i) => {
+			quadsToRemove.push(
+				quad(variable("s"), quadObj.predicate, variable(`o${i}`))
+			);
+		});
 	}
 
 	await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
