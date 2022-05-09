@@ -1,5 +1,6 @@
 import { Quad, Quad_Object, Term, Variable } from "rdf-js";
 import { toString } from "./utils";
+// import { query, update } from "mu";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory, NamedNode } from "n3";
 import { prov, purl } from "./namespaces";
@@ -47,26 +48,9 @@ export function constructDeleteInsertQuery(
 	quadsToDelete: Quad[],
 	quadsToInsert: Quad[]
 ) {
-	let deleteTriplesString = constructTriplesString(quadsToDelete);
-	let insertTriplesString = constructTriplesString(quadsToInsert);
-	const sparql_query = `
-	DELETE {
-		GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
-			${deleteTriplesString}
-		}
-	  }
-	INSERT  {
-        GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
-            ${insertTriplesString}
-        }
-    }
-	WHERE {
-        GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
-            ${deleteTriplesString}
-        }
-    }
-	`;
-	return sparql_query;
+	let deleteQuery = constructDeleteQuery(quadsToDelete);
+	let insertQuery = constructInsertQuery(quadsToInsert);
+	return deleteQuery + "\n" + insertQuery;
 }
 
 export function constructSelectQuery(variables: Variable[], quads: Quad[]) {
@@ -84,6 +68,7 @@ export function constructSelectQuery(variables: Variable[], quads: Quad[]) {
 
 export async function executeInsertQuery(quads: Quad[]) {
 	let queryStr = constructInsertQuery(quads);
+	// console.log(queryStr);
 	try {
 		await update(queryStr);
 	} catch (e) {
@@ -104,9 +89,9 @@ export async function executeDeleteInsertQuery(
 	quadsToDelete: Quad[],
 	quadsToInsert: Quad[]
 ) {
-	let queryStr = constructDeleteInsertQuery(quadsToDelete, quadsToInsert);
+	let query = constructDeleteInsertQuery(quadsToDelete, quadsToInsert);
 	try {
-		await update(queryStr);
+		await update(query);
 	} catch (e) {
 		console.error(e);
 	}

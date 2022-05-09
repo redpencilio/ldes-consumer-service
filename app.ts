@@ -44,14 +44,11 @@ async function processMember(member) {
 		quadsToRemove.push(
 			quad(variable("s"), purl("isVersionOf"), baseResourceUri)
 		);
-		quadsToAdd.forEach((quadObj, i) => {
-			quadsToRemove.push(
-				quad(variable("s"), quadObj.predicate, variable(`o${i}`))
-			);
-		});
+		quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
 	}
 
 	await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
+	await processTimeStamp(member);
 	console.log("process end");
 }
 
@@ -85,17 +82,10 @@ async function main() {
 			const baseResourceUri = extractBaseResourceUri(member);
 			if (baseResourceUri) {
 				UPDATE_QUEUE.push(() => processMember(member));
-				// if (!QUEUE_MAP.has(baseResourceUri.value)) {
-				// 	QUEUE_MAP.set(baseResourceUri.value, new PromiseQueue());
-				// }
-				// QUEUE_MAP.get(baseResourceUri.value).push(() =>
-				// 	processMember(member)
-				// );
-				TIMESTAMP_QUEUE.push(() => processTimeStamp(member));
 			}
 		});
 	} catch (e) {
-		throw e;
+		console.error(e);
 	}
 }
 
