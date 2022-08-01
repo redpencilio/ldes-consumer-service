@@ -3,6 +3,7 @@
     "@lblod/mu-auth-sudo": "^0.5.1",
     "@rdfjs/namespace": "^1.1.0",
     "@treecg/actor-init-ldes-client": "^2.6.0",
+    "express-http-context": "^1.2.4",
     "n3": "^1.16.1",
     "rdf-js": "^4.0.2",
     "rdf-parse": "^2.0.0"
@@ -12,6 +13,7 @@
   "version": "0.1.1",
   "main": "app.js",
   "scripts": {
+    "start": "ts-node app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
