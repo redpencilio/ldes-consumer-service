@@ -1,5 +1,3 @@
-import { newEngine } from "@treecg/actor-init-ldes-client";
-import { Quad } from "n3";
 import { purl } from "./namespaces";
 import {
   executeDeleteInsertQuery,
@@ -7,38 +5,38 @@ import {
   replaceEndTime,
 } from "./sparql-queries";
 
+
 import { DataFactory } from "n3";
 import PromiseQueue from "./promise-queue";
-import { NamedNode } from "rdf-js";
-const { quad, namedNode, variable } = DataFactory;
+import * as RDF from "rdf-js";
+import Consumer, { Member } from "./consumer";
+const { quad, variable } = DataFactory;
 
-const QUEUE_MAP: Map<string, PromiseQueue<void>> = new Map();
 const UPDATE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
-let TIMESTAMP_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
 
-function extractTimeStamp(member) {
-  const timeStamp: Quad = member.quads.find(
+function extractTimeStamp(member: Member) {
+  const timeStamp: RDF.Quad = member.quads.find(
     (quadObj) => quadObj.predicate.value === process.env.LDES_RELATION_PATH
   );
   return timeStamp.object;
 }
 
-function extractBaseResourceUri(member): NamedNode {
+function extractBaseResourceUri(member: Member): RDF.NamedNode | undefined {
   const baseResourceMatches = member.quads.filter((quadObj) =>
     quadObj.predicate.equals(purl("isVersionOf"))
   );
   if (baseResourceMatches && baseResourceMatches.length) {
-    return baseResourceMatches[0].object;
+    return baseResourceMatches[0].object as RDF.NamedNode;
   }
   return;
 }
 
-async function processMember(member) {
+async function processMember(member: Member) {
   console.log("process start");
-  const quadsToAdd: Quad[] = member.quads.filter(
+  const quadsToAdd: RDF.Quad[] = member.quads.filter(
     (quadObj) => quadObj.subject.value === member.id.value
   );
-  const quadsToRemove: Quad[] = [];
+  const quadsToRemove: RDF.Quad[] = [];
   const baseResourceUri = extractBaseResourceUri(member);
   if (baseResourceUri && process.env.REPLACE_VERSIONS) {
     quadsToRemove.push(
@@ -69,25 +67,22 @@ async function processTimeStamp(member) {
 
 async function main() {
   try {
-    const endTime = await getEndTime();
-    console.log("Start time: ", endTime);
-    let url = process.env.LDES_ENDPOINT_VIEW;
-    let options = {
-      pollingInterval: parseInt(process.env.LDES_POLLING_INTERVAL), // millis
-      representation: "Quads", //Object or Quads
-      fromTime: endTime,
-      mimeType: "application/ld+json",
-      emitMemberOnce: true,
-    };
-    let LDESClient = new newEngine();
+    const endpoint = process.env.LDES_ENDPOINT_VIEW || "https://ipdc.ipdc.tni-vlaanderen.be/api/conceptsnapshots/ldes/0";
+    if(endpoint){
+      const endTime = await getEndTime();
+      const consumer = new Consumer({ endpoint })
+      const stream = consumer.listen(endTime);
+      stream.on("data", (member: Member) => {
+        const baseResourceUri = extractBaseResourceUri(member);
+        if (baseResourceUri) {
+          UPDATE_QUEUE.push(() => processMember(member));
+        }
+      });
 
-    let eventstreamSync = LDESClient.createReadStream(url, options);
-    eventstreamSync.on("data", (member) => {
-      const baseResourceUri = extractBaseResourceUri(member);
-      if (baseResourceUri) {
-        UPDATE_QUEUE.push(() => processMember(member));
-      }
-    });
+    } else {
+      throw new Error('No endpoint provided');
+    }
+    
   } catch (e) {
     console.error(e);
   }
