@@ -9,17 +9,13 @@ import {
 import { DataFactory } from "n3";
 import PromiseQueue from "./promise-queue";
 import * as RDF from "rdf-js";
-import Consumer, { Member } from "./consumer";
-const { quad, variable } = DataFactory;
+import Consumer, {  Member } from "./consumer";
+import { extractTimeStamp } from "./utils";
+const { quad, variable, namedNode } = DataFactory;
 
 const UPDATE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
 
-function extractTimeStamp(member: Member) {
-  const timeStamp: RDF.Quad = member.quads.find(
-    (quadObj) => quadObj.predicate.value === process.env.LDES_RELATION_PATH
-  );
-  return timeStamp.object;
-}
+
 
 function extractBaseResourceUri(member: Member): RDF.NamedNode | undefined {
   const baseResourceMatches = member.quads.filter((quadObj) =>
@@ -54,11 +50,11 @@ async function processMember(member: Member) {
   console.log("process end");
 }
 
-async function processTimeStamp(member) {
+async function processTimeStamp(member: Member) {
   try {
     let timestamp = extractTimeStamp(member);
     if (timestamp) {
-      await replaceEndTime(timestamp);
+      await replaceEndTime(namedNode(timestamp.toString()));
     }
   } catch (e) {
     throw e;
@@ -69,16 +65,10 @@ async function main() {
   try {
     const endpoint = process.env.LDES_ENDPOINT_VIEW || "https://ipdc.ipdc.tni-vlaanderen.be/api/conceptsnapshots/ldes/0";
     if(endpoint){
-      const endTime = await getEndTime();
       const consumer = new Consumer({ endpoint })
-      const stream = consumer.listen(endTime);
-      stream.on("data", (member: Member) => {
-        const baseResourceUri = extractBaseResourceUri(member);
-        if (baseResourceUri) {
-          UPDATE_QUEUE.push(() => processMember(member));
-        }
+      consumer.listen((member, state) => {
+        console.log(member.id);
       });
-
     } else {
       throw new Error('No endpoint provided');
     }

@@ -1,37 +1,58 @@
-import { newEngine, State, LDESClient, EventStream } from "@treecg/actor-init-ldes-client";
+import {
+	newEngine,
+	LDESClient,
+} from "@treecg/actor-init-ldes-client";
 import * as RDF from "rdf-js";
-
+import { extractTimeStamp } from "./utils";
 export type ConsumerArgs = {
 	endpoint: string;
 	interval?: number;
+  initialState?: State;
 };
 
 export type Member = {
-  id: RDF.Term,
-  quads: RDF.Quad[]
+	id: RDF.Term;
+	quads: RDF.Quad[];
+};
+export interface State {
+  timestamp?: Date;
+  page: string;
 }
 
 export default class Consumer {
 	private client: LDESClient;
-	private endpoint: string;
+	private startPage: string;
+  private startTimeStamp?: Date;
+  private currentPage: string;
 	private interval: number;
-	constructor({ endpoint, interval = 500 }: ConsumerArgs) {
-		this.endpoint = endpoint;
+	constructor({ endpoint, interval = 500, initialState = { page: endpoint } }: ConsumerArgs) {
+    this.startTimeStamp = initialState.timestamp;
+    this.startPage = initialState.page;
+    this.currentPage = initialState.page;
 		this.interval = interval;
 		this.client = newEngine();
 	}
 
-	listen(startTimeStamp?: Date, initialState?: State): EventStream {
+	listen(callback: (m: Member, state: State) => void): void {
+    
 		const stream = this.client.createReadStream(
-			this.endpoint,
-			{ pollingInterval: this.interval,
-        representation: "Quads",
-        mimeType: "application/ld+json",
-        emitMemberOnce: true,
-        fromTime: startTimeStamp
-      },
-			initialState
+			this.startPage,
+			{
+				pollingInterval: this.interval,
+				representation: "Quads",
+				mimeType: "application/ld+json",
+				emitMemberOnce: true,
+				fromTime: this.startTimeStamp
+			},
 		);
-    return stream;
+		stream.on("metadata", (metadata) => {
+      this.currentPage = metadata.url;
+    })
+    stream.on("data", (member: Member) => {
+      callback(member, { timestamp: extractTimeStamp(member), page: this.currentPage})
+    })
+    stream.on("error", (error) => {
+      console.error(error);
+    })
 	}
 }
