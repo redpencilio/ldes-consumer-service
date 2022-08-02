@@ -1,63 +1,54 @@
 import { PURL } from "./namespaces";
 import {
-  executeDeleteInsertQuery,
-  fetchState,
-  replaceEndTime,
+	executeDeleteInsertQuery,
+	fetchState,
+  updateState,
 } from "./sparql-queries";
-
 
 import { DataFactory } from "n3";
 import * as RDF from "rdf-js";
-import Consumer, {  Member } from "./consumer";
-const { quad, variable, namedNode } = DataFactory;
+import Consumer, { Member } from "./consumer";
+import { convertBlankNodes, extractBaseResourceUri } from "./utils";
+import { CronJob } from 'cron';
+import { CRON_PATTERN, LDES_ENDPOINT_VIEW, LDES_POLLING_INTERVAL, REPLACE_VERSIONS } from "./config";
+const { quad, variable } = DataFactory;
 
-function extractBaseResourceUri(member: Member): RDF.NamedNode | undefined {
-  const baseResourceMatches = member.quads.filter((quadObj) =>
-    quadObj.predicate.equals(PURL("isVersionOf"))
-  );
-  if (baseResourceMatches && baseResourceMatches.length) {
-    return baseResourceMatches[0].object as RDF.NamedNode;
-  }
-  return;
-}
+
 
 async function processMember(member: Member) {
-  const quadsToAdd: RDF.Quad[] = member.quads.filter(
-    (quadObj) => quadObj.subject.value === member.id.value
-  );
-  const quadsToRemove: RDF.Quad[] = [];
-  const baseResourceUri = extractBaseResourceUri(member);
-  if (baseResourceUri && process.env.REPLACE_VERSIONS) {
-    quadsToRemove.push(
-      quad(variable("s"), PURL("isVersionOf"), baseResourceUri)
-    );
-    quadsToAdd.forEach((quadObj, i) => {
-      quadsToRemove.push(
-        quad(variable("s"), quadObj.predicate, variable(`o${i}`))
-      );
-    });
-  }
-  await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
+	const quadsToAdd: RDF.Quad[] = member.quads;
+	const quadsToRemove: RDF.Quad[] = [];
+	const baseResourceUri = extractBaseResourceUri(member);
+	if (baseResourceUri && REPLACE_VERSIONS) {
+		quadsToRemove.push(
+			quad(variable("s"), PURL("isVersionOf"), baseResourceUri)
+		);
+    quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")))
+	}
+	await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
 }
 
-async function main() {
-  try {
-    const initialState = await fetchState();
-    const endpoint = process.env.LDES_ENDPOINT_VIEW;
-    if(endpoint){
-      const consumer = new Consumer({ endpoint, initialState })
-      consumer.listen(async (member, state) => {
-        await processMember(member);
-        if(state.timestamp){
-          await replaceEndTime(namedNode(state.timestamp.toString()));
-        }
-      });
-    } else {
-      throw new Error('No endpoint provided');
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
+const consumerJob = new CronJob(CRON_PATTERN, async () => {
+	try {
+		const initialState = await fetchState();
+		const endpoint = LDES_ENDPOINT_VIEW;
+		if (endpoint) {
+			const consumer = new Consumer({
+				endpoint,
+				interval: LDES_POLLING_INTERVAL,
+				initialState,
+			});
+			consumer.listen(async (member, state) => {
+				convertBlankNodes(member.quads); 
+				await processMember(member);
+        await updateState(state);
+			});
+		} else {
+			throw new Error("No endpoint provided");
+		}
+	} catch (e) {
+		console.error(e); 
+	}
+})
 
-main();
+consumerJob.start();

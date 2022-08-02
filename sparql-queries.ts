@@ -1,12 +1,13 @@
 import * as RDF from "rdf-js";
-import { toString } from "./utils";
+import { fromDate, toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { PROV, PURL, TREE } from "./namespaces";
 import { State } from "./consumer";
+import { LDES_STREAM, MU_APPLICATION_GRAPH } from "./config";
 const { quad, namedNode, variable, literal } = DataFactory;
 
-const stream = namedNode(process.env.LDES_STREAM);
+const stream = namedNode(LDES_STREAM);
 
 function constructTriplesString(quads: RDF.Quad[]) {
 	let triplesString = quads.map(toString).join("\n");
@@ -17,7 +18,7 @@ export function constructInsertQuery(quads: RDF.Quad[]) {
 	let triplesString = constructTriplesString(quads);
 	const sparql_query = `
     INSERT DATA {
-        GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+        GRAPH <${MU_APPLICATION_GRAPH}> {
             ${triplesString}
         }
     }
@@ -29,25 +30,16 @@ export function constructDeleteQuery(quads: RDF.Quad[]) {
 	let triplesString = constructTriplesString(quads);
 	const sparql_query = `
     DELETE {
-      GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+      GRAPH <${MU_APPLICATION_GRAPH}> {
             ${triplesString}
       }
     } WHERE {
-        GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+        GRAPH <${MU_APPLICATION_GRAPH}> {
             ${triplesString}
         }
     }
   `;
 	return sparql_query;
-}
-
-export function constructDeleteInsertQuery(
-	quadsToDelete: RDF.Quad[],
-	quadsToInsert: RDF.Quad[]
-) {
-	let deleteQuery = constructDeleteQuery(quadsToDelete);
-	let insertQuery = constructInsertQuery(quadsToInsert);
-	return deleteQuery + "\n" + insertQuery;
 }
 
 export function constructSelectQuery(
@@ -58,7 +50,7 @@ export function constructSelectQuery(
 	let variablesString = variables.map(toString).join(" ");
 	const sparql_query = `
     SELECT ${variablesString} where {
-      GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+      GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
       }
     }
@@ -88,9 +80,11 @@ export async function executeDeleteInsertQuery(
 	quadsToDelete: RDF.Quad[],
 	quadsToInsert: RDF.Quad[]
 ) {
-	let query = constructDeleteInsertQuery(quadsToDelete, quadsToInsert);
+  let deleteQuery = constructDeleteQuery(quadsToDelete);
+  let insertQuery = constructInsertQuery(quadsToInsert);
 	try {
-		await update(query);
+		await update(deleteQuery);
+    await update(insertQuery);
 	} catch (e) {
 		console.error(e);
 	}
@@ -110,14 +104,14 @@ export async function fetchState() {
 		if (timeString) {
 			state.timestamp = new Date(timeString);
 		}
-		const node = extractVariableFromResponse(response, "t")?.shift();
+		const node = extractVariableFromResponse(response, "p")?.shift();
 		if (node) {
-			state.page = node;
+			state.page = node; 
 		}
 		return state;
 	} catch (e) {
 		console.error(e);
-	}
+	} 
 }
 
 function extractVariableFromResponse(
@@ -159,7 +153,7 @@ export async function updateState(state: State) {
 					quad(
 						stream,
 						PROV("endedAtTime"),
-						literal(state.timestamp.toISOString())
+            fromDate(state.timestamp)
 					),
 			  ]
 			: []),
@@ -168,14 +162,4 @@ export async function updateState(state: State) {
 			: []),
 	];
 	await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
-}
-
-export async function replaceEndTime(timeStamp: RDF.Quad_Object) {
-	const genericTimeQuad: RDF.Quad = quad(
-		stream,
-		PROV("endedAtTime"),
-		variable("t")
-	);
-	const newTimeQuad: RDF.Quad = quad(stream, PROV("endedAtTime"), timeStamp);
-	await executeDeleteInsertQuery([genericTimeQuad], [newTimeQuad]);
 }
