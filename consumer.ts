@@ -13,8 +13,8 @@ export type Member = {
 	quads: RDF.Quad[];
 };
 export interface State {
-	timestamp?: Date;
-	page?: string;
+	timestamp: Date;
+	page: string;
 }
 
 const UPDATE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
@@ -54,7 +54,7 @@ export default class Consumer {
 			}
 			await UPDATE_QUEUE.push(async () =>
 				callback(member, {
-					timestamp: this.currentTimeStamp,
+					timestamp: this.currentTimeStamp!,
 					page: this.currentPage, 
 				})
 			);

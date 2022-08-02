@@ -13,8 +13,6 @@ import { CronJob } from 'cron';
 import { CRON_PATTERN, LDES_ENDPOINT_VIEW, LDES_POLLING_INTERVAL, REPLACE_VERSIONS } from "./config";
 const { quad, variable } = DataFactory;
 
-
-
 async function processMember(member: Member) {
 	const quadsToAdd: RDF.Quad[] = member.quads;
 	const quadsToRemove: RDF.Quad[] = [];
