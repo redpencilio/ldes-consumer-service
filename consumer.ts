@@ -3,6 +3,7 @@ import {
 	LDESClient,
 } from "@treecg/actor-init-ldes-client";
 import * as RDF from "rdf-js";
+import PromiseQueue from "./promise-queue";
 import { extractTimeStamp } from "./utils";
 export type ConsumerArgs = {
 	endpoint: string;
@@ -16,8 +17,11 @@ export type Member = {
 };
 export interface State {
   timestamp?: Date;
-  page: string;
+  page?: string;
 }
+
+
+const UPDATE_QUEUE: PromiseQueue<void> = new PromiseQueue<void>();
 
 export default class Consumer {
 	private client: LDESClient;
@@ -25,15 +29,15 @@ export default class Consumer {
   private startTimeStamp?: Date;
   private currentPage: string;
 	private interval: number;
-	constructor({ endpoint, interval = 500, initialState = { page: endpoint } }: ConsumerArgs) {
-    this.startTimeStamp = initialState.timestamp;
-    this.startPage = initialState.page;
-    this.currentPage = initialState.page;
+	constructor({ endpoint, interval = 500, initialState }: ConsumerArgs) {
+    this.startTimeStamp = initialState?.timestamp;
+    this.startPage = initialState?.page ?? endpoint;
+    this.currentPage = initialState?.page ?? endpoint;
 		this.interval = interval;
 		this.client = newEngine();
 	}
 
-	listen(callback: (m: Member, state: State) => void): void {
+	async listen(callback: (m: Member, state: State) => void | Promise<void>) {
     
 		const stream = this.client.createReadStream(
 			this.startPage,
@@ -48,11 +52,10 @@ export default class Consumer {
 		stream.on("metadata", (metadata) => {
       this.currentPage = metadata.url;
     })
-    stream.on("data", (member: Member) => {
-      callback(member, { timestamp: extractTimeStamp(member), page: this.currentPage})
-    })
-    stream.on("error", (error) => {
-      console.error(error);
-    })
+    stream.on("data", async (member: Member) => {
+			stream.pause();
+			await UPDATE_QUEUE.push(async () => callback(member, { timestamp: extractTimeStamp(member), page: this.currentPage}))
+			stream.resume();
+		})
 	}
 }

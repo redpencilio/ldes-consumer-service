@@ -4,7 +4,7 @@ export default class PromiseQueue<T> {
   promises: any[] = [];
   runningPromise: boolean = false;
 
-  push(promise: () => Promise<T>): Promise<T> {
+  push(promise: () => Promise<T> | T): Promise<T> {
     return new Promise((resolve, reject) => {
       this.promises.push({
         promise,
