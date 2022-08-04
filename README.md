@@ -22,10 +22,6 @@ The service can be configured with the following environment variables:
 
 -   `LDES_STREAM` [string]: the uri which should be used as a subject to store the latest page and timestamp consumed in the database. (default: `http://mu.semte.ch/example-stream`)
 
--   `LDES_RELATION_PATH` [string]: the predicate which is being used to define relations. For time-based streams, this will almost always be http://www.w3.org/ns/prov#generatedAtTime. (default: `http://www.w3.org/ns/prov#generatedAtTime`)
-
--   `LDES_POLLING_INTERVAL` [number]: the polling interval in milliseconds of the client which fetches resources from and endpoint (default: `500`)
-
 -   `REPLACE_VERSIONS` [boolean]: boolean which indicates whether to remove old versions of a resource when adding a new version or not (default: `true`)
 
 -   `MU_APPLICATION_GRAPH` [string]: The graph where the data should be injested. (default: `http://mu.semte.ch/graphs/public`)
