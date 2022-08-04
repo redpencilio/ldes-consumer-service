@@ -17,7 +17,7 @@ export function toString(term: Term): string {
       
       if(term.language)
         result += `@${term.language}`;
-      if(term.datatype)
+      else if(term.datatype)
         result += `^^${sparqlEscapeUri(term.datatype.value)}`
       return result;
     case "Quad":
