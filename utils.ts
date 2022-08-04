@@ -6,15 +6,19 @@ import { BLANK, PURL, XSD } from "./namespaces";
 const { literal, namedNode } = DataFactory;
 import { v4 as uuidv4 } from "uuid";
 import { LDES_RELATION_PATH } from "./config";
+import { sparqlEscapeString, sparqlEscapeUri } from 'mu';
+
 export function toString(term: Term): string {
 	switch (term.termType) {
 		case "NamedNode":
-			return `<${term.value}>`;
+			return sparqlEscapeUri(term.value);
 		case "Literal":
-			let result = `"${term.value}"`;
-			if (term.datatype) {
-				result += `^^${toString(term.datatype)}`;
-			}
+			let result = sparqlEscapeString(term.value);
+			
+			if(term.language)
+      	result += `@${term.language}`;
+			if(term.datatype)
+				result += `^^${sparqlEscapeUri(term.datatype.value)}`
 			return result;
 		case "Quad":
 			return `${toString(term.subject)} ${toString(
