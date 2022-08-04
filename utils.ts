@@ -63,6 +63,7 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
       quad.object = blankNodesMap.get(quad.object)!;
     }
   });
+  return quads
 }
 
 export function extractBaseResourceUri(
