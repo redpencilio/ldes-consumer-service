@@ -26,8 +26,15 @@ async function processMember(member: Member) {
   await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
 }
 
+let taskIsRunning = false;
+
 const consumerJob = new CronJob(CRON_PATTERN, async () => {
   try {
+    if(taskIsRunning) {
+      console.log("Another task is still running");
+      return;
+    }
+    taskIsRunning = true;
     const initialState = await fetchState();
     const endpoint = LDES_ENDPOINT_VIEW;
     if (endpoint) {
@@ -40,7 +47,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
         convertBlankNodes(member.quads); 
         await processMember(member);
         await updateState(state);
-      });
+      }, () => taskIsRunning = false);
     } else {
       throw new Error("No endpoint provided");
     }
