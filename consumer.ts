@@ -30,7 +30,7 @@ export default class Consumer {
 		this.startTimeStamp = initialState?.timestamp;
 		this.currentTimeStamp = initialState?.timestamp;
 		this.startPage = initialState?.page ?? endpoint;
-		this.currentPage = initialState?.page ?? endpoint;
+		this.currentPage = initialState?.page ?? endpoint; 
 		this.interval = interval;
 		this.client = newEngine();
 	}
@@ -44,7 +44,7 @@ export default class Consumer {
 			fromTime: this.startTimeStamp,
 			disableSynchronization: true, 
 		});
-		stream.on("metadata", (metadata) => {
+		stream.on("metadata", (metadata: any) => {
 			this.currentPage = metadata.url;
 		}); 
 		stream.on("data", async (member: Member) => {
