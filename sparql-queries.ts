@@ -10,25 +10,25 @@ const { quad, namedNode, variable, literal } = DataFactory;
 const stream = namedNode(LDES_STREAM);
 
 function constructTriplesString(quads: RDF.Quad[]) {
-	let triplesString = quads.map(toString).join("\n");
-	return triplesString;
+  let triplesString = quads.map(toString).join("\n");
+  return triplesString;
 }
 
 export function constructInsertQuery(quads: RDF.Quad[]) {
-	let triplesString = constructTriplesString(quads);
-	const sparql_query = `
+  let triplesString = constructTriplesString(quads);
+  const sparql_query = `
     INSERT DATA {
         GRAPH <${MU_APPLICATION_GRAPH}> {
             ${triplesString}
         }
     }
   `;
-	return sparql_query;
+  return sparql_query;
 }
 
 export function constructDeleteQuery(quads: RDF.Quad[]) {
-	let triplesString = constructTriplesString(quads);
-	const sparql_query = `
+  let triplesString = constructTriplesString(quads);
+  const sparql_query = `
     DELETE {
       GRAPH <${MU_APPLICATION_GRAPH}> {
             ${triplesString}
@@ -39,127 +39,121 @@ export function constructDeleteQuery(quads: RDF.Quad[]) {
         }
     }
   `;
-	return sparql_query;
+  return sparql_query;
 }
 
 export function constructSelectQuery(
-	variables: RDF.Variable[],
-	quads: RDF.Quad[]
+  variables: RDF.Variable[],
+  quads: RDF.Quad[]
 ) {
-	let triplesString = constructTriplesString(quads);
-	let variablesString = variables.map(toString).join(" ");
-	const sparql_query = `
+  let triplesString = constructTriplesString(quads);
+  let variablesString = variables.map(toString).join(" ");
+  const sparql_query = `
     SELECT ${variablesString} where {
       GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
       }
     }
   `;
-	return sparql_query;
+  return sparql_query;
 }
 
 export async function executeInsertQuery(quads: RDF.Quad[]) {
-	let queryStr = constructInsertQuery(quads);
-	try {
-		await update(queryStr);
-	} catch (e) {
-		console.error(e);
-	}
+  let queryStr = constructInsertQuery(quads);
+  try {
+    await update(queryStr);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function executeDeleteQuery(quads: RDF.Quad[]) {
-	let queryStr = constructDeleteQuery(quads);
-	try {
-		await update(queryStr);
-	} catch (e) {
-		console.error(e);
-	}
+  let queryStr = constructDeleteQuery(quads);
+  try {
+    await update(queryStr);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function executeDeleteInsertQuery(
-	quadsToDelete: RDF.Quad[],
-	quadsToInsert: RDF.Quad[]
+  quadsToDelete: RDF.Quad[],
+  quadsToInsert: RDF.Quad[]
 ) {
   let deleteQuery = constructDeleteQuery(quadsToDelete);
   let insertQuery = constructInsertQuery(quadsToInsert);
-	try {
-		await update(deleteQuery);
+  try {
+    await update(deleteQuery);
     await update(insertQuery);
-	} catch (e) {
-		console.error(e);
-	}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function fetchState() {
-	let quads = [
-		quad(stream, PROV("endedAtTime"), variable("t")),
-		quad(stream, TREE("node"), variable("p")),
-	];
-	let variables = [variable("t"), variable("p")];
-	const sparql_query = constructSelectQuery(variables, quads);
-	try {
-		const response = await query(sparql_query);
-		const state: State = {};
-		const timeString = extractVariableFromResponse(response, "t")?.shift();
-		if (timeString) {
-			state.timestamp = new Date(timeString);
-		}
-		const node = extractVariableFromResponse(response, "p")?.shift();
-		if (node) {
-			state.page = node; 
-		}
-		return state;
-	} catch (e) {
-		console.error(e);
-	} 
+  let quads = [
+    quad(stream, PROV("endedAtTime"), variable("t")),
+    quad(stream, TREE("node"), variable("p")),
+  ];
+  let variables = [variable("t"), variable("p")];
+  const sparql_query = constructSelectQuery(variables, quads);
+  try {
+    const response = await query(sparql_query);
+    const state: State = {};
+    const timeString = extractVariableFromResponse(response, "t")?.shift();
+    if (timeString) {
+      state.timestamp = new Date(timeString);
+    }
+    const node = extractVariableFromResponse(response, "p")?.shift();
+    if (node) {
+      state.page = node;
+    }
+    return state;
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 function extractVariableFromResponse(
-	response: any,
-	variable: string
+  response: any,
+  variable: string
 ): string[] | undefined {
-	const bindings = response.results.bindings;
-	if (bindings && bindings.length) {
-		return bindings.map((binding: any) => binding[variable].value);
-	}
-	return;
+  const bindings = response.results.bindings;
+  if (bindings && bindings.length) {
+    return bindings.map((binding: any) => binding[variable].value);
+  }
+  return;
 }
 
 export async function getVersion(resource: RDF.NamedNode) {
-	let quads = [quad(variable("v"), PURL("isVersionOf"), resource)];
-	let variables = [variable("v")];
-	const sparql_query = constructSelectQuery(variables, quads);
+  let quads = [quad(variable("v"), PURL("isVersionOf"), resource)];
+  let variables = [variable("v")];
+  const sparql_query = constructSelectQuery(variables, quads);
 
-	try {
-		const response = await query(sparql_query);
-		const versionUris = extractVariableFromResponse(response, "v");
-		if (versionUris) {
-			return namedNode(versionUris[0]);
-		}
-		return;
-	} catch (e) {
-		console.error(e);
-	}
+  try {
+    const response = await query(sparql_query);
+    const versionUris = extractVariableFromResponse(response, "v");
+    if (versionUris) {
+      return namedNode(versionUris[0]);
+    }
+    return;
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function updateState(state: State) {
-	const genericStateQuads = [
-		quad(stream, PROV("endedAtTime"), variable("t")),
-		quad(stream, TREE("node"), variable("p")),
-	];
-	const newStateQuads = [
-		...(state.timestamp
-			? [
-					quad(
-						stream,
-						PROV("endedAtTime"),
-            fromDate(state.timestamp)
-					),
-			  ]
-			: []),
-		...(state.page
-			? [quad(stream, TREE("node"), namedNode(state.page))]
-			: []),
-	];
-	await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
+  const genericStateQuads = [
+    quad(stream, PROV("endedAtTime"), variable("t")),
+    quad(stream, TREE("node"), variable("p")),
+  ];
+  const newStateQuads = [
+    ...(state.timestamp
+      ? [quad(stream, PROV("endedAtTime"), fromDate(state.timestamp))]
+      : []),
+    ...(state.page
+      ? [quad(stream, TREE("node"), namedNode(state.page))]
+      : []),
+  ];
+  await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
 }
