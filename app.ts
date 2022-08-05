@@ -7,10 +7,10 @@ import {
 
 import { DataFactory } from "n3";
 import * as RDF from "rdf-js";
-import Consumer, { Member } from "./consumer";
+import Consumer, { Member } from "ldes-consumer";
 import { convertBlankNodes, extractBaseResourceUri } from "./utils";
 import { CronJob } from 'cron';
-import { CRON_PATTERN, LDES_ENDPOINT_VIEW, LDES_POLLING_INTERVAL, REPLACE_VERSIONS } from "./config";
+import { CRON_PATTERN, LDES_ENDPOINT_VIEW, REPLACE_VERSIONS } from "./config";
 const { quad, variable } = DataFactory;
 
 async function processMember(member: Member) {
@@ -40,7 +40,6 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     if (endpoint) {
       const consumer = new Consumer({
         endpoint,
-        interval: LDES_POLLING_INTERVAL,
         initialState,
       });
       consumer.listen(async (member, state) => {

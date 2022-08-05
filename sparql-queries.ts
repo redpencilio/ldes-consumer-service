@@ -3,7 +3,7 @@ import { fromDate, toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { PROV, PURL, TREE } from "./namespaces";
-import { State } from "./consumer";
+import { State } from "ldes-consumer";
 import { LDES_STREAM, MU_APPLICATION_GRAPH } from "./config";
 const { quad, namedNode, variable, literal } = DataFactory;
 
