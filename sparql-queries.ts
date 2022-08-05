@@ -90,7 +90,7 @@ export async function executeDeleteInsertQuery(
   }
 }
 
-export async function fetchState() {
+export async function fetchState(): Promise<State | undefined> {
   let quads = [
     quad(stream, PROV("endedAtTime"), variable("t")),
     quad(stream, TREE("node"), variable("p")),
@@ -99,16 +99,15 @@ export async function fetchState() {
   const sparql_query = constructSelectQuery(variables, quads);
   try {
     const response = await query(sparql_query);
-    const state: State = {};
     const timeString = extractVariableFromResponse(response, "t")?.shift();
-    if (timeString) {
-      state.timestamp = new Date(timeString);
-    }
     const node = extractVariableFromResponse(response, "p")?.shift();
-    if (node) {
-      state.page = node;
+    if (node && timeString) {
+      return {
+        timestamp: new Date(timeString),
+        page: node
+      }
     }
-    return state;
+    return;
   } catch (e) {
     console.error(e);
   }
