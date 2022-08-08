@@ -31,18 +31,6 @@ export function toString(term: Term): string {
   }
 }
 
-export function extractTimeStamp(member: Member): Date {
-  const timeStamp: RDF.Quad = member.quads.find(
-    (quadObj) => quadObj.predicate.value === LDES_RELATION_PATH
-  )!;
-  return toDate(timeStamp.object as RDF.Literal);
-}
-
-export function toDate(node: RDF.Literal): Date {
-  const timeString = node.value.split("^^")[0];
-  return new Date(timeString);
-}
-
 export function fromDate(date: Date): RDF.Literal {
   return literal(date.toISOString(), XSD("dateTime"));
 }

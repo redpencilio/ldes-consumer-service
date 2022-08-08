@@ -4,7 +4,7 @@
     "@rdfjs/namespace": "^1.1.0",
     "cron": "^2.1.0",
     "express-http-context": "^1.2.4",
-    "ldes-consumer": "github:redpencilio/ldes-consumer",
+    "ldes-consumer": "^0.1.2",
     "n3": "^1.16.1",
     "rdf-js": "^4.0.2",
     "rdf-parse": "^2.0.0"
