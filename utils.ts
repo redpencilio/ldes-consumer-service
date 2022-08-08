@@ -1,5 +1,5 @@
 import { Term } from "rdf-js";
-import { Member } from "./consumer";
+import { Member } from "ldes-consumer";
 import * as RDF from "rdf-js";
 import { DataFactory } from "n3";
 import { BLANK, PURL, XSD } from "./namespaces";
@@ -29,18 +29,6 @@ export function toString(term: Term): string {
     default:
       return term.value;
   }
-}
-
-export function extractTimeStamp(member: Member): Date {
-  const timeStamp: RDF.Quad = member.quads.find(
-    (quadObj) => quadObj.predicate.value === LDES_RELATION_PATH
-  )!;
-  return toDate(timeStamp.object as RDF.Literal);
-}
-
-export function toDate(node: RDF.Literal): Date {
-  const timeString = node.value.split("^^")[0];
-  return new Date(timeString);
 }
 
 export function fromDate(date: Date): RDF.Literal {
