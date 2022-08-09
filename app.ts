@@ -43,9 +43,13 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
         initialState,
       });
       consumer.listen(async (member, state) => {
-        convertBlankNodes(member.quads); 
-        await processMember(member);
-        await updateState(state);
+        try{
+          convertBlankNodes(member.quads); 
+          await processMember(member);
+          await updateState(state);
+        } catch (e) {
+          console.error(`Something went wrong when processing the member: ${e}`);
+        }
       }, () => taskIsRunning = false);
     } else {
       throw new Error("No endpoint provided");
