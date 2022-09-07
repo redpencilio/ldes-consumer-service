@@ -4,3 +4,4 @@ export const REPLACE_VERSIONS = process.env.REPLACE_VERSIONS === "false" ? false
 export const LDES_RELATION_PATH = "http://www.w3.org/ns/prov#generatedAtTime";
 export const MU_APPLICATION_GRAPH = process.env.MU_APPLICATION_GRAPH;
 export const CRON_PATTERN = process.env.CRON_PATTERN || "* 0 * * * *";
+export const SPARQL_AUTH = process.env.SPARQL_AUTH;

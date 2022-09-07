@@ -1,10 +1,10 @@
 import * as RDF from "rdf-js";
 import { fromDate, toString } from "./utils";
-import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
+import { querySudo, updateSudo } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { PROV, PURL, TREE } from "./namespaces";
 import { State } from "ldes-consumer";
-import { LDES_STREAM, MU_APPLICATION_GRAPH } from "./config";
+import { LDES_STREAM, MU_APPLICATION_GRAPH, SPARQL_AUTH } from "./config";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const stream = namedNode(LDES_STREAM);
@@ -56,6 +56,22 @@ export function constructSelectQuery(
     }
   `;
   return sparql_query;
+}
+
+async function update(queryStr: string) {
+    const headers : Record<string,string> = {}
+    if (SPARQL_AUTH) {
+        headers['Authorization'] = `Basic ${SPARQL_AUTH}`;
+    }
+    await updateSudo(queryStr, headers);
+}
+
+async function query(queryStr: string) {
+    const headers : Record<string,string> = {}
+    if (SPARQL_AUTH) {
+        headers['Authorization'] = `Basic ${SPARQL_AUTH}`;
+    }
+    await querySudo(queryStr, headers);
 }
 
 export async function executeInsertQuery(quads: RDF.Quad[]) {

@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@lblod/mu-auth-sudo": "^0.5.1",
+    "@lblod/mu-auth-sudo": "^0.6.0",
     "@rdfjs/namespace": "^1.1.0",
     "cron": "^2.1.0",
     "express-http-context": "^1.2.4",
