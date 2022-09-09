@@ -1,4 +1,4 @@
-FROM semtech/mu-javascript-template:1.6.0
+FROM semtech/mu-javascript-template:feature-node-16-support
 LABEL maintainer="madnificent@gmail.com"
 
 ENV LDES_ENDPOINT_VIEW "http://ldes-time-fragmenter:3000/example/1"
