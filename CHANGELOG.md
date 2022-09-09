@@ -1,5 +1,14 @@
 
 
+
+## 0.2.3 (2022-09-09)
+
+#### :bug: Bug Fix
+* [#8](https://github.com/redpencilio/ldes-consumer-service/pull/8) Update consumer library ([@elpoelma](https://github.com/elpoelma))
+
+#### Committers: 1
+- Elena Poelman ([@elpoelma](https://github.com/elpoelma))
+
 ## 0.2.2 (2022-08-09)
 
 #### :bug: Bug Fix
