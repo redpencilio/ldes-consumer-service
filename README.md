@@ -27,3 +27,5 @@ The service can be configured with the following environment variables:
 -   `MU_APPLICATION_GRAPH` [string]: The graph where the data should be injested. (default: `http://mu.semte.ch/graphs/public`)
 
 -   `CRON_PATTERN` [string]: the cron pattern which the cronjob should use. (default: `* 0 * * * *`)
+
+-   `LDES_ENDPOINT_API_KEY` [string]: the API key for the LDES endpoint which should be send in combination with the x-api-key header
