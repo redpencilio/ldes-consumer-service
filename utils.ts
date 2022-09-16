@@ -73,7 +73,7 @@ export function extractLDESEndpointHeadersFromEnv() {
 		if (key.startsWith(LDES_ENDPOINT_HEADER_PREFIX)) {
 			const headerKey = key.split(LDES_ENDPOINT_HEADER_PREFIX).pop();
 			if (headerKey && value) {
-				headers[headerKey] = value;
+				headers[headerKey.toLowerCase()] = value;
 			}
 		}
 	}
