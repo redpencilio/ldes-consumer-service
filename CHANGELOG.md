@@ -1,6 +1,19 @@
 
 
 
+
+## 0.3.0 (2022-09-19)
+
+#### :rocket: Enhancement
+* [#9](https://github.com/redpencilio/ldes-consumer-service/pull/9) Include custom header support ([@elpoelma](https://github.com/elpoelma))
+
+#### :bug: Bug Fix
+* [#6](https://github.com/redpencilio/ldes-consumer-service/pull/6) change default cron pattern to run every minute ([@nvdk](https://github.com/nvdk))
+
+#### Committers: 2
+- Elena Poelman ([@elpoelma](https://github.com/elpoelma))
+- Niels V ([@nvdk](https://github.com/nvdk))
+
 ## 0.2.3 (2022-09-09)
 
 #### :bug: Bug Fix
