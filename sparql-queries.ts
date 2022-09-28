@@ -2,9 +2,9 @@ import * as RDF from "rdf-js";
 import { fromDate, toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
-import { PROV, PURL, TREE } from "./namespaces";
-import { State } from "ldes-consumer";
+import { LDES, PROV, PURL, TREE } from "./namespaces";
 import { LDES_STREAM, MU_APPLICATION_GRAPH } from "./config";
+import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const stream = namedNode(LDES_STREAM);
@@ -92,20 +92,15 @@ export async function executeDeleteInsertQuery(
 
 export async function fetchState(): Promise<State | undefined> {
   let quads = [
-    quad(stream, PROV("endedAtTime"), variable("t")),
-    quad(stream, TREE("node"), variable("p")),
+    quad(stream, LDES("state"), variable("state")),
   ];
-  let variables = [variable("t"), variable("p")];
+  let variables = [variable("state")];
   const sparql_query = constructSelectQuery(variables, quads);
   try {
     const response = await query(sparql_query);
-    const timeString = extractVariableFromResponse(response, "t")?.shift();
-    const node = extractVariableFromResponse(response, "p")?.shift();
-    if (node && timeString) {
-      return {
-        timestamp: new Date(timeString),
-        page: node
-      }
+    const stateString = extractVariableFromResponse(response, "state")?.shift();
+    if (stateString) {
+      return JSON.parse(stateString);
     }
     return;
   } catch (e) {
@@ -142,17 +137,12 @@ export async function getVersion(resource: RDF.NamedNode) {
 }
 
 export async function updateState(state: State) {
+  const stateString = JSON.stringify(state);
   const genericStateQuads = [
-    quad(stream, PROV("endedAtTime"), variable("t")),
-    quad(stream, TREE("node"), variable("p")),
+    quad(stream, LDES("state"), variable("state")),
   ];
   const newStateQuads = [
-    ...(state.timestamp
-      ? [quad(stream, PROV("endedAtTime"), fromDate(state.timestamp))]
-      : []),
-    ...(state.page
-      ? [quad(stream, TREE("node"), namedNode(state.page))]
-      : []),
+    quad(stream, LDES("state"), literal(stateString))
   ];
   await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
 }
