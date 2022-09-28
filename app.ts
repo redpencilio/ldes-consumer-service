@@ -8,11 +8,11 @@ import {
 import { DataFactory } from "n3";
 import * as RDF from "rdf-js";
 import Consumer, { Member } from "ldes-consumer";
-import { convertBlankNodes, extractBaseResourceUri, extractLDESEndpointHeadersFromEnv } from "./utils";
+import { convertBlankNodes, extractBaseResourceUri, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
 import {
   CRON_PATTERN,
-  LDES_ENDPOINT_HEADERS,
+  LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
   REPLACE_VERSIONS,
 } from "./config";
@@ -46,7 +46,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       const consumer = new Consumer({
         endpoint,
         initialState,
-        requestHeaders: extractLDESEndpointHeadersFromEnv()
+        requestHeaders: extractEndpointHeadersFromEnv(LDES_ENDPOINT_HEADER_PREFIX)
       });
       consumer.listen(
         async (member, state) => {

@@ -5,3 +5,4 @@ export const LDES_RELATION_PATH = "http://www.w3.org/ns/prov#generatedAtTime";
 export const MU_APPLICATION_GRAPH = process.env.MU_APPLICATION_GRAPH;
 export const CRON_PATTERN = process.env.CRON_PATTERN || "0 * * * * *";
 export const LDES_ENDPOINT_HEADER_PREFIX = 'LDES_ENDPOINT_HEADER_'
+export const SPARQL_ENDPOINT_HEADER_PREFIX = 'SPARQL_ENDPOINT_HEADER_'
