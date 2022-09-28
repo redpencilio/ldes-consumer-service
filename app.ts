@@ -37,6 +37,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     taskIsRunning = true;
     const initialState = await fetchState();
     const endpoint = LDES_ENDPOINT_VIEW;
+    console.log('RUN CONSUMER');
     if (endpoint) {
       const consumer = new Consumer({
         endpoint,
@@ -56,6 +57,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
           }
         },
         async (state) =>  {
+          console.log('CONSUMER DONE');
           await updateState(state);
           taskIsRunning = false;
         }
