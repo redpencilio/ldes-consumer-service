@@ -2,6 +2,18 @@
 
 
 
+
+## 0.4.0 (2022-09-28)
+
+#### :rocket: Enhancement
+* [#11](https://github.com/redpencilio/ldes-consumer-service/pull/11) Feature: better state representation ([@elpoelma](https://github.com/elpoelma))
+
+#### :house: Internal
+* [#10](https://github.com/redpencilio/ldes-consumer-service/pull/10) Set up feature builds ([@elpoelma](https://github.com/elpoelma))
+
+#### Committers: 1
+- Elena Poelman ([@elpoelma](https://github.com/elpoelma))
+
 ## 0.3.0 (2022-09-19)
 
 #### :rocket: Enhancement
