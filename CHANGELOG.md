@@ -3,6 +3,15 @@
 
 
 
+
+## 0.5.0 (2022-10-04)
+
+#### :rocket: Enhancement
+* [#12](https://github.com/redpencilio/ldes-consumer-service/pull/12) Add initial support for custom SPARQL headers ([@elpoelma](https://github.com/elpoelma))
+
+#### Committers: 1
+- Elena Poelman ([@elpoelma](https://github.com/elpoelma))
+
 ## 0.4.0 (2022-09-28)
 
 #### :rocket: Enhancement
