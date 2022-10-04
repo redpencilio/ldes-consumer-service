@@ -65,13 +65,13 @@ export function extractBaseResourceUri(
   return;
 }
 
-export function extractLDESEndpointHeadersFromEnv() {
+export function extractEndpointHeadersFromEnv(prefix: string) {
   const headers: {
     [key: string]: number | string | string[];
   } = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (key.startsWith(LDES_ENDPOINT_HEADER_PREFIX)) {
-      const headerKey = key.split(LDES_ENDPOINT_HEADER_PREFIX).pop();
+    if (key.startsWith(prefix)) {
+      const headerKey = key.split(prefix).pop();
       if (headerKey && value) {
         headers[headerKey.toLowerCase()] = value;
       }
@@ -79,3 +79,5 @@ export function extractLDESEndpointHeadersFromEnv() {
   }
   return headers;
 }
+
+

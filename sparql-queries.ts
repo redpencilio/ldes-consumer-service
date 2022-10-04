@@ -1,5 +1,5 @@
 import * as RDF from "rdf-js";
-import { fromDate, toString } from "./utils";
+import { extractEndpointHeadersFromEnv, fromDate, toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { LDES, PROV, PURL, TREE } from "./namespaces";
@@ -8,6 +8,8 @@ import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const stream = namedNode(LDES_STREAM);
+
+const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
 
 function constructTriplesString(quads: RDF.Quad[]) {
   let triplesString = quads.map(toString).join("\n");
@@ -61,7 +63,7 @@ export function constructSelectQuery(
 export async function executeInsertQuery(quads: RDF.Quad[]) {
   let queryStr = constructInsertQuery(quads);
   try {
-    await update(queryStr);
+    await update(queryStr, SPARQL_ENDPOINT_HEADERS);
   } catch (e) {
     console.error(e);
   }
@@ -70,7 +72,7 @@ export async function executeInsertQuery(quads: RDF.Quad[]) {
 export async function executeDeleteQuery(quads: RDF.Quad[]) {
   let queryStr = constructDeleteQuery(quads);
   try {
-    await update(queryStr);
+    await update(queryStr, SPARQL_ENDPOINT_HEADERS);
   } catch (e) {
     console.error(e);
   }
@@ -80,14 +82,8 @@ export async function executeDeleteInsertQuery(
   quadsToDelete: RDF.Quad[],
   quadsToInsert: RDF.Quad[]
 ) {
-  let deleteQuery = constructDeleteQuery(quadsToDelete);
-  let insertQuery = constructInsertQuery(quadsToInsert);
-  try {
-    await update(deleteQuery);
-    await update(insertQuery);
-  } catch (e) {
-    console.error(e);
-  }
+  await executeDeleteQuery(quadsToDelete);
+  await executeInsertQuery(quadsToInsert);
 }
 
 export async function fetchState(): Promise<State | undefined> {
@@ -97,7 +93,7 @@ export async function fetchState(): Promise<State | undefined> {
   let variables = [variable("state")];
   const sparql_query = constructSelectQuery(variables, quads);
   try {
-    const response = await query(sparql_query);
+    const response = await query(sparql_query, SPARQL_ENDPOINT_HEADERS);
     const stateString = extractVariableFromResponse(response, "state")?.shift();
     if (stateString) {
       return JSON.parse(stateString);
@@ -125,7 +121,7 @@ export async function getVersion(resource: RDF.NamedNode) {
   const sparql_query = constructSelectQuery(variables, quads);
 
   try {
-    const response = await query(sparql_query);
+    const response = await query(sparql_query, SPARQL_ENDPOINT_HEADERS);
     const versionUris = extractVariableFromResponse(response, "v");
     if (versionUris) {
       return namedNode(versionUris[0]);
