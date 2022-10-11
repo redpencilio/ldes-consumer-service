@@ -3,7 +3,7 @@ import { extractEndpointHeadersFromEnv, fromDate, toString } from "./utils";
 import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { LDES, PROV, PURL, TREE } from "./namespaces";
-import { LDES_STREAM, MU_APPLICATION_GRAPH } from "./config";
+import { LDES_STREAM, MU_APPLICATION_GRAPH, SPARQL_ENDPOINT_HEADER_PREFIX } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
 
