@@ -5,8 +5,8 @@ import { DataFactory } from "n3";
 import { BLANK, PURL, XSD } from "./namespaces";
 const { literal, namedNode } = DataFactory;
 import { v4 as uuidv4 } from "uuid";
-import { LDES_RELATION_PATH } from "./config";
-import { sparqlEscapeString, sparqlEscapeUri } from 'mu';
+import { LDES_ENDPOINT_HEADER_PREFIX, LDES_RELATION_PATH } from "./config";
+import { sparqlEscapeString, sparqlEscapeUri } from "mu";
 
 export function toString(term: Term): string {
   switch (term.termType) {
@@ -14,11 +14,10 @@ export function toString(term: Term): string {
       return sparqlEscapeUri(term.value);
     case "Literal":
       let result = sparqlEscapeString(term.value);
-      
-      if(term.language)
-        result += `@${term.language}`;
-      else if(term.datatype)
-        result += `^^${sparqlEscapeUri(term.datatype.value)}`
+
+      if (term.language) result += `@${term.language}`;
+      else if (term.datatype)
+        result += `^^${sparqlEscapeUri(term.datatype.value)}`;
       return result;
     case "Quad":
       return `${toString(term.subject)} ${toString(
@@ -51,7 +50,7 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
       quad.object = blankNodesMap.get(quad.object)!;
     }
   });
-  return quads
+  return quads;
 }
 
 export function extractBaseResourceUri(
@@ -65,3 +64,20 @@ export function extractBaseResourceUri(
   }
   return;
 }
+
+export function extractEndpointHeadersFromEnv(prefix: string) {
+  const headers: {
+    [key: string]: number | string | string[];
+  } = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith(prefix)) {
+      const headerKey = key.split(prefix).pop();
+      if (headerKey && value) {
+        headers[headerKey.toLowerCase()] = value;
+      }
+    }
+  }
+  return headers;
+}
+
+

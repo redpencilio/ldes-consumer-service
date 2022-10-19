@@ -4,14 +4,14 @@
     "@rdfjs/namespace": "^1.1.0",
     "cron": "^2.1.0",
     "express-http-context": "^1.2.4",
-    "ldes-consumer": "^0.1.3",
+    "ldes-consumer": "^0.3.5",
     "n3": "^1.16.1",
     "rdf-js": "^4.0.2",
     "rdf-parse": "^2.0.0"
   },
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
-  "version": "0.2.2",
+  "version": "0.5.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/redpencilio/ldes-consumer-service.git"
