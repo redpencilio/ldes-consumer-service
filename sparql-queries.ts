@@ -67,29 +67,29 @@ export function constructSelectQuery(
 }
 
 async function update(queryStr: string) {
-    const headers : Record<string,string> = {}
-    const connectionOptions : ConnectionOptions = {};
-    if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
-        connectionOptions.authUser = SPARQL_AUTH_USER;
-        connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
-    }
-    return await updateSudo(queryStr, headers, connectionOptions);
+  const headers : Record<string,number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
+  const connectionOptions : ConnectionOptions = {};
+  if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
+    connectionOptions.authUser = SPARQL_AUTH_USER;
+    connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
+  }
+  return await updateSudo(queryStr, headers, connectionOptions);
 }
 
 async function query(queryStr: string) {
-    const headers : Record<string,string> = {}
-    const connectionOptions : ConnectionOptions = {};
-    if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
-        connectionOptions.authUser = SPARQL_AUTH_USER;
-        connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
-    }
-    return await querySudo(queryStr, headers, connectionOptions);
+  const headers : Record<string,number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
+  const connectionOptions : ConnectionOptions = {};
+  if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
+    connectionOptions.authUser = SPARQL_AUTH_USER;
+    connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
+  }
+  return await querySudo(queryStr, headers, connectionOptions);
 }
 
 export async function executeInsertQuery(quads: RDF.Quad[]) {
   let queryStr = constructInsertQuery(quads);
   try {
-    await update(queryStr, SPARQL_ENDPOINT_HEADERS);
+    await update(queryStr);
   } catch (e) {
     console.error(e);
   }
@@ -98,7 +98,7 @@ export async function executeInsertQuery(quads: RDF.Quad[]) {
 export async function executeDeleteQuery(quads: RDF.Quad[]) {
   let queryStr = constructDeleteQuery(quads);
   try {
-    await update(queryStr, SPARQL_ENDPOINT_HEADERS);
+    await update(queryStr);
   } catch (e) {
     console.error(e);
   }
@@ -119,7 +119,7 @@ export async function fetchState(): Promise<State | undefined> {
   let variables = [variable("state")];
   const sparql_query = constructSelectQuery(variables, quads);
   try {
-    const response = await query(sparql_query, SPARQL_ENDPOINT_HEADERS);
+    const response = await query(sparql_query);
     const stateString = extractVariableFromResponse(response, "state")?.shift();
     if (stateString) {
       return JSON.parse(stateString);
@@ -147,7 +147,7 @@ export async function getVersion(resource: RDF.NamedNode) {
   const sparql_query = constructSelectQuery(variables, quads);
 
   try {
-    const response = await query(sparql_query, SPARQL_ENDPOINT_HEADERS);
+    const response = await query(sparql_query);
     const versionUris = extractVariableFromResponse(response, "v");
     if (versionUris) {
       return namedNode(versionUris[0]);
