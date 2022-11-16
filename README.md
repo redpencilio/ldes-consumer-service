@@ -25,6 +25,8 @@ The service can be configured with the following environment variables:
 - `LDES_ENDPOINT_HEADER_<key>` [string]: A header key-value combination which should be send as part of the headers to the LDES ENDPOINT. E.g. `LDES_ENDPOINT_HEADER_X-API-KEY: <api_key>`.
 - `LDES_ENDPOINT_VIEW` [string]: the ldes endpoint containing the view (the first page) of the stream.
 - `LDES_STREAM` [string]: the uri which should be used as a subject to store the latest page and timestamp consumed in the database. (default: `http://mu.semte.ch/example-stream`)
+- `LDES_VERSION_OF_PATH` [string]: the predicate to be used to find the link to the non version object, default: `dcterms:isVersionOf`)
+- `LDES_TIMESTAMP_PATH` [string]: the predicate to be used to find the timestamp of an object, default: `prov:generatedAtTime`)
 - `LOG_SPARQL_ALL` [boolean]: log executed SPARQL queries (default: `false`)
 - `MU_APPLICATION_GRAPH` [string]: The graph where the data should be injested. (default: `http://mu.semte.ch/graphs/public`)
 - `MU_SPARQL_ENDPOINT` [string]: SPARQL endpoint to connect to, defaults to 'http://database:8890/sparql'
