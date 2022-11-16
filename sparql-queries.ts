@@ -1,15 +1,16 @@
 import * as RDF from "rdf-js";
 import { extractEndpointHeadersFromEnv, fromDate, toString } from "./utils";
-import { querySudo as query, updateSudo as update } from "@lblod/mu-auth-sudo";
+import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { LDES, PROV, PURL, TREE } from "./namespaces";
-import { State } from "@treecg/actor-init-ldes-client";
 import {
-  LDES_STREAM,
-  MU_APPLICATION_GRAPH,
-  SPARQL_ENDPOINT_HEADER_PREFIX
+    LDES_STREAM,
+    MU_APPLICATION_GRAPH,
+    SPARQL_AUTH_USER,
+    SPARQL_AUTH_PASSWORD,
+    SPARQL_ENDPOINT_HEADER_PREFIX
 } from "./config";
-
+import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const stream = namedNode(LDES_STREAM);
@@ -67,18 +68,22 @@ export function constructSelectQuery(
 
 async function update(queryStr: string) {
     const headers : Record<string,string> = {}
-    if (SPARQL_AUTH) {
-        headers['Authorization'] = `Basic ${SPARQL_AUTH}`;
+    const connectionOptions : ConnectionOptions = {};
+    if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
+        connectionOptions.authUser = SPARQL_AUTH_USER;
+        connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
     }
-    await updateSudo(queryStr, headers);
+    return await updateSudo(queryStr, headers, connectionOptions);
 }
 
 async function query(queryStr: string) {
     const headers : Record<string,string> = {}
-    if (SPARQL_AUTH) {
-        headers['Authorization'] = `Basic ${SPARQL_AUTH}`;
+    const connectionOptions : ConnectionOptions = {};
+    if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
+        connectionOptions.authUser = SPARQL_AUTH_USER;
+        connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
     }
-    await querySudo(queryStr, headers);
+    return await querySudo(queryStr, headers, connectionOptions);
 }
 
 export async function executeInsertQuery(quads: RDF.Quad[]) {
