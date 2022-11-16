@@ -2,7 +2,7 @@ import * as RDF from "rdf-js";
 import { extractEndpointHeadersFromEnv, fromDate, toString } from "./utils";
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
-import { LDES, PROV, PURL, TREE } from "./namespaces";
+import { LDES, PROV, DCTERMS, TREE } from "./namespaces";
 import {
     LDES_STREAM,
     MU_APPLICATION_GRAPH,
@@ -142,7 +142,7 @@ function extractVariableFromResponse(
 }
 
 export async function getVersion(resource: RDF.NamedNode) {
-  let quads = [quad(variable("v"), PURL("isVersionOf"), resource)];
+  let quads = [quad(variable("v"), DCTERMS("isVersionOf"), resource)];
   let variables = [variable("v")];
   const sparql_query = constructSelectQuery(variables, quads);
 

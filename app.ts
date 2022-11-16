@@ -1,4 +1,4 @@
-import { PURL } from "./namespaces";
+import { DCTERMS } from "./namespaces";
 import {
   executeDeleteInsertQuery,
   fetchState,
@@ -18,13 +18,14 @@ import {
 } from "./config";
 const { quad, variable } = DataFactory;
 
+
 async function processMember(member: Member) {
   const quadsToAdd: RDF.Quad[] = member.quads;
   const quadsToRemove: RDF.Quad[] = [];
   const baseResourceUri = extractBaseResourceUri(member);
   if (baseResourceUri && REPLACE_VERSIONS) {
     quadsToRemove.push(
-      quad(variable("s"), PURL("isVersionOf"), baseResourceUri)
+      quad(variable("s"), DCTERMS("isVersionOf"), baseResourceUri)
     );
     quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
   }

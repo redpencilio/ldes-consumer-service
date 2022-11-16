@@ -2,7 +2,7 @@ import { Term } from "rdf-js";
 import { Member } from "ldes-consumer";
 import * as RDF from "rdf-js";
 import { DataFactory } from "n3";
-import { BLANK, PURL, XSD } from "./namespaces";
+import { BLANK, DCTERMS, XSD } from "./namespaces";
 const { literal, namedNode } = DataFactory;
 import { v4 as uuidv4 } from "uuid";
 import { LDES_ENDPOINT_HEADER_PREFIX, LDES_RELATION_PATH } from "./config";
@@ -57,7 +57,7 @@ export function extractBaseResourceUri(
   member: Member
 ): RDF.NamedNode | undefined {
   const baseResourceMatches = member.quads.filter((quadObj) =>
-    quadObj.predicate.equals(PURL("isVersionOf"))
+    quadObj.predicate.equals(DCTERMS("isVersionOf"))
   );
   if (baseResourceMatches && baseResourceMatches.length) {
     return baseResourceMatches[0].object as RDF.NamedNode;
