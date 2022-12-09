@@ -1,33 +1,84 @@
-import { PURL } from "./namespaces";
 import {
   executeDeleteInsertQuery,
   fetchState,
   updateState,
+  getLatestTimestamp
 } from "./sparql-queries";
 
+import { NamedNode } from "@rdfjs/types";
 import { DataFactory } from "n3";
 import * as RDF from "rdf-js";
 import Consumer, { Member } from "ldes-consumer";
-import { convertBlankNodes, extractBaseResourceUri, extractEndpointHeadersFromEnv } from "./utils";
+import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv, getSameAsForObject, getSameAsForSubject } from "./utils";
 import { CronJob } from "cron";
 import {
   CRON_PATTERN,
+  LDES_VERSION_OF_PATH,
+  LDES_TIMESTAMP_PATH,
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
   REPLACE_VERSIONS,
 } from "./config";
 const { quad, variable } = DataFactory;
 
-async function processMember(member: Member) {
-  const quadsToAdd: RDF.Quad[] = member.quads;
-  const quadsToRemove: RDF.Quad[] = [];
-  const baseResourceUri = extractBaseResourceUri(member);
-  if (baseResourceUri && REPLACE_VERSIONS) {
-    quadsToRemove.push(
-      quad(variable("s"), PURL("isVersionOf"), baseResourceUri)
-    );
-    quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+const latestVersionMap : Map<NamedNode, Date> = new Map();
+
+async function latestVersionTimestamp (resource: NamedNode, treeProperties: TreeProperties): Promise<Date | null> {
+  if (latestVersionMap.has(resource)) {
+    return latestVersionMap.get(resource)!;
+  } else {
+    const timestampStr = await getLatestTimestamp(resource, treeProperties);
+    if (timestampStr) {
+      const timestamp : Date = new Date(timestampStr);
+      latestVersionMap.set(resource, timestamp);
+      return timestamp;
+    }
+    return null;
   }
+}
+
+async function processMember (member: Member, sameAsMap: Map<RDF.NamedNode, RDF.NamedNode>,treeProperties: TreeProperties) {
+  let quadsToAdd: RDF.Quad[] = [];
+  const quadsToRemove: RDF.Quad[] = [];
+  const baseResourceUri = extractBaseResourceUri(member, treeProperties);
+  if (baseResourceUri && REPLACE_VERSIONS) {
+    const latestTimestamp = await latestVersionTimestamp(baseResourceUri, treeProperties);
+    const versionTimestamp = extractVersionTimestamp(member, treeProperties);
+    if (latestTimestamp === null) {
+      quadsToAdd = member.quads;
+      if (versionTimestamp) {
+        latestVersionMap.set(baseResourceUri, versionTimestamp);
+      }
+    }
+    else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
+      quadsToRemove.push(
+        quad(variable("s"), treeProperties.versionOfPath, baseResourceUri)
+      );
+      quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+      if (versionTimestamp) {
+        latestVersionMap.set(baseResourceUri, versionTimestamp);
+      }
+      quadsToAdd = member.quads;
+    }
+  }
+  else {
+    quadsToAdd = member.quads;
+  }
+
+  sameAsMap.forEach((sameAs) => { 
+    let quads = getSameAsForObject(member, sameAs);
+    quads.forEach((q) => {
+      quadsToRemove.push(quad(q.subject, q.predicate, q.object));
+      quadsToAdd.push(quad(q.subject, q.predicate, sameAsMap.get(sameAs)));
+    });
+
+    quads = getSameAsForSubject(member, sameAs);
+    quads.forEach((q) => {
+      quadsToRemove.push(quad(q.subject, q.predicate, q.object));
+      quadsToAdd.push(quad(sameAsMap.get(sameAs), q.predicate, q.object));
+    });
+  })
+
   await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
 }
 
@@ -49,16 +100,21 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
         initialState,
         requestHeaders: extractEndpointHeadersFromEnv(LDES_ENDPOINT_HEADER_PREFIX)
       });
+      // TODO: treeproperties are loaded from config for now, but we should also check the LDES metadata
+      const treeProperties = {
+        versionOfPath: LDES_VERSION_OF_PATH,
+        timestampPath: LDES_TIMESTAMP_PATH
+      };
       consumer.listen(
         async (member) => {
           try {
-            convertBlankNodes(member.quads);
-            await processMember(member);
-            
+            const sameAsMap = convertBlankNodes(member.quads);
+            await processMember(member, sameAsMap, treeProperties);
           } catch (e) {
             console.error(
               `Something went wrong when processing the member: ${e}`
             );
+            console.error(e.stack);
           }
         },
         async (state) =>  {
@@ -75,4 +131,10 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
+console.log("config", {   CRON_PATTERN,
+                          LDES_VERSION_OF_PATH,
+                          LDES_TIMESTAMP_PATH,
+                          LDES_ENDPOINT_VIEW,
+                          REPLACE_VERSIONS,
+                      });
 consumerJob.start();
