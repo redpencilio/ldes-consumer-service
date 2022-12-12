@@ -57,7 +57,6 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
         sameAsMap.set(blankNodesMap.get(quad.subject)!, namedNode);
         blankNodesMap.set(quad.subject, namedNode);
       }
-
       quad.subject = blankNodesMap.get(quad.subject)!;
     }
 
@@ -73,17 +72,11 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
 }
 
 export function getSameAsForObject(member: Member, sameAs: NamedNode) : RDF.Quad[]  {
-  return member.quads.filter((quad) => {
-      quad.object.equals(sameAs)
-    }
-  );
+  return member.quads.filter((quad) => quad.object.equals(sameAs));
 }
 
 export function getSameAsForSubject(member: Member, sameAs: NamedNode) : RDF.Quad[]  {
-  return member.quads.filter((quad) => {
-      quad.subject.equals(sameAs)
-    }
-  );
+  return member.quads.filter((quad) =>quad.subject.equals(sameAs));
 }
 
 export function extractVersionTimestamp (member: Member, treeProperties: TreeProperties) : Date | null {

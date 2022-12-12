@@ -65,17 +65,17 @@ async function processMember (member: Member, sameAsMap: Map<RDF.NamedNode, RDF.
     quadsToAdd = member.quads;
   }
 
-  sameAsMap.forEach((sameAs) => { 
-    let quads = getSameAsForObject(member, sameAs);
+  sameAsMap.forEach((value, key) => { 
+    let quads = getSameAsForObject(member, key);
     quads.forEach((q) => {
       quadsToRemove.push(quad(q.subject, q.predicate, q.object));
-      quadsToAdd.push(quad(q.subject, q.predicate, sameAsMap.get(sameAs)));
+      quadsToAdd.push(quad(q.subject, q.predicate, value));
     });
 
-    quads = getSameAsForSubject(member, sameAs);
+    quads = getSameAsForSubject(member, key);
     quads.forEach((q) => {
       quadsToRemove.push(quad(q.subject, q.predicate, q.object));
-      quadsToAdd.push(quad(sameAsMap.get(sameAs), q.predicate, q.object));
+      quadsToAdd.push(quad(value, q.predicate, q.object));
     });
   })
 
