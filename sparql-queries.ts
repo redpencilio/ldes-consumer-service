@@ -12,7 +12,9 @@ const stream = namedNode(LDES_STREAM);
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
 
 function constructTriplesString(quads: RDF.Quad[]) {
-  let triplesString = quads.map(toString).join("\n");
+  let triplesString = quads.map(toString)
+      .filter((item, index, array) => array.indexOf(item) === index)
+      .join("\n");
   return triplesString;
 }
 
