@@ -93,7 +93,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       consumer.listen(
         async (member) => {
           try {
-            convertBlankNodes(member.quads);
+            member.quads = convertBlankNodes(member.quads);
             await processMember(member, treeProperties);
           } catch (e) {
             console.error(

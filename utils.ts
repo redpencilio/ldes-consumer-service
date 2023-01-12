@@ -41,21 +41,24 @@ export function fromDate(date: Date): RDF.Literal {
 
 export function convertBlankNodes(quads: RDF.Quad[]) {
   const blankNodesMap = new Map<RDF.BlankNode, RDF.NamedNode>();
-  quads.forEach((quad) => {
+  return quads.map((quad) => {
     if (quad.subject.termType === "BlankNode") {
       if (!blankNodesMap.has(quad.subject)) {
         blankNodesMap.set(quad.subject, BLANK(uuidv4()));
       }
-      quad.subject = blankNodesMap.get(quad.subject)!;
     }
     if (quad.object.termType === "BlankNode") {
       if (!blankNodesMap.has(quad.object)) {
         blankNodesMap.set(quad.object, BLANK(uuidv4()));
       }
-      quad.object = blankNodesMap.get(quad.object)!;
     }
+    if (quad.subject.termType === "BlankNode" || quad.object.termType === "BlankNode") {
+      const newSubject = blankNodesMap.get(quad.subject) || quad.subject;
+      const newObject = blankNodesMap.get(quad.object) || quad.object;
+      return DataFactory.quad(newSubject, quad.predicate, newObject, quad.graph);
+    }
+    return quad;
   });
-  return quads;
 }
 
 export function extractVersionTimestamp (member: Member, treeProperties: TreeProperties) : Date | null {
