@@ -10,6 +10,7 @@ import * as RDF from "rdf-js";
 import Consumer, { Member } from "ldes-consumer";
 import { convertBlankNodes, extractBaseResourceUri, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
+import ping from "ping";
 import {
   CRON_PATTERN,
   LDES_ENDPOINT_HEADER_PREFIX,
@@ -31,6 +32,7 @@ async function processMember(member: Member) {
   await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
 }
 
+const endpoint = LDES_ENDPOINT_VIEW;
 let taskIsRunning = false;
 
 const consumerJob = new CronJob(CRON_PATTERN, async () => {
@@ -41,7 +43,6 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     }
     taskIsRunning = true;
     const initialState = await fetchState();
-    const endpoint = LDES_ENDPOINT_VIEW;
     console.log('RUN CONSUMER');
     if (endpoint) {
       const consumer = new Consumer({
@@ -54,7 +55,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
           try {
             convertBlankNodes(member.quads);
             await processMember(member);
-            
+
           } catch (e) {
             console.error(
               `Something went wrong when processing the member: ${e}`
@@ -75,4 +76,34 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
-consumerJob.start();
+let restartAttemptsDone = 0
+const RESTART_ATTEMPTS_THRESHOLD = 5
+
+const endpointWatchJob = new CronJob(CRON_PATTERN, async () => {
+  const endpointHost = new URL(endpoint!).host;
+
+  const result = await ping.promise.probe(endpointHost, {
+    timeout: 10
+  });
+
+  if (!result.alive) {
+    if (restartAttemptsDone > RESTART_ATTEMPTS_THRESHOLD) {
+      console.log('Reached restart attempt threshold, terminating consumer')
+      process.kill(process.pid, 'SIGINT');
+      return
+    }
+
+    console.error(`Endpoint host ${endpointHost} is not responding, attempting to restart consumer job`);
+    restartAttemptsDone += 1
+    consumerJob.stop()
+    taskIsRunning = false
+    consumerJob.start()
+  }
+})
+
+if (!endpoint) {
+  throw new Error('No endpoint provided')
+} else {
+  consumerJob.start();
+  endpointWatchJob.start()
+}
