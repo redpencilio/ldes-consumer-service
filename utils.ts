@@ -2,13 +2,18 @@ import { Term } from "rdf-js";
 import { Member } from "ldes-consumer";
 import * as RDF from "rdf-js";
 import { DataFactory } from "n3";
-import { BLANK, PURL, XSD } from "./namespaces";
-const { literal, namedNode } = DataFactory;
+import { BLANK, XSD } from "./namespaces";
 import { v4 as uuidv4 } from "uuid";
-import { LDES_ENDPOINT_HEADER_PREFIX, LDES_RELATION_PATH } from "./config";
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
+import { NamedNode } from "@rdfjs/types";
+const { literal } = DataFactory;
 
-export function toString(term: Term): string {
+export interface TreeProperties {
+  versionOfPath: NamedNode,
+  timestampPath: NamedNode
+}
+
+export function toString (term: Term): string {
   switch (term.termType) {
     case "NamedNode":
       return sparqlEscapeUri(term.value);
@@ -53,11 +58,22 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
   return quads;
 }
 
-export function extractBaseResourceUri(
-  member: Member
+export function extractVersionTimestamp (member: Member, treeProperties: TreeProperties) : Date | null {
+  const timestampMatches = member.quads.filter((quad) =>
+    quad.predicate.equals(treeProperties.timestampPath)
+  );
+  if (timestampMatches && timestampMatches.length) {
+    return new Date(timestampMatches[0].object.value);
+  }
+  return null;
+}
+
+export function extractBaseResourceUri (
+  member: Member,
+  treeProperties: TreeProperties
 ): RDF.NamedNode | undefined {
   const baseResourceMatches = member.quads.filter((quadObj) =>
-    quadObj.predicate.equals(PURL("isVersionOf"))
+    quadObj.predicate.equals(treeProperties.versionOfPath)
   );
   if (baseResourceMatches && baseResourceMatches.length) {
     return baseResourceMatches[0].object as RDF.NamedNode;
@@ -79,5 +95,3 @@ export function extractEndpointHeadersFromEnv(prefix: string) {
   }
   return headers;
 }
-
-
