@@ -5,9 +5,8 @@ import {
   getLatestTimestamp
 } from "./sparql-queries";
 
-import { NamedNode } from "@rdfjs/types";
 import { DataFactory } from "n3";
-import * as RDF from "rdf-js";
+import * as RDF from "@rdfjs/types";
 import Consumer, { Member } from "ldes-consumer";
 import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
@@ -21,9 +20,9 @@ import {
 } from "./config";
 const { quad, variable } = DataFactory;
 
-const latestVersionMap : Map<NamedNode, Date> = new Map();
+const latestVersionMap : Map<RDF.NamedNode, Date> = new Map();
 
-async function latestVersionTimestamp (resource: NamedNode, treeProperties: TreeProperties): Promise<Date | null> {
+async function latestVersionTimestamp (resource: RDF.NamedNode, treeProperties: TreeProperties): Promise<Date | null> {
   if (latestVersionMap.has(resource)) {
     return latestVersionMap.get(resource)!;
   } else {

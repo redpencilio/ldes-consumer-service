@@ -1,4 +1,4 @@
-import * as RDF from "rdf-js";
+import * as RDF from "@rdfjs/types";
 import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
@@ -11,7 +11,6 @@ import {
   SPARQL_ENDPOINT_HEADER_PREFIX
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
-import { NamedNode } from "rdf-js";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const stream = namedNode(LDES_STREAM);
@@ -109,7 +108,7 @@ export async function executeDeleteQuery (quads: RDF.Quad[]) {
   }
 }
 
-export async function getLatestTimestamp (baseResource: NamedNode, treeProperties: TreeProperties) {
+export async function getLatestTimestamp (baseResource: RDF.NamedNode, treeProperties: TreeProperties) {
   const quads = [
     quad(variable("version"), treeProperties.versionOfPath, baseResource),
     quad(variable("version"), treeProperties.timestampPath, variable("timestamp"))
