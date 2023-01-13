@@ -1,19 +1,17 @@
-import { Term } from "rdf-js";
 import { Member } from "ldes-consumer";
-import * as RDF from "rdf-js";
+import * as RDF from "@rdfjs/types";
 import { DataFactory } from "n3";
 import { BLANK, XSD } from "./namespaces";
 import { v4 as uuidv4 } from "uuid";
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
-import { NamedNode } from "@rdfjs/types";
 const { literal } = DataFactory;
 
 export interface TreeProperties {
-  versionOfPath: NamedNode,
-  timestampPath: NamedNode
+  versionOfPath: RDF.NamedNode,
+  timestampPath: RDF.NamedNode
 }
 
-export function toString (term: Term): string {
+export function toString (term: RDF.Term): string {
   switch (term.termType) {
     case "NamedNode":
       return sparqlEscapeUri(term.value);
