@@ -56,8 +56,9 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
       const newSubject = blankNodesMap.get(quad.subject) || quad.subject;
       const newObject = blankNodesMap.get(quad.object) || quad.object;
       return DataFactory.quad(newSubject, quad.predicate, newObject, quad.graph);
+    } else {
+      return quad;
     }
-    return quad;
   });
 }
 
