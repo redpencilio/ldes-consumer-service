@@ -8,7 +8,9 @@ import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
   SPARQL_AUTH_PASSWORD,
-  SPARQL_ENDPOINT_HEADER_PREFIX
+  SPARQL_ENDPOINT_HEADER_PREFIX,
+  SPARQL_BATCH_SIZE,
+  ENABLE_SPARQL_BATCHING
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
@@ -89,22 +91,40 @@ async function query (queryStr: string) {
 }
 
 export async function executeInsertQuery (quads: RDF.Quad[]) {
-  if (quads.length === 0) { return; }
-  const queryStr = constructInsertQuery(quads);
-  try {
-    await update(queryStr);
-  } catch (e) {
-    console.error(e);
+  let nBatches;
+  if (ENABLE_SPARQL_BATCHING) {
+    nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
+  } else {
+    nBatches = quads.length ? 1 : 0;
+  }
+  for (let index = 0; index < nBatches; index++) {
+    const iQuads = index * SPARQL_BATCH_SIZE;
+    const quadsBatch = quads.slice(iQuads, iQuads + SPARQL_BATCH_SIZE);
+    const queryStr = constructInsertQuery(quadsBatch);
+    try {
+      await update(queryStr);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
 export async function executeDeleteQuery (quads: RDF.Quad[]) {
-  if (quads.length === 0) { return; }
-  const queryStr = constructDeleteQuery(quads);
-  try {
-    await update(queryStr);
-  } catch (e) {
-    console.error(e);
+  let nBatches;
+  if (ENABLE_SPARQL_BATCHING) {
+    nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
+  } else {
+    nBatches = quads.length ? 1 : 0;
+  }
+  for (let index = 0; index < nBatches; index++) {
+    const iQuads = index * SPARQL_BATCH_SIZE;
+    const quadsBatch = quads.slice(iQuads, iQuads + SPARQL_BATCH_SIZE);
+    const queryStr = constructDeleteQuery(quadsBatch);
+    try {
+      await update(queryStr);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 

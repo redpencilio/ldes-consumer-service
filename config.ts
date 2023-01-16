@@ -12,3 +12,5 @@ export const REPLACE_VERSIONS = process.env.REPLACE_VERSIONS !== "false";
 export const SPARQL_AUTH_PASSWORD = process.env.SPARQL_AUTH_PASSWORD;
 export const SPARQL_AUTH_USER = process.env.SPARQL_AUTH_USER;
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
+export const SPARQL_BATCH_SIZE = process.env.SPARQL_BATCH_SIZE ? parseInt(process.env.SPARQL_BATCH_SIZE) : 0;
+export const ENABLE_SPARQL_BATCHING = SPARQL_BATCH_SIZE > 0;
