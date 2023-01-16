@@ -20,6 +20,7 @@ consumer:
 The service can be configured with the following environment variables:
 
 - `BLANK_NODE_NAMESPACE` [string]: namespace to use for skolemizing blank nodes (default 'http://mu.semte.ch/blank#')
+- `AUTOSTART` [boolean]: set to true to start the consumer immediately (e.g. when running the service as a Kubernetes CronJob). It will run only once. (default: `false`)
 - `CRON_PATTERN` [string]: the cron pattern which the cronjob should use. (default: `* 0 * * * *`)
 - `DEBUG_AUTH_HEADERS`: Debugging of [mu-authorization](https://github.com/mu-semtech/mu-authorization) access-control related headers (default `false`)
 - `LDES_ENDPOINT_HEADER_<key>` [string]: A header key-value combination which should be send as part of the headers to the LDES ENDPOINT. E.g. `LDES_ENDPOINT_HEADER_X-API-KEY: <api_key>`.
