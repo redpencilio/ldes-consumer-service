@@ -69,13 +69,6 @@ async function processMember (member: Member, treeProperties: TreeProperties) {
 
 let taskIsRunning = false;
 
-console.log("config", {   CRON_PATTERN,
-                          LDES_VERSION_OF_PATH,
-                          LDES_TIMESTAMP_PATH,
-                          LDES_ENDPOINT_VIEW,
-                          REPLACE_VERSIONS,
-                      });
-
 const consumerJob = new CronJob(CRON_PATTERN, async () => {
   try {
     if (taskIsRunning) {
@@ -127,8 +120,15 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     console.log('Job is complete.');
     process.exit();
   }
-}, AUTOSTART);
+});
 
-if (!AUTOSTART) {
-  consumerJob.start();
-}
+console.log("config", {   AUTOSTART,
+                          CRON_PATTERN,
+                          LDES_VERSION_OF_PATH,
+                          LDES_TIMESTAMP_PATH,
+                          LDES_ENDPOINT_VIEW,
+                          REPLACE_VERSIONS,
+                      });
+
+
+consumerJob.start();
