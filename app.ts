@@ -122,7 +122,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
-console.log("config", {   AUTOSTART,
+console.log("config", {   RUNONCE,
                           CRON_PATTERN,
                           LDES_VERSION_OF_PATH,
                           LDES_TIMESTAMP_PATH,
