@@ -106,6 +106,11 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
           console.log('CONSUMER DONE');
           await updateState(state);
           taskIsRunning = false;
+          // Shutdown process when running as a Job.
+          if (RUNONCE) {
+            console.log('Job is complete.');
+            process.exit();
+          }
         }
       );
     } else {
@@ -113,12 +118,6 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     }
   } catch (e) {
     console.error(e);
-  }
-}, async () => {
-  // Shutdown process when running as a Job.
-  if (RUNONCE) {
-    console.log('Job is complete.');
-    process.exit();
   }
 });
 
