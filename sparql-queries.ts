@@ -20,35 +20,31 @@ const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HE
 function constructTriplesString (quads: RDF.Quad[]) {
   const triplesString = quads.map(toString)
     .filter((item, index, array) => array.indexOf(item) === index)
-    .join("\n");
+    .join("\n        ");
   return triplesString;
 }
 
 export function constructInsertQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparql_query = `
-    INSERT DATA {
-        GRAPH <${MU_APPLICATION_GRAPH}> {
-            ${triplesString}
-        }
+  const sparql_query = `INSERT DATA {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
+        ${triplesString}
     }
-  `;
+}`;
   return sparql_query;
 }
 
 export function constructDeleteQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparql_query = `
-    DELETE {
-      GRAPH <${MU_APPLICATION_GRAPH}> {
-            ${triplesString}
-      }
-    } WHERE {
-        GRAPH <${MU_APPLICATION_GRAPH}> {
-            ${triplesString}
-        }
+  const sparql_query = `DELETE {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
+          ${triplesString}
     }
-  `;
+} WHERE {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
+        ${triplesString}
+    }
+}`;
   return sparql_query;
 }
 
@@ -58,13 +54,11 @@ export function constructSelectQuery (
 ) {
   const triplesString = constructTriplesString(quads);
   const variablesString = variables.map(toString).join(" ");
-  const sparql_query = `
-    SELECT ${variablesString} where {
-      GRAPH <${MU_APPLICATION_GRAPH}> {
+  const sparql_query = `SELECT ${variablesString} WHERE {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
-      }
     }
-  `;
+}`;
   return sparql_query;
 }
 
