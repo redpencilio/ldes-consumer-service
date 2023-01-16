@@ -11,7 +11,7 @@ import Consumer, { Member } from "ldes-consumer";
 import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
 import {
-  AUTOSTART,
+  RUNONCE,
   CRON_PATTERN,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
@@ -116,7 +116,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 }, async () => {
   // Shutdown process when running as a Job.
-  if (AUTOSTART) {
+  if (RUNONCE) {
     console.log('Job is complete.');
     process.exit();
   }
