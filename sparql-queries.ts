@@ -2,7 +2,7 @@ import * as RDF from "@rdfjs/types";
 import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
-import { LDES } from "./namespaces";
+import { EXT } from "./namespaces";
 import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
@@ -134,7 +134,7 @@ export async function executeDeleteInsertQuery (
 
 export async function fetchState (stream: RDF.NamedNode): Promise<State | undefined> {
   const quads = [
-    quad(stream, LDES("state"), variable("state"))
+    quad(stream, EXT("state"), variable("state"))
   ];
   const variables = [variable("state")];
   const sparql_query = constructSelectQuery(variables, quads);
@@ -180,10 +180,10 @@ export async function getVersion (resource: RDF.NamedNode, treeProperties: TreeP
 export async function updateState (stream: RDF.NamedNode, state: State) {
   const stateString = JSON.stringify(state);
   const genericStateQuads = [
-    quad(stream, LDES("state"), variable("state"))
+    quad(stream, EXT("state"), variable("state"))
   ];
   const newStateQuads = [
-    quad(stream, LDES("state"), literal(stateString))
+    quad(stream, EXT("state"), literal(stateString))
   ];
   await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
 }
