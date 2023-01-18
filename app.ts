@@ -17,6 +17,7 @@ import {
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
   REPLACE_VERSIONS,
+  LDES_STREAM
 } from "./config";
 const { quad, variable } = DataFactory;
 
@@ -75,7 +76,8 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       return;
     }
     taskIsRunning = true;
-    const initialState = await fetchState();
+    const stream = namedNode(LDES_STREAM);
+    const initialState = await fetchState(stream);
     const endpoint = LDES_ENDPOINT_VIEW;
     console.log('RUN CONSUMER');
     if (endpoint) {
@@ -103,7 +105,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
         },
         async (state) =>  {
           console.log('CONSUMER DONE');
-          await updateState(state);
+          await updateState(stream, state);
           taskIsRunning = false;
         }
       );
