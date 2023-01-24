@@ -118,6 +118,8 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     }
   } catch (e) {
     console.error(e);
+  } finally {
+    taskIsRunning = false;
   }
 });
 
