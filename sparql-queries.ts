@@ -2,9 +2,8 @@ import * as RDF from "@rdfjs/types";
 import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
-import { LDES } from "./namespaces";
+import { EXT } from "./namespaces";
 import {
-  LDES_STREAM,
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
   SPARQL_AUTH_PASSWORD,
@@ -12,8 +11,6 @@ import {
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
-
-const stream = namedNode(LDES_STREAM);
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
 
@@ -129,9 +126,9 @@ export async function executeDeleteInsertQuery (
   await executeInsertQuery(quadsToInsert);
 }
 
-export async function fetchState (): Promise<State | undefined> {
+export async function fetchState (stream: RDF.NamedNode): Promise<State | undefined> {
   const quads = [
-    quad(stream, LDES("state"), variable("state"))
+    quad(stream, EXT("state"), variable("state"))
   ];
   const variables = [variable("state")];
   const sparql_query = constructSelectQuery(variables, quads);
@@ -174,13 +171,13 @@ export async function getVersion (resource: RDF.NamedNode, treeProperties: TreeP
   }
 }
 
-export async function updateState (state: State) {
+export async function updateState (stream: RDF.NamedNode, state: State) {
   const stateString = JSON.stringify(state);
   const genericStateQuads = [
-    quad(stream, LDES("state"), variable("state"))
+    quad(stream, EXT("state"), variable("state"))
   ];
   const newStateQuads = [
-    quad(stream, LDES("state"), literal(stateString))
+    quad(stream, EXT("state"), literal(stateString))
   ];
   await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
 }
