@@ -11,6 +11,7 @@ import Consumer, { Member } from "ldes-consumer";
 import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
 import {
+  RUNONCE,
   CRON_PATTERN,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
@@ -105,6 +106,11 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
           console.log('CONSUMER DONE');
           await updateState(state);
           taskIsRunning = false;
+          // Shutdown process when running as a Job.
+          if (RUNONCE) {
+            console.log('Job is complete.');
+            process.exit();
+          }
         }
       );
     } else {
@@ -115,10 +121,13 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
-console.log("config", {   CRON_PATTERN,
+console.log("config", {   RUNONCE,
+                          CRON_PATTERN,
                           LDES_VERSION_OF_PATH,
                           LDES_TIMESTAMP_PATH,
                           LDES_ENDPOINT_VIEW,
                           REPLACE_VERSIONS,
                       });
+
+
 consumerJob.start();
