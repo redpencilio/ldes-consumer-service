@@ -1,5 +1,5 @@
 import * as RDF from "@rdfjs/types";
-import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
+import { TreeProperties, extractEndpointHeadersFromEnv, toString, getSameAsForObject, getSameAsForSubject } from "./utils";
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { EXT } from "./namespaces";
@@ -10,10 +10,10 @@ import {
   SPARQL_ENDPOINT_HEADER_PREFIX
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
-import { NamedNode } from "rdf-js";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
+const BATCH_SIZE = 100;
 
 function constructTriplesString (quads: RDF.Quad[]) {
   const triplesString = quads.map(toString)
@@ -80,23 +80,32 @@ async function query (queryStr: string) {
   return await querySudo(queryStr, headers, connectionOptions);
 }
 
-export async function executeInsertQuery (quads: RDF.Quad[]) {
-  if (quads.length === 0) { return; }
-  const queryStr = constructInsertQuery(quads);
-  try {
-    await update(queryStr);
-  } catch (e) {
-    console.error(e);
+export async function executeInsertQuery(quads: RDF.Quad[]) {
+  if (quads.length === 0)
+    return;
+  for (let i = 0; i < quads.length; i += BATCH_SIZE) {
+    const batch = quads.slice(i, i + BATCH_SIZE);
+    let queryStr = constructInsertQuery(batch);
+    try {
+      await update(queryStr);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
-export async function executeDeleteQuery (quads: RDF.Quad[]) {
-  if (quads.length === 0) { return; }
-  const queryStr = constructDeleteQuery(quads);
-  try {
-    await update(queryStr);
-  } catch (e) {
-    console.error(e);
+export async function executeDeleteQuery(quads: RDF.Quad[]) {
+  if (quads.length === 0)
+    return;
+  for (let i = 0; i < quads.length; i += BATCH_SIZE) {
+    console.log(`batch ${i}`)
+      const batch = quads.slice(i, i + BATCH_SIZE);
+    let queryStr = constructDeleteQuery(batch);
+    try {
+      await update(queryStr);
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 
@@ -123,6 +132,9 @@ export async function executeDeleteInsertQuery (
   quadsToDelete: RDF.Quad[],
   quadsToInsert: RDF.Quad[]
 ) {
+
+  console.log("delete " + quadsToDelete.length);
+  console.log("add " + quadsToInsert.length);
   await executeDeleteQuery(quadsToDelete);
   await executeInsertQuery(quadsToInsert);
 }

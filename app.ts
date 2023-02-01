@@ -67,21 +67,25 @@ async function processMember (member: Member, sameAsMap: Map<RDF.NamedNode, RDF.
     quadsToAdd = member.quads;
   }
 
+  await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
+
+  const sameAsQuadsToAdd: RDF.Quad[] = [];
+  const sameAsQuadsToRemove: RDF.Quad[] = [];
   sameAsMap.forEach((value, key) => { 
-    let quads = getSameAsForObject(member, key);
-    quads.forEach((q) => {
-      quadsToRemove.push(quad(q.subject, q.predicate, q.object));
-      quadsToAdd.push(quad(q.subject, q.predicate, value));
+    const sameAsForObject = getSameAsForObject(member, key);
+    sameAsForObject.forEach((q) => {
+      sameAsQuadsToRemove.push(quad(q.subject, q.predicate, q.object));
+      sameAsQuadsToAdd.push(quad(q.subject, q.predicate, value));
     });
 
-    quads = getSameAsForSubject(member, key);
-    quads.forEach((q) => {
-      quadsToRemove.push(quad(q.subject, q.predicate, q.object));
-      quadsToAdd.push(quad(value, q.predicate, q.object));
+    const sameAsForSubject = getSameAsForSubject(member, key);
+    sameAsForSubject.forEach((q) => {
+      sameAsQuadsToRemove.push(quad(q.subject, q.predicate, q.object));
+      sameAsQuadsToAdd.push(quad(value, q.predicate, q.object));
     });
   })
 
-  await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
+  await executeDeleteInsertQuery(sameAsQuadsToRemove, sameAsQuadsToAdd);
 }
 
 let taskIsRunning = false;
