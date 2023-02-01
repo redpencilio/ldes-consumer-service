@@ -1,10 +1,9 @@
-import * as RDF from "rdf-js";
+import * as RDF from "@rdfjs/types";
 import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
-import { LDES } from "./namespaces";
+import { EXT } from "./namespaces";
 import {
-  LDES_STREAM,
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
   SPARQL_AUTH_PASSWORD,
@@ -14,62 +13,55 @@ import { State } from "@treecg/actor-init-ldes-client";
 import { NamedNode } from "rdf-js";
 const { quad, namedNode, variable, literal } = DataFactory;
 
-const stream = namedNode(LDES_STREAM);
-
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
 
-function constructTriplesString(quads: RDF.Quad[]) {
-  // using store to remove duplicate quads
-  let triplesString = quads.map(toString).join("\n");
+function constructTriplesString (quads: RDF.Quad[]) {
+  const triplesString = quads.map(toString)
+    .filter((item, index, array) => array.indexOf(item) === index)
+    .join("\n        ");
   return triplesString;
 }
 
-export function constructInsertQuery(quads: RDF.Quad[]) {
-  let triplesString = constructTriplesString(quads);
-  const sparql_query = `
-    INSERT DATA {
-        GRAPH <${MU_APPLICATION_GRAPH}> {
-            ${triplesString}
-        }
+export function constructInsertQuery (quads: RDF.Quad[]) {
+  const triplesString = constructTriplesString(quads);
+  const sparql_query = `INSERT DATA {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
+        ${triplesString}
     }
-  `;
+}`;
   return sparql_query;
 }
 
-export function constructDeleteQuery(quads: RDF.Quad[]) {
-  let triplesString = constructTriplesString(quads);
-  const sparql_query = `
-    DELETE {
-      GRAPH <${MU_APPLICATION_GRAPH}> {
-            ${triplesString}
-      }
-    } WHERE {
-        GRAPH <${MU_APPLICATION_GRAPH}> {
-            ${triplesString}
-        }
+export function constructDeleteQuery (quads: RDF.Quad[]) {
+  const triplesString = constructTriplesString(quads);
+  const sparql_query = `DELETE {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
+          ${triplesString}
     }
-  `;
+} WHERE {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
+        ${triplesString}
+    }
+}`;
   return sparql_query;
 }
 
-export function constructSelectQuery(
+export function constructSelectQuery (
   variables: RDF.Variable[],
   quads: RDF.Quad[]
 ) {
-  let triplesString = constructTriplesString(quads);
-  let variablesString = variables.map(toString).join(" ");
-  const sparql_query = `
-    SELECT ${variablesString} where {
-      GRAPH <${MU_APPLICATION_GRAPH}> {
+  const triplesString = constructTriplesString(quads);
+  const variablesString = variables.map(toString).join(" ");
+  const sparql_query = `SELECT ${variablesString} WHERE {
+    GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
-      }
     }
-  `;
+}`;
   return sparql_query;
 }
 
-async function update(queryStr: string) {
-  const headers : Record<string,number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
+async function update (queryStr: string) {
+  const headers : Record<string, number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
   const connectionOptions : ConnectionOptions = {};
   if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
     connectionOptions.authUser = SPARQL_AUTH_USER;
@@ -78,8 +70,8 @@ async function update(queryStr: string) {
   return await updateSudo(queryStr, headers, connectionOptions);
 }
 
-async function query(queryStr: string) {
-  const headers : Record<string,number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
+async function query (queryStr: string) {
+  const headers : Record<string, number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
   const connectionOptions : ConnectionOptions = {};
   if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
     connectionOptions.authUser = SPARQL_AUTH_USER;
@@ -88,10 +80,9 @@ async function query(queryStr: string) {
   return await querySudo(queryStr, headers, connectionOptions);
 }
 
-export async function executeInsertQuery(quads: RDF.Quad[]) {
-  if (quads.length === 0)
-    return;
-  let queryStr = constructInsertQuery(quads);
+export async function executeInsertQuery (quads: RDF.Quad[]) {
+  if (quads.length === 0) { return; }
+  const queryStr = constructInsertQuery(quads);
   try {
     await update(queryStr);
   } catch (e) {
@@ -99,10 +90,9 @@ export async function executeInsertQuery(quads: RDF.Quad[]) {
   }
 }
 
-export async function executeDeleteQuery(quads: RDF.Quad[]) {
-  if (quads.length === 0)
-    return;
-  let queryStr = constructDeleteQuery(quads);
+export async function executeDeleteQuery (quads: RDF.Quad[]) {
+  if (quads.length === 0) { return; }
+  const queryStr = constructDeleteQuery(quads);
   try {
     await update(queryStr);
   } catch (e) {
@@ -110,7 +100,7 @@ export async function executeDeleteQuery(quads: RDF.Quad[]) {
   }
 }
 
-export async function getLatestTimestamp (baseResource: NamedNode, treeProperties: TreeProperties) {
+export async function getLatestTimestamp (baseResource: RDF.NamedNode, treeProperties: TreeProperties) {
   const quads = [
     quad(variable("version"), treeProperties.versionOfPath, baseResource),
     quad(variable("version"), treeProperties.timestampPath, variable("timestamp"))
@@ -137,11 +127,11 @@ export async function executeDeleteInsertQuery (
   await executeInsertQuery(quadsToInsert);
 }
 
-export async function fetchState(): Promise<State | undefined> {
-  let quads = [
-    quad(stream, LDES("state"), variable("state")),
+export async function fetchState (stream: RDF.NamedNode): Promise<State | undefined> {
+  const quads = [
+    quad(stream, EXT("state"), variable("state"))
   ];
-  let variables = [variable("state")];
+  const variables = [variable("state")];
   const sparql_query = constructSelectQuery(variables, quads);
   try {
     const response = await query(sparql_query);
@@ -155,7 +145,7 @@ export async function fetchState(): Promise<State | undefined> {
   }
 }
 
-function extractVariableFromResponse(
+function extractVariableFromResponse (
   response: any,
   variable: string
 ): string[] | undefined {
@@ -163,7 +153,6 @@ function extractVariableFromResponse(
   if (bindings && bindings.length) {
     return bindings.map((binding: any) => binding[variable].value);
   }
-  return;
 }
 
 export async function getVersion (resource: RDF.NamedNode, treeProperties: TreeProperties) {
@@ -183,13 +172,13 @@ export async function getVersion (resource: RDF.NamedNode, treeProperties: TreeP
   }
 }
 
-export async function updateState(state: State) {
+export async function updateState (stream: RDF.NamedNode, state: State) {
   const stateString = JSON.stringify(state);
   const genericStateQuads = [
-    quad(stream, LDES("state"), variable("state")),
+    quad(stream, EXT("state"), variable("state"))
   ];
   const newStateQuads = [
-    quad(stream, LDES("state"), literal(stateString))
+    quad(stream, EXT("state"), literal(stateString))
   ];
   await executeDeleteInsertQuery(genericStateQuads, newStateQuads);
 }

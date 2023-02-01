@@ -1,17 +1,16 @@
 {
   "dependencies": {
-    "@lblod/mu-auth-sudo": "^0.5.1",
+    "@lblod/mu-auth-sudo": "1.0.0-beta.4",
     "@rdfjs/namespace": "^1.1.0",
     "cron": "^2.1.0",
     "express-http-context": "^1.2.4",
     "ldes-consumer": "^0.3.5",
     "n3": "^1.16.1",
-    "rdf-js": "^4.0.2",
     "rdf-parse": "^2.0.0"
   },
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/redpencilio/ldes-consumer-service.git"
@@ -25,6 +24,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@rdfjs/types": "^1.1.0",
     "@types/cron": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
@@ -35,5 +35,8 @@
     "eslint-plugin-promise": "^6.0.0",
     "release-it": "^15.2.0",
     "release-it-lerna-changelog": "^5.0.0"
+  },
+  "volta": {
+    "node": "16.18.1"
   }
 }
