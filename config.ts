@@ -3,8 +3,8 @@ import { DataFactory } from "n3";
 import env from "env-var";
 
 const { namedNode } = DataFactory;
-export const RUNONCE = env.get("RUNONCE").asBool();
-export const CRON_PATTERN = env.get("CRON_PATTERN").default("0 * * * * *").asString();
+export const RUNONCE = process.env.RUNONCE === "true";
+export const CRON_PATTERN = process.env.CRON_PATTERN || "0 * * * * *";
 export const LDES_ENDPOINT_HEADER_PREFIX = "LDES_ENDPOINT_HEADER_";
 export const LDES_ENDPOINT_VIEW = env.get("LDES_ENDPOINT_VIEW").required().asString();
 export const LDES_STREAM = env.get("LDES_STREAM").default("http://example.org/example-stream").asString();

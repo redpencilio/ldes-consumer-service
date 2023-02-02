@@ -5,6 +5,7 @@ import { BLANK, XSD } from "./namespaces";
 import { v4 as uuidv4 } from "uuid";
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
 const { literal } = DataFactory;
+import namespace from "@rdfjs/namespace";
 
 export interface TreeProperties {
   versionOfPath: RDF.NamedNode,
@@ -40,7 +41,7 @@ export function fromDate(date: Date): RDF.Literal {
 export function convertBlankNodes(quads: RDF.Quad[]) {
   const blankNodesMap = new Map<RDF.BlankNode, RDF.NamedNode>();
   const sameAsMap = new Map<RDF.NamedNode, RDF.NamedNode>();
-  quads.forEach((quad) => {
+  const convertedQuads = quads.map((quad) => {
     if (quad.subject.termType === "BlankNode") {
       let namedNode;
       if (quad.object.datatype && quad.object.datatype.value.startsWith("https://stad.gent/id/identificatiesysteem")) {
@@ -70,7 +71,10 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
     }
   });
 
-  return sameAsMap;
+  return {
+    'sameAsMap': sameAsMap,
+    'quads': convertedQuads
+  }
 }
 
 export function getSameAsForObject(member: Member, sameAs: RDF.NamedNode) : RDF.Quad[]  {

@@ -16,7 +16,7 @@ import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 50;
 
 function constructTriplesString (quads: RDF.Quad[]) {
   const triplesString = quads.map(toString)
@@ -106,20 +106,12 @@ export async function executeInsertQuery (quads: RDF.Quad[]) {
   }
 }
 
-export async function executeDeleteQuery (quads: RDF.Quad[]) {
-  let nBatches;
-  let batchSize;
-  if (ENABLE_SPARQL_BATCHING) {
-    nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
-    batchSize = SPARQL_BATCH_SIZE;
-  } else {
-    nBatches = quads.length ? 1 : 0;
-    batchSize = quads.length;
-  }
-  for (let index = 0; index < nBatches; index++) {
-    const iQuads = index * batchSize;
-    const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
-    const queryStr = constructDeleteQuery(quadsBatch);
+export async function executeDeleteQuery(quads: RDF.Quad[]) {
+  if (quads.length === 0)
+    return;
+  for (let i = 0; i < quads.length; i += BATCH_SIZE) {
+      const batch = quads.slice(i, i + BATCH_SIZE);
+    let queryStr = constructDeleteQuery(batch);
     try {
       await update(queryStr);
     } catch (e) {
@@ -152,8 +144,6 @@ export async function executeDeleteInsertQuery (
   quadsToInsert: RDF.Quad[]
 ) {
 
-  console.log("delete " + quadsToDelete.length);
-  console.log("add " + quadsToInsert.length);
   await executeDeleteQuery(quadsToDelete);
   await executeInsertQuery(quadsToInsert);
 }
