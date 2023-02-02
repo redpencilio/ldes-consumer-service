@@ -13,7 +13,7 @@ import { State } from "@treecg/actor-init-ldes-client";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 50;
 
 function constructTriplesString (quads: RDF.Quad[]) {
   const triplesString = quads.map(toString)
@@ -98,7 +98,6 @@ export async function executeDeleteQuery(quads: RDF.Quad[]) {
   if (quads.length === 0)
     return;
   for (let i = 0; i < quads.length; i += BATCH_SIZE) {
-    console.log(`batch ${i}`)
       const batch = quads.slice(i, i + BATCH_SIZE);
     let queryStr = constructDeleteQuery(batch);
     try {
@@ -133,8 +132,6 @@ export async function executeDeleteInsertQuery (
   quadsToInsert: RDF.Quad[]
 ) {
 
-  console.log("delete " + quadsToDelete.length);
-  console.log("add " + quadsToInsert.length);
   await executeDeleteQuery(quadsToDelete);
   await executeInsertQuery(quadsToInsert);
 }

@@ -4,12 +4,10 @@ import {
   updateState,
   getLatestTimestamp
 } from "./sparql-queries";
-
-import { NamedNode } from "@rdfjs/types";
 import { DataFactory } from "n3";
 import * as RDF from "@rdfjs/types";
 import Consumer, { Member } from "ldes-consumer";
-import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv } from "./utils";
+import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv, getSameAsForObject, getSameAsForSubject } from "./utils";
 import { CronJob } from "cron";
 import {
   RUNONCE,
@@ -21,9 +19,9 @@ import {
   REPLACE_VERSIONS,
   LDES_STREAM
 } from "./config";
-const { quad, variable } = DataFactory;
+const { quad, namedNode, variable } = DataFactory;
 
-const latestVersionMap : Map<NamedNode, Date> = new Map();
+const latestVersionMap : Map<RDF.NamedNode, Date> = new Map();
 
 async function latestVersionTimestamp (resource: RDF.NamedNode, treeProperties: TreeProperties): Promise<Date | null> {
   if (latestVersionMap.has(resource)) {
@@ -69,7 +67,7 @@ async function processMember (member: Member, sameAsMap: Map<RDF.NamedNode, RDF.
 
   await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
 
-  const sameAsQuadsToAdd: RDF.Quad[] = [];
+ const sameAsQuadsToAdd: RDF.Quad[] = [];
   const sameAsQuadsToRemove: RDF.Quad[] = [];
   sameAsMap.forEach((value, key) => { 
     const sameAsForObject = getSameAsForObject(member, key);
@@ -115,8 +113,9 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       consumer.listen(
         async (member) => {
           try {
-            const sameAsMap = convertBlankNodes(member.quads);
-            await processMember(member, sameAsMap, treeProperties);
+            const conversionResult = convertBlankNodes(member.quads);
+            member.quads = conversionResult.quads;
+            await processMember(member, conversionResult.sameAsMap, treeProperties);
           } catch (e) {
             console.error(
               `Something went wrong when processing the member: ${e}`
