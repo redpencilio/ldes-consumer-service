@@ -11,12 +11,14 @@ import Consumer, { Member } from "ldes-consumer";
 import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
 import {
+  RUNONCE,
   CRON_PATTERN,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
   REPLACE_VERSIONS,
+  LDES_STREAM
 } from "./config";
 const { quad, variable } = DataFactory;
 
@@ -75,7 +77,8 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       return;
     }
     taskIsRunning = true;
-    const initialState = await fetchState();
+    const stream = namedNode(LDES_STREAM);
+    const initialState = await fetchState(stream);
     const endpoint = LDES_ENDPOINT_VIEW;
     console.log('RUN CONSUMER');
     if (endpoint) {
@@ -92,7 +95,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       consumer.listen(
         async (member) => {
           try {
-            convertBlankNodes(member.quads);
+            member.quads = convertBlankNodes(member.quads);
             await processMember(member, treeProperties);
           } catch (e) {
             console.error(
@@ -103,8 +106,13 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
         },
         async (state) =>  {
           console.log('CONSUMER DONE');
-          await updateState(state);
+          await updateState(stream, state);
           taskIsRunning = false;
+          // Shutdown process when running as a Job.
+          if (RUNONCE) {
+            console.log('Job is complete.');
+            process.exit();
+          }
         }
       );
     } else {
@@ -112,13 +120,18 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     }
   } catch (e) {
     console.error(e);
+  } finally {
+    taskIsRunning = false;
   }
 });
 
-console.log("config", {   CRON_PATTERN,
+console.log("config", {   RUNONCE,
+                          CRON_PATTERN,
                           LDES_VERSION_OF_PATH,
                           LDES_TIMESTAMP_PATH,
                           LDES_ENDPOINT_VIEW,
                           REPLACE_VERSIONS,
                       });
+
+
 consumerJob.start();
