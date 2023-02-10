@@ -5,6 +5,28 @@
 
 
 
+
+## 0.7.0 (2023-02-10)
+
+#### :rocket: Enhancement
+* [#26](https://github.com/redpencilio/ldes-consumer-service/pull/26) batched queries ([@MikiDi](https://github.com/MikiDi))
+* [#29](https://github.com/redpencilio/ldes-consumer-service/pull/29) update running state, regardless of success or fail ([@MikiDi](https://github.com/MikiDi))
+* [#27](https://github.com/redpencilio/ldes-consumer-service/pull/27) improved string-formatting of sparql queries for cleaner log output ([@MikiDi](https://github.com/MikiDi))
+* [#25](https://github.com/redpencilio/ldes-consumer-service/pull/25) Add option to run only once ([@MPParsley](https://github.com/MPParsley))
+
+#### :bug: Bug Fix
+* [#23](https://github.com/redpencilio/ldes-consumer-service/pull/23) blank nodes skolemization now works with immutable quads ([@MikiDi](https://github.com/MikiDi))
+
+#### :house: Internal
+* [#30](https://github.com/redpencilio/ldes-consumer-service/pull/30) Fix linting and ignore or fix ts errors ([@elpoelma](https://github.com/elpoelma))
+* [#28](https://github.com/redpencilio/ldes-consumer-service/pull/28) State update improvements ([@MikiDi](https://github.com/MikiDi))
+* [#24](https://github.com/redpencilio/ldes-consumer-service/pull/24) use recommended rdfjs types ([@MikiDi](https://github.com/MikiDi))
+
+#### Committers: 3
+- Elena Poelman ([@elpoelma](https://github.com/elpoelma))
+- Maarten Segers ([@MPParsley](https://github.com/MPParsley))
+- Michaël Dierick ([@MikiDi](https://github.com/MikiDi))
+
 ## 0.6.0 (2023-01-12)
 
 #### :rocket: Enhancement
