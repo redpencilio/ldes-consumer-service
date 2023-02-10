@@ -1,7 +1,7 @@
 import { PROV, DCTERMS } from "./namespaces";
 import { DataFactory } from "n3";
 const { namedNode } = DataFactory;
-export const RUNONCE = process.env.RUNONCE || "false";
+export const RUNONCE = process.env.RUNONCE === "true";
 export const CRON_PATTERN = process.env.CRON_PATTERN || "0 * * * * *";
 export const LDES_ENDPOINT_HEADER_PREFIX = "LDES_ENDPOINT_HEADER_";
 export const LDES_ENDPOINT_VIEW = process.env.LDES_ENDPOINT_VIEW;
