@@ -1,6 +1,5 @@
 import * as RDF from "@rdfjs/types";
 import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
-import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { EXT } from "./namespaces";
 import {
@@ -10,6 +9,8 @@ import {
   SPARQL_ENDPOINT_HEADER_PREFIX
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
+// @ts-ignore
+import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
@@ -23,17 +24,17 @@ function constructTriplesString (quads: RDF.Quad[]) {
 
 export function constructInsertQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparql_query = `INSERT DATA {
+  const sparqlQuery = `INSERT DATA {
     GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
     }
 }`;
-  return sparql_query;
+  return sparqlQuery;
 }
 
 export function constructDeleteQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparql_query = `DELETE {
+  const sparqlQuery = `DELETE {
     GRAPH <${MU_APPLICATION_GRAPH}> {
           ${triplesString}
     }
@@ -42,7 +43,7 @@ export function constructDeleteQuery (quads: RDF.Quad[]) {
         ${triplesString}
     }
 }`;
-  return sparql_query;
+  return sparqlQuery;
 }
 
 export function constructSelectQuery (
@@ -51,12 +52,12 @@ export function constructSelectQuery (
 ) {
   const triplesString = constructTriplesString(quads);
   const variablesString = variables.map(toString).join(" ");
-  const sparql_query = `SELECT ${variablesString} WHERE {
+  const sparqlQuery = `SELECT ${variablesString} WHERE {
     GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
     }
 }`;
-  return sparql_query;
+  return sparqlQuery;
 }
 
 async function update (queryStr: string) {
@@ -131,9 +132,9 @@ export async function fetchState (stream: RDF.NamedNode): Promise<State | undefi
     quad(stream, EXT("state"), variable("state"))
   ];
   const variables = [variable("state")];
-  const sparql_query = constructSelectQuery(variables, quads);
+  const sparqlQuery = constructSelectQuery(variables, quads);
   try {
-    const response = await query(sparql_query);
+    const response = await query(sparqlQuery);
     const stateString = extractVariableFromResponse(response, "state")?.shift();
     if (stateString) {
       return JSON.parse(stateString);
