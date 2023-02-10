@@ -20,7 +20,7 @@ import {
   REPLACE_VERSIONS,
   LDES_STREAM
 } from "./config";
-const { quad, variable } = DataFactory;
+const { quad, variable, namedNode } = DataFactory;
 
 const latestVersionMap : Map<RDF.NamedNode, Date> = new Map();
 
