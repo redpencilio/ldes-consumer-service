@@ -83,14 +83,18 @@ async function query (queryStr: string) {
 
 export async function executeInsertQuery (quads: RDF.Quad[]) {
   let nBatches;
+  let batchSize;
   if (ENABLE_SPARQL_BATCHING) {
     nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
+    batchSize = SPARQL_BATCH_SIZE;
   } else {
     nBatches = quads.length ? 1 : 0;
+    batchSize = quads.length
   }
+
   for (let index = 0; index < nBatches; index++) {
-    const iQuads = index * SPARQL_BATCH_SIZE;
-    const quadsBatch = quads.slice(iQuads, iQuads + SPARQL_BATCH_SIZE);
+    const iQuads = index * batchSize;
+    const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructInsertQuery(quadsBatch);
     try {
       await update(queryStr);
@@ -102,14 +106,17 @@ export async function executeInsertQuery (quads: RDF.Quad[]) {
 
 export async function executeDeleteQuery (quads: RDF.Quad[]) {
   let nBatches;
+  let batchSize;
   if (ENABLE_SPARQL_BATCHING) {
     nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
+    batchSize = SPARQL_BATCH_SIZE;
   } else {
     nBatches = quads.length ? 1 : 0;
+    batchSize = quads.length
   }
   for (let index = 0; index < nBatches; index++) {
-    const iQuads = index * SPARQL_BATCH_SIZE;
-    const quadsBatch = quads.slice(iQuads, iQuads + SPARQL_BATCH_SIZE);
+    const iQuads = index * batchSize;
+    const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructDeleteQuery(quadsBatch);
     try {
       await update(queryStr);
