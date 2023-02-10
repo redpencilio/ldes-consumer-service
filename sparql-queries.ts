@@ -90,7 +90,7 @@ export async function executeInsertQuery (quads: RDF.Quad[]) {
     batchSize = SPARQL_BATCH_SIZE;
   } else {
     nBatches = quads.length ? 1 : 0;
-    batchSize = quads.length
+    batchSize = quads.length;
   }
 
   for (let index = 0; index < nBatches; index++) {
@@ -113,7 +113,7 @@ export async function executeDeleteQuery (quads: RDF.Quad[]) {
     batchSize = SPARQL_BATCH_SIZE;
   } else {
     nBatches = quads.length ? 1 : 0;
-    batchSize = quads.length
+    batchSize = quads.length;
   }
   for (let index = 0; index < nBatches; index++) {
     const iQuads = index * batchSize;
