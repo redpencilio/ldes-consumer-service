@@ -11,14 +11,17 @@ import Consumer, { Member } from "ldes-consumer";
 import { TreeProperties, convertBlankNodes, extractBaseResourceUri, extractVersionTimestamp, extractEndpointHeadersFromEnv } from "./utils";
 import { CronJob } from "cron";
 import {
-  RUNONCE,
   CRON_PATTERN,
-  LDES_VERSION_OF_PATH,
-  LDES_TIMESTAMP_PATH,
+  LDES_DEREFERENCE_MEMBERS,
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
+  LDES_POLLING_INTERVAL,
+  LDES_REQUESTS_PER_MINUTE,
+  LDES_STREAM,
+  LDES_TIMESTAMP_PATH,
+  LDES_VERSION_OF_PATH,
   REPLACE_VERSIONS,
-  LDES_STREAM
+  RUNONCE
 } from "./config";
 const { quad, variable, namedNode } = DataFactory;
 
@@ -79,11 +82,20 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     const initialState = await fetchState(stream);
     const endpoint = LDES_ENDPOINT_VIEW;
     console.log("RUN CONSUMER");
+    const ldesOptions = {
+      dereferenceMembers: LDES_DEREFERENCE_MEMBERS,
+      disablePolling: RUNONCE,
+      pollingInterval: LDES_POLLING_INTERVAL
+    };
+    if (LDES_REQUESTS_PER_MINUTE) {
+      ldesOptions.requestsPerMinute = LDES_REQUESTS_PER_MINUTE;
+    }
     if (endpoint) {
       const consumer = new Consumer({
         endpoint,
         initialState,
-        requestHeaders: extractEndpointHeadersFromEnv(LDES_ENDPOINT_HEADER_PREFIX)
+        requestHeaders: extractEndpointHeadersFromEnv(LDES_ENDPOINT_HEADER_PREFIX),
+        ldesOptions
       });
       // TODO: treeproperties are loaded from config for now, but we should also check the LDES metadata
       const treeProperties = {
@@ -125,12 +137,17 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
 });
 
 console.log("config", {
-  RUNONCE,
   CRON_PATTERN,
-  LDES_VERSION_OF_PATH,
-  LDES_TIMESTAMP_PATH,
+  LDES_DEREFERENCE_MEMBERS,
+  LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
-  REPLACE_VERSIONS
+  LDES_POLLING_INTERVAL,
+  LDES_REQUESTS_PER_MINUTE,
+  LDES_STREAM,
+  LDES_TIMESTAMP_PATH,
+  LDES_VERSION_OF_PATH,
+  REPLACE_VERSIONS,
+  RUNONCE
 });
 
 consumerJob.start();

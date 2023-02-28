@@ -16,12 +16,13 @@ export function toString (term: RDF.Term): string {
     case "NamedNode":
       return sparqlEscapeUri(term.value);
     case "Literal":
+    {
       let result = sparqlEscapeString(term.value);
 
       if (term.language) result += `@${term.language}`;
-      else if (term.datatype)
-        result += `^^${sparqlEscapeUri(term.datatype.value)}`;
+      else if (term.datatype) { result += `^^${sparqlEscapeUri(term.datatype.value)}`; }
       return result;
+    }
     case "Quad":
       return `${toString(term.subject)} ${toString(
         term.predicate
@@ -33,11 +34,11 @@ export function toString (term: RDF.Term): string {
   }
 }
 
-export function fromDate(date: Date): RDF.Literal {
+export function fromDate (date: Date): RDF.Literal {
   return literal(date.toISOString(), XSD("dateTime"));
 }
 
-export function convertBlankNodes(quads: RDF.Quad[]) {
+export function convertBlankNodes (quads: RDF.Quad[]) {
   const blankNodesMap = new Map<RDF.BlankNode, RDF.NamedNode>();
   return quads.map((quad) => {
     if (quad.subject.termType === "BlankNode") {
@@ -80,10 +81,9 @@ export function extractBaseResourceUri (
   if (baseResourceMatches && baseResourceMatches.length) {
     return baseResourceMatches[0].object as RDF.NamedNode;
   }
-  return;
 }
 
-export function extractEndpointHeadersFromEnv(prefix: string) {
+export function extractEndpointHeadersFromEnv (prefix: string) {
   const headers: {
     [key: string]: number | string | string[];
   } = {};
