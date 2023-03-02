@@ -97,11 +97,7 @@ export async function executeInsertQuery (quads: RDF.Quad[]) {
     const iQuads = index * batchSize;
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructInsertQuery(quadsBatch);
-    try {
-      await update(queryStr);
-    } catch (e) {
-      console.error(e);
-    }
+    await update(queryStr);
   }
 }
 
@@ -119,11 +115,7 @@ export async function executeDeleteQuery (quads: RDF.Quad[]) {
     const iQuads = index * batchSize;
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructDeleteQuery(quadsBatch);
-    try {
-      await update(queryStr);
-    } catch (e) {
-      console.error(e);
-    }
+    await update(queryStr);
   }
 }
 

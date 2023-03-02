@@ -36,7 +36,9 @@
     "eslint-plugin-n": "^15.2.4",
     "eslint-plugin-promise": "^6.0.0",
     "release-it": "^15.2.0",
-    "release-it-lerna-changelog": "^5.0.0"
+    "release-it-lerna-changelog": "^5.0.0",
+    "@treecg/actor-init-ldes-client": "https://github.com/redpencilio/event-stream-client/releases/download/actor-init-ldes-client-v3.0.0-fix-pausing/treecg-actor-init-ldes-client-3.0.0.tgz",
+		"rdf-js": "^4.0.2"
   },
   "volta": {
     "node": "16.18.1"
