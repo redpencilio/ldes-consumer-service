@@ -137,6 +137,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
 });
 
 async function startJob() {
+  console.log("Starting job...");
   try {
     if (taskIsRunning) {
       console.log("Another task is still running");
