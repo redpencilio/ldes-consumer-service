@@ -1,15 +1,18 @@
 import * as RDF from "@rdfjs/types";
 import { TreeProperties, extractEndpointHeadersFromEnv, toString, getSameAsForObject, getSameAsForSubject } from "./utils";
-import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 import { DataFactory } from "n3";
 import { EXT } from "./namespaces";
 import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
   SPARQL_AUTH_PASSWORD,
-  SPARQL_ENDPOINT_HEADER_PREFIX
+  SPARQL_ENDPOINT_HEADER_PREFIX,
+  SPARQL_BATCH_SIZE,
+  ENABLE_SPARQL_BATCHING
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
+// @ts-ignore
+import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
@@ -24,17 +27,17 @@ function constructTriplesString (quads: RDF.Quad[]) {
 
 export function constructInsertQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparql_query = `INSERT DATA {
+  const sparqlQuery = `INSERT DATA {
     GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
     }
 }`;
-  return sparql_query;
+  return sparqlQuery;
 }
 
 export function constructDeleteQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparql_query = `DELETE {
+  const sparqlQuery = `DELETE {
     GRAPH <${MU_APPLICATION_GRAPH}> {
           ${triplesString}
     }
@@ -43,7 +46,7 @@ export function constructDeleteQuery (quads: RDF.Quad[]) {
         ${triplesString}
     }
 }`;
-  return sparql_query;
+  return sparqlQuery;
 }
 
 export function constructSelectQuery (
@@ -52,12 +55,12 @@ export function constructSelectQuery (
 ) {
   const triplesString = constructTriplesString(quads);
   const variablesString = variables.map(toString).join(" ");
-  const sparql_query = `SELECT ${variablesString} WHERE {
+  const sparqlQuery = `SELECT ${variablesString} WHERE {
     GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
     }
 }`;
-  return sparql_query;
+  return sparqlQuery;
 }
 
 async function update (queryStr: string) {
@@ -80,12 +83,21 @@ async function query (queryStr: string) {
   return await querySudo(queryStr, headers, connectionOptions);
 }
 
-export async function executeInsertQuery(quads: RDF.Quad[]) {
-  if (quads.length === 0)
-    return;
-  for (let i = 0; i < quads.length; i += BATCH_SIZE) {
-    const batch = quads.slice(i, i + BATCH_SIZE);
-    let queryStr = constructInsertQuery(batch);
+export async function executeInsertQuery (quads: RDF.Quad[]) {
+  let nBatches;
+  let batchSize;
+  if (ENABLE_SPARQL_BATCHING) {
+    nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
+    batchSize = SPARQL_BATCH_SIZE;
+  } else {
+    nBatches = quads.length ? 1 : 0;
+    batchSize = quads.length;
+  }
+
+  for (let index = 0; index < nBatches; index++) {
+    const iQuads = index * batchSize;
+    const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
+    const queryStr = constructInsertQuery(quadsBatch);
     try {
       await update(queryStr);
     } catch (e) {
@@ -94,13 +106,20 @@ export async function executeInsertQuery(quads: RDF.Quad[]) {
   }
 }
 
-export async function executeDeleteQuery(quads: RDF.Quad[]) {
-  if (quads.length === 0)
-    return;
-  for (let i = 0; i < quads.length; i += BATCH_SIZE) {
-    console.log(`batch ${i}`)
-      const batch = quads.slice(i, i + BATCH_SIZE);
-    let queryStr = constructDeleteQuery(batch);
+export async function executeDeleteQuery (quads: RDF.Quad[]) {
+  let nBatches;
+  let batchSize;
+  if (ENABLE_SPARQL_BATCHING) {
+    nBatches = Math.floor(quads.length / SPARQL_BATCH_SIZE) + ((quads.length % SPARQL_BATCH_SIZE) ? 1 : 0);
+    batchSize = SPARQL_BATCH_SIZE;
+  } else {
+    nBatches = quads.length ? 1 : 0;
+    batchSize = quads.length;
+  }
+  for (let index = 0; index < nBatches; index++) {
+    const iQuads = index * batchSize;
+    const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
+    const queryStr = constructDeleteQuery(quadsBatch);
     try {
       await update(queryStr);
     } catch (e) {
@@ -144,9 +163,9 @@ export async function fetchState (stream: RDF.NamedNode): Promise<State | undefi
     quad(stream, EXT("state"), variable("state"))
   ];
   const variables = [variable("state")];
-  const sparql_query = constructSelectQuery(variables, quads);
+  const sparqlQuery = constructSelectQuery(variables, quads);
   try {
-    const response = await query(sparql_query);
+    const response = await query(sparqlQuery);
     const stateString = extractVariableFromResponse(response, "state")?.shift();
     if (stateString) {
       return JSON.parse(stateString);
