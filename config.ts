@@ -3,8 +3,8 @@ import { DataFactory } from "n3";
 import env from "env-var";
 
 const { namedNode } = DataFactory;
-export const RUNONCE = process.env.RUNONCE === "true";
-export const CRON_PATTERN = process.env.CRON_PATTERN || "0 * * * * *";
+export const RUNONCE = env.get("RUNONCE").asBool();
+export const CRON_PATTERN = env.get("CRON_PATTERN").default("0 * * * * *").asString();
 export const LDES_ENDPOINT_HEADER_PREFIX = "LDES_ENDPOINT_HEADER_";
 export const LDES_ENDPOINT_VIEW = env.get("LDES_ENDPOINT_VIEW").required().asString();
 export const LDES_STREAM = env.get("LDES_STREAM").default("http://example.org/example-stream").asString();
@@ -18,3 +18,5 @@ export const SPARQL_AUTH_USER = env.get("SPARQL_AUTH_USER").asString();
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
 export const SPARQL_BATCH_SIZE = env.get("SPARQL_BATCH_SIZE").default(0).asInt();
 export const ENABLE_SPARQL_BATCHING = SPARQL_BATCH_SIZE > 0;
+export const REPLACE_BLANK_NODES =  env.get("REPLACE_BLANK_NODES").asBool();
+export const BLANK_NODE_DATA_TYPE = env.get("BLANK_NODE_DATA_TYPE").asString();

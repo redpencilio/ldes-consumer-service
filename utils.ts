@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
 const { literal } = DataFactory;
 import namespace from "@rdfjs/namespace";
+import { REPLACE_BLANK_NODES, BLANK_NODE_DATA_TYPE } from "./config";
 
 export interface TreeProperties {
   versionOfPath: RDF.NamedNode,
@@ -44,7 +45,7 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
   const convertedQuads = quads.map((quad) => {
     if (quad.subject.termType === "BlankNode") {
       let namedNode;
-      if (quad.object.datatype && quad.object.datatype.value.startsWith("https://stad.gent/id/identificatiesysteem")) {
+      if (REPLACE_BLANK_NODES && quad.object.datatype && quad.object.datatype.value.startsWith(BLANK_NODE_DATA_TYPE)) {
         // generate uri based on object datatype and value
         namedNode = namespace(quad.object.datatype.value + "/")(quad.object.value);
       }
