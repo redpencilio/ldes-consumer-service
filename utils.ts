@@ -1,9 +1,10 @@
-import { Member } from "ldes-consumer";
 import * as RDF from "@rdfjs/types";
 import { DataFactory } from "n3";
 import { BLANK, XSD } from "./namespaces";
 import { v4 as uuidv4 } from "uuid";
+// @ts-ignore
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
+import { Member } from "./consumer";
 const { literal } = DataFactory;
 
 export interface TreeProperties {
@@ -39,7 +40,7 @@ export function fromDate (date: Date): RDF.Literal {
 }
 
 export function convertBlankNodes (quads: RDF.Quad[]) {
-  const blankNodesMap = new Map<RDF.BlankNode, RDF.NamedNode>();
+  const blankNodesMap = new Map<RDF.Term, RDF.NamedNode>();
   return quads.map((quad) => {
     if (quad.subject.termType === "BlankNode") {
       if (!blankNodesMap.has(quad.subject)) {

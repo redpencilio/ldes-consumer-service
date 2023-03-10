@@ -12,8 +12,7 @@ import {
   REPLACE_VERSIONS,
   RUNONCE
 } from "./config";
-import Consumer from "./consumer";
-import { LDESOptions } from "ldes-consumer";
+import Consumer, { ConfigurableLDESOptions } from "./consumer";
 import { NamedNode } from "n3";
 let taskIsRunning = false;
 
@@ -25,7 +24,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     }
     const endpoint = LDES_ENDPOINT_VIEW;
     if (endpoint) {
-      const ldesOptions: LDESOptions = {
+      const ldesOptions: ConfigurableLDESOptions = {
         dereferenceMembers: LDES_DEREFERENCE_MEMBERS,
         pollingInterval: LDES_POLLING_INTERVAL
       };
