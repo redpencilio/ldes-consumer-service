@@ -1,4 +1,4 @@
-import { newEngine, LDESClient, EventStream } from "@treecg/actor-init-ldes-client";
+import { newEngine, LDESClient, EventStream, State } from "@treecg/actor-init-ldes-client";
 import * as RDF from "rdf-js";
 import { NamedNode } from "rdf-js";
 import { TreeProperties, extractEndpointHeadersFromEnv, extractVersionTimestamp, extractBaseResourceUri, convertBlankNodes } from "./utils";
@@ -75,35 +75,39 @@ export default class Consumer {
     return new Promise(async (resolve, reject) => {
       if (this.isRunning) reject(new Error("already running"));
       this.isRunning = true;
-      const lastState = await fetchState(this.datasetIri);
-      let membersProcessed = 0;
-      const stream = this.client.createReadStream(
-        this.endpoint,
-        this.ldesOptions,
-        lastState
-      );
-      stream.on("data", async (member: Member) => {
-        try {
-          await this.processMember(member);
-          membersProcessed++;
-          if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
-            this.pauzeReason = PAUZE_REASONS.UPDATE_STATE;
+      try {
+        const lastState = await fetchState(this.datasetIri).catch((e) => reject(e));
+        let membersProcessed = 0;
+        const stream = this.client.createReadStream(
+          this.endpoint,
+          this.ldesOptions,
+        lastState as State | undefined
+        );
+        stream.on("data", async (member: Member) => {
+          try {
+            await this.processMember(member);
+            membersProcessed++;
+            if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
+              this.pauzeReason = PAUZE_REASONS.UPDATE_STATE;
+            }
+          } catch (e: unknown) {
+            this.onError(stream, e as Error, reject);
           }
-        } catch (e: unknown) {
-          this.onError(stream, e as Error, reject);
-        }
-      });
-      stream.on("error", (error) => {
-        this.onError(stream, error, reject);
-      });
-      stream.on("pauze", () => {
-        this.onPauze(stream);
-      });
-      stream.on("end", async () => {
-        await updateState(this.datasetIri, stream.exportState());
-        this.isRunning = false;
-        resolve();
-      });
+        });
+        stream.on("error", (error) => {
+          this.onError(stream, error, reject);
+        });
+        stream.on("pauze", () => {
+          this.onPauze(stream);
+        });
+        stream.on("end", async () => {
+          await updateState(this.datasetIri, stream.exportState());
+          this.isRunning = false;
+          resolve();
+        });
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
