@@ -6,7 +6,8 @@
     "env-var": "^7.3.0",
     "express-http-context": "^1.2.4",
     "n3": "^1.16.1",
-    "rdf-parse": "^2.0.0"
+    "rdf-parse": "^2.0.0",
+    "@treecg/actor-init-ldes-client": "https://github.com/redpencilio/event-stream-client/releases/download/actor-init-ldes-client-v3.0.0-fix-pausing/treecg-actor-init-ldes-client-3.0.0.tgz"
   },
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
@@ -36,7 +37,6 @@
     "eslint-plugin-promise": "^6.0.0",
     "release-it": "^15.2.0",
     "release-it-lerna-changelog": "^5.0.0",
-    "@treecg/actor-init-ldes-client": "https://github.com/redpencilio/event-stream-client/releases/download/actor-init-ldes-client-v3.0.0-fix-pausing/treecg-actor-init-ldes-client-3.0.0.tgz",
 		"rdf-js": "^4.0.2"
   },
   "volta": {
