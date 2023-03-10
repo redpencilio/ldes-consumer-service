@@ -70,7 +70,8 @@ export default class Consumer {
     };
   }
 
-  consumeStream () {
+  consumeStream (): Promise<void> {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       if (this.isRunning) reject(new Error("already running"));
       this.isRunning = true;
@@ -88,8 +89,8 @@ export default class Consumer {
           if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
             this.pauzeReason = PAUZE_REASONS.UPDATE_STATE;
           }
-        } catch (e) {
-          this.onError(stream, e, reject);
+        } catch (e: unknown) {
+          this.onError(stream, e as Error, reject);
         }
       });
       stream.on("error", (error) => {
@@ -107,14 +108,14 @@ export default class Consumer {
   }
 
   async onPauze (stream: EventStream) {
-    if (this.pauzeReason == PAUZE_REASONS.UPDATE_STATE) {
+    if (this.pauzeReason === PAUZE_REASONS.UPDATE_STATE) {
       await updateState(this.datasetIri, stream.exportState());
       this.pauzeReason = PAUZE_REASONS.NONE;
       stream.resume();
     }
   }
 
-  async onError (stream: EventStream, error: Error, reject) {
+  async onError (stream: EventStream, error: Error, reject: (reason?: unknown) => void) {
     console.error(error);
     if (!SKIP_ERRORS) {
       stream.destroy();
