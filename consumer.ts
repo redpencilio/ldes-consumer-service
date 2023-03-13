@@ -36,7 +36,7 @@ export type Member = {
   quads: RDF.Quad[];
 };
 
-enum PAUZE_REASONS {
+enum PAUSE_REASONS {
   NONE,
   UPDATE_STATE
 }
@@ -50,7 +50,7 @@ export default class Consumer {
   private treeProperties: TreeProperties;
   private latestVersionMap : Map<RDF.NamedNode, Date> = new Map();
   private isRunning: boolean = false;
-  private pauzeReason = PAUZE_REASONS.NONE;
+  private pauseReason = PAUSE_REASONS.NONE;
 
   constructor ({ endpoint, datasetIri, ldesOptions }: ConsumerArgs) {
     this.endpoint = endpoint;
@@ -88,7 +88,7 @@ export default class Consumer {
             await this.processMember(member);
             membersProcessed++;
             if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
-              this.pauzeReason = PAUZE_REASONS.UPDATE_STATE;
+              this.pauseReason = PAUSE_REASONS.UPDATE_STATE;
             }
           } catch (e: unknown) {
             this.onError(stream, e as Error, reject);
@@ -97,8 +97,8 @@ export default class Consumer {
         stream.on("error", (error) => {
           this.onError(stream, error, reject);
         });
-        stream.on("pauze", () => {
-          this.onPauze(stream);
+        stream.on("pause", () => {
+          this.onPause(stream);
         });
         stream.on("end", async () => {
           await updateState(this.datasetIri, stream.exportState());
@@ -111,10 +111,10 @@ export default class Consumer {
     });
   }
 
-  async onPauze (stream: EventStream) {
-    if (this.pauzeReason === PAUZE_REASONS.UPDATE_STATE) {
+  async onPause (stream: EventStream) {
+    if (this.pauseReason === PAUSE_REASONS.UPDATE_STATE) {
       await updateState(this.datasetIri, stream.exportState());
-      this.pauzeReason = PAUZE_REASONS.NONE;
+      this.pauseReason = PAUSE_REASONS.NONE;
       stream.resume();
     }
   }
