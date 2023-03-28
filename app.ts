@@ -22,6 +22,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       console.log("Another task is still running");
       return;
     }
+    taskIsRunning = true;
     const endpoint = LDES_ENDPOINT_VIEW;
     if (endpoint) {
       const ldesOptions: ConfigurableLDESOptions = {
