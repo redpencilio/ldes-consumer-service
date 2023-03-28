@@ -89,6 +89,7 @@ export default class Consumer {
             membersProcessed++;
             if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
               this.pauseReason = PAUSE_REASONS.UPDATE_STATE;
+              stream.pause();
             }
           } catch (e: unknown) {
             this.onError(stream, e as Error, reject);
