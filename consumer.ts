@@ -85,7 +85,9 @@ export default class Consumer {
         );
         stream.on("data", async (member: Member) => {
           try {
+            stream.pause();
             await this.processMember(member);
+            stream.resume();
             membersProcessed++;
             if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
               this.pauseReason = PAUSE_REASONS.UPDATE_STATE;
