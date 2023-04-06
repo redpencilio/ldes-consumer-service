@@ -37,6 +37,10 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       console.log("Started processing " + endpoint);
       await consumer.consumeStream();
       console.log("Finished processing " + endpoint);
+      if (RUNONCE) {
+        console.log("Job is complete.");
+        process.exit();
+      }
     } else {
       throw new Error("No endpoint provided");
     }
