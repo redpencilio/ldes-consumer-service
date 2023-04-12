@@ -20,7 +20,7 @@ consumer:
 The service can be configured with the following environment variables:
 
 - `BLANK_NODE_NAMESPACE` [string]: namespace to use for skolemizing blank nodes (default 'http://mu.semte.ch/blank#')
-- `CRON_PATTERN` [string]: the cron pattern which the cronjob should use. (default: `* 0 * * * *`)
+- `CRON_PATTERN` [string]: the cron pattern which the cronjob should use. (default: `0 * * * * *`)
 - `DEBUG_AUTH_HEADERS`: Debugging of [mu-authorization](https://github.com/mu-semtech/mu-authorization) access-control related headers (default `false`)
 - `DATASET_URL` [string]: if set, this URL will be used to provide updates on the status of the job
 - `LDES_DEREFERENCE_MEMBERS`: whether to dereference members, because the collection pages do not contain all information (default: false)
