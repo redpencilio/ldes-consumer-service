@@ -1,6 +1,6 @@
 import { CronJob } from "cron";
 import {
-  CRON_PATTERN,
+  CRON_PATTERN, DATASET_URL,
   LDES_DEREFERENCE_MEMBERS,
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
@@ -8,13 +8,15 @@ import {
   LDES_REQUESTS_PER_MINUTE,
   LDES_STREAM,
   LDES_TIMESTAMP_PATH,
-  LDES_VERSION_OF_PATH,
+  LDES_VERSION_OF_PATH, MU_APPLICATION_GRAPH,
   REPLACE_VERSIONS,
   RUNONCE
 } from "./config";
 import { ConfigurableLDESOptions } from "./consumer";
 import LdesPipeline from "./ldes-pipeline";
 import { NamedNode } from "n3";
+import { addStartedJob, JobStatus, updateStatus } from "./status";
+
 let taskIsRunning = false;
 
 const consumerJob = new CronJob(CRON_PATTERN, async () => {
@@ -22,6 +24,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     console.log("Another task is still running");
     return;
   }
+  let jobURL;
   try {
     taskIsRunning = true;
     const endpoint = LDES_ENDPOINT_VIEW;
@@ -36,7 +39,10 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       const datasetIri = new NamedNode(LDES_STREAM);
       const consumer = new LdesPipeline({ datasetIri, endpoint, ldesOptions });
       console.log("Started processing " + endpoint);
+      jobURL = await addStartedJob();
+      console.log("Job has been registered with URI: " + jobURL);
       await consumer.consumeStream();
+      await updateStatus(jobURL, JobStatus.SUCCESS);
       console.log("Finished processing " + endpoint);
       if (RUNONCE) {
         console.log("Job is complete.");
@@ -47,6 +53,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     }
   } catch (e) {
     console.error(e);
+    await updateStatus(jobURL, JobStatus.FAILED);
   } finally {
     taskIsRunning = false;
   }
@@ -54,6 +61,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
 
 console.log("config", {
   CRON_PATTERN,
+  DATASET_URL,
   LDES_DEREFERENCE_MEMBERS,
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW,
@@ -62,6 +70,7 @@ console.log("config", {
   LDES_STREAM,
   LDES_TIMESTAMP_PATH,
   LDES_VERSION_OF_PATH,
+  MU_APPLICATION_GRAPH,
   REPLACE_VERSIONS,
   RUNONCE
 });
