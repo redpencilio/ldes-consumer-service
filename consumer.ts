@@ -40,8 +40,73 @@ enum PAUSE_REASONS {
   NONE,
   UPDATE_STATE
 }
-const MEMBERS_PROCESSED_TRIGGER = 20;
 
+function timeout (ms: number) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+class MemberProcessor {
+  membersToProcess: Member[] = [];
+  processMember: (member: Member) => Promise<void>;
+  errorCallback: (error: Error) => void;
+  emptyQueueCallback: () => void;
+  afterMemberProcessedCallback: (member?: Member) => Promise<void>;
+
+  running = false;
+
+  constructor (
+    processMember: (member: Member) => Promise<void>,
+    onError: (error: Error,) => void,
+    onEmptyQueue: () => void,
+    onProcessedMember: (member?: Member) => Promise<void>
+  ) {
+    this.errorCallback = onError;
+    this.processMember = processMember;
+    this.emptyQueueCallback = onEmptyQueue;
+    this.afterMemberProcessedCallback = onProcessedMember;
+  }
+
+  get queueLength () {
+    return this.membersToProcess.length;
+  }
+
+  addMemberToQueue (member: Member) {
+    this.membersToProcess.push(member);
+  }
+
+  startProcessing () {
+    if (!this.running) {
+      this.running = true;
+      this.processNextMember();
+    } else {
+      throw new Error("already running");
+    }
+  }
+
+  stopProcessing () {
+    this.running = false;
+  }
+
+  async processNextMember () {
+    try {
+      do {
+        if (this.queueLength > 150) {
+          console.log("queue length is growing ", this.queueLength);
+        }
+        const next = this.membersToProcess.shift();
+        if (next) {
+          await this.processMember(next);
+          await timeout(10);
+        }
+      } while (this.running === true);
+    } catch (e) {
+      this.running = false;
+      this.errorCallback(e);
+    }
+  }
+}
 export default class Consumer {
   private client: LDESClient;
   private endpoint: string;
@@ -51,7 +116,6 @@ export default class Consumer {
   private latestVersionMap : Map<RDF.NamedNode, Date> = new Map();
   private isRunning: boolean = false;
   private pauseReason = PAUSE_REASONS.NONE;
-
   constructor ({ endpoint, datasetIri, ldesOptions }: ConsumerArgs) {
     this.endpoint = endpoint;
     this.client = newEngine();
@@ -72,46 +136,63 @@ export default class Consumer {
 
   consumeStream (): Promise<void> {
     // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if (this.isRunning) reject(new Error("already running"));
       this.isRunning = true;
-      try {
-        const lastState = await fetchState(this.datasetIri).catch((e) => reject(e));
-        let membersProcessed = 0;
-        const stream = this.client.createReadStream(
-          this.endpoint,
-          this.ldesOptions,
-        lastState as State | undefined
-        );
-        stream.on("data", async (member: Member) => {
-          try {
-            stream.pause();
-            await this.processMember(member);
-            stream.resume();
-            membersProcessed++;
-            if (membersProcessed % MEMBERS_PROCESSED_TRIGGER === 0) {
-              this.pauseReason = PAUSE_REASONS.UPDATE_STATE;
-              stream.pause();
-            }
-          } catch (e: unknown) {
-            this.onError(stream, e as Error, reject);
-          }
-        });
-        stream.on("error", (error) => {
-          this.onError(stream, error, reject);
-        });
-        stream.on("pause", () => {
-          this.onPause(stream);
-        });
-        stream.on("end", async () => {
-          await updateState(this.datasetIri, stream.exportState());
-          this.isRunning = false;
-          resolve();
-        });
-      } catch (e) {
-        reject(e);
-      }
+      fetchState(this.datasetIri)
+        .then((state: State | undefined) => this.processStream(state))
+        .then(() => resolve())
+        .catch((e) => reject(e));
     });
+  }
+
+  processStream (lastState: State | undefined) : Promise<void> {
+    console.log(lastState);
+    return new Promise((resolve, reject) => {
+      const stream = this.client.createReadStream(
+        this.endpoint,
+        this.ldesOptions,
+        lastState as State | undefined
+      );
+      const memberProcessor = new MemberProcessor(
+        (member) => this.processMember(member),
+        (error) => this.onError(stream, error, reject),
+        () => this.maybeFinishProcessing(stream, resolve),
+        (member?: Member) => this.memberProcessed(member)
+      );
+      console.log('starting processor');
+      memberProcessor.startProcessing();
+
+      stream.on("data", (member: Member) => {
+        console.log("received member");
+        memberProcessor.addMemberToQueue(member);
+      });
+
+      stream.on("error", (error) => {
+        this.onError(stream, error, reject);
+      });
+      stream.on("pause", () => {
+        this.onPause(stream);
+      });
+      stream.on("end", async () => {
+        if (memberProcessor.queueLength === 0) {
+          this.isRunning = false;
+          updateState(this.datasetIri, stream.exportState()).then();
+          console.log("stream fully processed!");
+          resolve();
+        }
+      });
+    });
+  }
+
+  async memberProcessed (member?: Member) {
+    console.log(member);
+  }
+
+  maybeFinishProcessing (stream: EventStream, resolve: () => void) {
+    if (stream.closed) {
+      resolve();
+    }
   }
 
   async onPause (stream: EventStream) {

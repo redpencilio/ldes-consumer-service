@@ -12,7 +12,8 @@ import {
   REPLACE_VERSIONS,
   RUNONCE
 } from "./config";
-import Consumer, { ConfigurableLDESOptions } from "./consumer";
+import { ConfigurableLDESOptions } from "./consumer";
+import LdesPipeline from "./ldes-pipeline";
 import { NamedNode } from "n3";
 let taskIsRunning = false;
 
@@ -33,7 +34,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
         ldesOptions.requestsPerMinute = LDES_REQUESTS_PER_MINUTE;
       }
       const datasetIri = new NamedNode(LDES_STREAM);
-      const consumer = new Consumer({ datasetIri, endpoint, ldesOptions });
+      const consumer = new LdesPipeline({ datasetIri, endpoint, ldesOptions });
       console.log("Started processing " + endpoint);
       await consumer.consumeStream();
       console.log("Finished processing " + endpoint);
