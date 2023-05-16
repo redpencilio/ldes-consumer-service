@@ -59,13 +59,13 @@ export default class LdesPipeline {
 
   async consumeStream() {
     const lastState = await fetchState(this.datasetIri);
-    const ldesStream = this.client.createReadStream(
-      this.endpoint,
-      this.ldesOptions,
-      lastState as State | undefined
-    );
-    const memberProcessor = new MemberProcessor();
     try {
+      const ldesStream = this.client.createReadStream(
+        this.endpoint,
+        this.ldesOptions,
+        lastState as State | undefined
+      );
+      const memberProcessor = new MemberProcessor();
       await pipeline(
         ldesStream,
         memberProcessor

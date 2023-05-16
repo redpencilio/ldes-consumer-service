@@ -14,7 +14,7 @@ export type Member = {
 
 type  MemberWithCallBack = {
   member: Member;
-  callback: () => void;
+  callback: (e?: Error) => void;
 }
 
 function timeout (ms: number) {
@@ -26,7 +26,6 @@ function timeout (ms: number) {
 export default class MemberProcessor extends Writable {
   private treeProperties: TreeProperties;
   private latestVersionMap : Map<RDF.NamedNode, Date> = new Map();
-  private shouldDrain = false;
   membersToProcess: MemberWithCallBack[] = [];
 
   constructor() {
@@ -40,33 +39,25 @@ export default class MemberProcessor extends Writable {
 
   _write(member: Member, _encoding : string , callback: () => void) {
     this.membersToProcess.push({member, callback});
-    if (this.membersToProcess.length > 50) {
-      console.log('more than 50 members remaining to be processed, pausing pipeline');
-      this.shouldDrain = true;
-      return false;
-    }
-    else {
-      return true;
-    }
+    return true;
   }
 
   async processingLoop () {
-    try {
-      do {
-        const next = this.membersToProcess.shift();
-        if (next) {
+    do {
+      const next = this.membersToProcess.shift();
+      if (next) {
+        try {
           await this.processMember(next.member);
-          next.callback();
-          if (this.membersToProcess.length < 50 && this.shouldDrain) {
-            this.shouldDrain = false;
-            this.emit('drain');
-          }
+          await next.callback();
         }
-        await timeout(500);
-      } while (! this.closed);
-    } catch (e) {
-      this.destroy(e);
-    }
+        catch (e) {
+          console.error(e);
+          await next.callback(e);
+          this.destroy(e);
+        }
+      }
+      await timeout(10);
+    }  while (! this.closed);
   }
 
   async processMember (member: Member) {
