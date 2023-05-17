@@ -18,11 +18,11 @@ import { NamedNode } from "n3";
 let taskIsRunning = false;
 
 const consumerJob = new CronJob(CRON_PATTERN, async () => {
+  if (taskIsRunning) {
+    console.log("Another task is still running");
+    return;
+  }
   try {
-    if (taskIsRunning) {
-      console.log("Another task is still running");
-      return;
-    }
     taskIsRunning = true;
     const endpoint = LDES_ENDPOINT_VIEW;
     if (endpoint) {
