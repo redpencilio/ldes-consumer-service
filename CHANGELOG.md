@@ -6,6 +6,17 @@
 
 
 
+
+## 0.7.1 (2023-07-28)
+
+#### :rocket: Enhancement
+* [#32](https://github.com/redpencilio/ldes-consumer-service/pull/32)  provide options to configure ldes client  ([@nvdk](https://github.com/nvdk))
+
+#### Committers: 2
+- Niels V ([@nvdk](https://github.com/nvdk))
+- [@gauquiebart](https://github.com/gauquiebart)
+
+
 ## 0.7.0 (2023-02-10)
 
 #### :rocket: Enhancement
