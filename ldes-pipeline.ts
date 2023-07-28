@@ -3,7 +3,7 @@ import { newEngine, LDESClient, State } from "@treecg/actor-init-ldes-client";
 import * as RDF from "rdf-js";
 import { NamedNode } from "rdf-js";
 import { extractEndpointHeadersFromEnv } from "./utils";
-import { LDES_ENDPOINT_HEADER_PREFIX } from "./config";
+import { LDES_ENDPOINT_HEADER_PREFIX, PERSIST_STATE } from "./config";
 import { fetchState, updateState } from "./sparql-queries";
 import { DataFactory } from "n3";
 const { quad, variable } = DataFactory;
@@ -58,7 +58,7 @@ export default class LdesPipeline {
   }
 
   async consumeStream() {
-    const lastState = await fetchState(this.datasetIri);
+    const lastState = PERSIST_STATE ? await fetchState(this.datasetIri) : undefined;
     try {
       const ldesStream = this.client.createReadStream(
         this.endpoint,
@@ -70,7 +70,8 @@ export default class LdesPipeline {
         ldesStream,
         memberProcessor
       )
-      await updateState(this.datasetIri, ldesStream.exportState());
+      if (PERSIST_STATE)
+        await updateState(this.datasetIri, ldesStream.exportState());
       console.log('finished processing stream');
     }
     catch (e) {
