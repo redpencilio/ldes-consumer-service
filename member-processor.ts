@@ -65,25 +65,39 @@ export default class MemberProcessor extends Writable {
     const quadsToRemove: RDF.Quad[] = [];
     member.quads = convertBlankNodes(member.quads);
     const baseResourceUri = extractBaseResourceUri(member, this.treeProperties);
-    if (baseResourceUri && REPLACE_VERSIONS) {
+    if (baseResourceUri) {
       const latestTimestamp = await this.latestVersionTimestamp(baseResourceUri, this.treeProperties);
       const versionTimestamp = extractVersionTimestamp(member, this.treeProperties);
+
+      // Case: the first time we ingest a version for this resource.
       if (latestTimestamp === null) {
         quadsToAdd = member.quads;
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
         }
-      } else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
-        quadsToRemove.push(
-          quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
-        );
-        quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+      }
+      // Case: the retreived version is newer then the last version found in the store.
+      else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
+
+        // Here, we only want the latest version of the resource in the store.
+        if(REPLACE_VERSIONS) {
+          quadsToRemove.push(
+            quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
+          );
+          quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+        }
+
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
-          }
+        }
         quadsToAdd = member.quads;
       }
-    } else {
+    }
+    else {
+      console.warn(`
+        No baseResourceUri found for the member. This might potentialy be an odd LDES-feed.
+        If this member contained blank nodes, multiple instances of the same blank nodes will be created.
+      `);
       quadsToAdd = member.quads;
     }
     await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
