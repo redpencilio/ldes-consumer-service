@@ -93,9 +93,11 @@ export default class MemberProcessor extends Writable {
         quadsToAdd = member.quads;
       }
     }
-    // TODO: why is this not an exception?
-    // We would expect a versioned resource to always be about a resource.
     else {
+      console.warn(`
+        No baseResourceUri found for the member. This might potentialy be an odd LDES-feed.
+        If this member contained blank nodes, multiple instances of the same blank nodes will be created.
+      `);
       quadsToAdd = member.quads;
     }
     await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
