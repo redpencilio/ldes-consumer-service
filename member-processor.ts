@@ -65,7 +65,7 @@ export default class MemberProcessor extends Writable {
     const quadsToRemove: RDF.Quad[] = [];
     member.quads = convertBlankNodes(member.quads);
     const baseResourceUri = extractBaseResourceUri(member, this.treeProperties);
-    if (baseResourceUri && REPLACE_VERSIONS) {
+    if (baseResourceUri) {
       const latestTimestamp = await this.latestVersionTimestamp(baseResourceUri, this.treeProperties);
       const versionTimestamp = extractVersionTimestamp(member, this.treeProperties);
       if (latestTimestamp === null) {
@@ -74,13 +74,18 @@ export default class MemberProcessor extends Writable {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
         }
       } else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
-        quadsToRemove.push(
-          quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
-        );
-        quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+
+        if(REPLACE_VERSIONS) {
+          quadsToRemove.push(
+            quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
+          );
+          quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+        }
+
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
-          }
+        }
+
         quadsToAdd = member.quads;
       }
     } else {
