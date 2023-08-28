@@ -68,13 +68,18 @@ export default class MemberProcessor extends Writable {
     if (baseResourceUri) {
       const latestTimestamp = await this.latestVersionTimestamp(baseResourceUri, this.treeProperties);
       const versionTimestamp = extractVersionTimestamp(member, this.treeProperties);
+
+      // Case: the first time we ingest a version for this resource.
       if (latestTimestamp === null) {
         quadsToAdd = member.quads;
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
         }
-      } else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
+      }
+      // Case: the retreived version is newer then the last version found in the store.
+      else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
 
+        // Here, we only want the latest version of the resource in the store.
         if(REPLACE_VERSIONS) {
           quadsToRemove.push(
             quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
@@ -85,10 +90,12 @@ export default class MemberProcessor extends Writable {
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
         }
-
         quadsToAdd = member.quads;
       }
-    } else {
+    }
+    // TODO: why is this not an exception?
+    // We would expect a versioned resource to always be about a resource.
+    else {
       quadsToAdd = member.quads;
     }
     await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
