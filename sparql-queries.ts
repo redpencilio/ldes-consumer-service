@@ -50,15 +50,18 @@ export function constructDeleteQuery (quads: RDF.Quad[]) {
 
 export function constructSelectQuery (
   variables: RDF.Variable[],
-  quads: RDF.Quad[]
+  quads: RDF.Quad[],
+  orderBy?: string
 ) {
   const triplesString = constructTriplesString(quads);
   const variablesString = variables.map(toString).join(" ");
-  const sparqlQuery = `SELECT ${variablesString} WHERE {
-    GRAPH <${MU_APPLICATION_GRAPH}> {
+  const sparqlQuery = `
+    SELECT DISTINCT ${variablesString} WHERE {
+      GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
+      }
     }
-}`;
+    ${orderBy ? orderBy : ''}`;
   return sparqlQuery;
 }
 
@@ -97,11 +100,7 @@ export async function executeInsertQuery (quads: RDF.Quad[]) {
     const iQuads = index * batchSize;
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructInsertQuery(quadsBatch);
-    try {
-      await update(queryStr);
-    } catch (e) {
-      console.error(e);
-    }
+    await update(queryStr);
   }
 }
 
@@ -119,11 +118,7 @@ export async function executeDeleteQuery (quads: RDF.Quad[]) {
     const iQuads = index * batchSize;
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructDeleteQuery(quadsBatch);
-    try {
-      await update(queryStr);
-    } catch (e) {
-      console.error(e);
-    }
+    await update(queryStr);
   }
 }
 
@@ -133,7 +128,7 @@ export async function getLatestTimestamp (baseResource: RDF.NamedNode, treePrope
     quad(variable("version"), treeProperties.timestampPath, variable("timestamp"))
   ];
   const variables = [variable("timestamp")];
-  const sparqlQuery = constructSelectQuery(variables, quads);
+  const sparqlQuery = constructSelectQuery(variables, quads, 'ORDER BY DESC(?timestamp)');
   try {
     const response = await query(sparqlQuery);
     const timestamp = extractVariableFromResponse(response, "timestamp")?.shift();

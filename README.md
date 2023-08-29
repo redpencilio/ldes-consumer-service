@@ -39,3 +39,4 @@ The service can be configured with the following environment variables:
 - `SPARQL_AUTH_USER` [string]: (optional) provide a username to be used in a digest auth to be sent to the SPARQL endpoint.
 - `SPARQL_BATCH_SIZE` [integer]: amount of triples sent per query. To work around triplestore query-length limitations (default: `0` - disabled).
 - `SPARQL_ENDPOINT_HEADER_<key>` [string]: A header key-value combination which should be send as part of the headers to the SPARQL ENDPOINT.
+- `PERSIST_STATE` [boolean]: whether to persist (and restore) state of the ldes client on runs. (default: `false`)

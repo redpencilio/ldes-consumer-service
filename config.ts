@@ -20,3 +20,5 @@ export const SPARQL_AUTH_USER = env.get("SPARQL_AUTH_USER").asString();
 export const SPARQL_BATCH_SIZE = env.get("SPARQL_BATCH_SIZE").default(0).asInt();
 export const ENABLE_SPARQL_BATCHING = SPARQL_BATCH_SIZE > 0;
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
+export const SKIP_ERRORS = env.get("SKIP_ERRORS").asBool();
+export const PERSIST_STATE = env.get("PERSIST_STATE").asBool()
