@@ -11,7 +11,7 @@
   },
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
-  "version": "0.7.1",
+  "version": "0.8.0-rc1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/redpencilio/ldes-consumer-service.git"
@@ -37,7 +37,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "release-it": "^15.2.0",
     "release-it-lerna-changelog": "^5.0.0",
-		"rdf-js": "^4.0.2"
+    "rdf-js": "^4.0.2"
   },
   "volta": {
     "node": "16.18.1"

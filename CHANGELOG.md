@@ -7,6 +7,23 @@
 
 
 
+
+## 0.8.0-rc1 (2023-08-29)
+
+#### :boom: Breaking Change
+* [#36](https://github.com/redpencilio/ldes-consumer-service/pull/36) Feature/better processing ([@nvdk](https://github.com/nvdk))
+
+#### :rocket: Enhancement
+* [#36](https://github.com/redpencilio/ldes-consumer-service/pull/36) Feature/better processing ([@nvdk](https://github.com/nvdk))
+
+#### :bug: Bug Fix
+* [#39](https://github.com/redpencilio/ldes-consumer-service/pull/39) Feature/better processing correction version handling ([@cecemel](https://github.com/cecemel))
+* [#40](https://github.com/redpencilio/ldes-consumer-service/pull/40) Ensure when fetching latest timestamp, the query sorts results ([@cecemel](https://github.com/cecemel))
+
+#### Committers: 2
+- Niels V ([@nvdk](https://github.com/nvdk))
+- [@cecemel](https://github.com/cecemel)
+
 ## 0.7.1 (2023-07-28)
 
 #### :rocket: Enhancement
