@@ -1,4 +1,4 @@
-FROM semtech/mu-javascript-template:feature-node-18
+FROM semtech/mu-javascript-template:1.7.0
 LABEL maintainer="info@redpencil.io"
 ENV PERSIST_STATE "false"
 ENV LDES_ENDPOINT_VIEW "http://ldes-time-fragmenter:3000/example/1"
