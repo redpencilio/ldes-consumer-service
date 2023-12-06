@@ -41,7 +41,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
       console.log("Started processing " + endpoint);
       jobURL = await addStartedJob();
       console.log("Job has been registered with URI: " + jobURL);
-      await consumer.consumeStream();
+      await consumer.consumeStream(jobURL);
       await updateStatus(jobURL, JobStatus.SUCCESS);
       console.log("Finished processing " + endpoint);
       if (RUNONCE) {

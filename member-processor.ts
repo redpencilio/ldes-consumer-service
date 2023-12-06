@@ -9,7 +9,7 @@ const { quad, variable } = DataFactory;
 
 export type Member = {
   id: RDF.Term;
-  quads: RDF.Quad[];
+  quads?: RDF.Quad[];
 };
 
 type  MemberWithCallBack = {
@@ -26,10 +26,14 @@ function timeout (ms: number) {
 export default class MemberProcessor extends Writable {
   private treeProperties: TreeProperties;
   private latestVersionMap : Map<string, Date> = new Map();
+  private jobURL: string;
+  private processedMembers = 0;
+  private insertedMembers = 0;
   membersToProcess: MemberWithCallBack[] = [];
 
-  constructor() {
+  constructor(jobURL: string) {
     super({ objectMode: true, highWaterMark: 1000 });
+    this.jobURL = jobURL;
     this.treeProperties = {
       versionOfPath: LDES_VERSION_OF_PATH,
       timestampPath: LDES_TIMESTAMP_PATH
@@ -48,6 +52,8 @@ export default class MemberProcessor extends Writable {
       if (next) {
         try {
           await this.processMember(next.member);
+          this.processedMembers = this.processedMembers + 1;
+          await this.updateJobMeta();
           await next.callback();
         }
         catch (e) {
@@ -60,9 +66,17 @@ export default class MemberProcessor extends Writable {
     }  while (! this.closed);
   }
 
+  async updateJobMeta() {
+    // TODO
+  }
+  
   async processMember (member: Member) {
     let quadsToAdd: RDF.Quad[] = [];
     const quadsToRemove: RDF.Quad[] = [];
+    if (!member.quads) {
+      console.warn(`no quads where found in this member`, member);
+      return;
+    }
     member.quads = convertBlankNodes(member.quads);
     const baseResourceUri = extractBaseResourceUri(member, this.treeProperties);
     if (baseResourceUri) {
@@ -70,7 +84,7 @@ export default class MemberProcessor extends Writable {
       const versionTimestamp = extractVersionTimestamp(member, this.treeProperties);
 
       // Case: the first time we ingest a version for this resource.
-      if (latestTimestamp === null) {
+      if (latestTimestamp === null && member.quads) {
         quadsToAdd = member.quads;
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
@@ -99,6 +113,9 @@ export default class MemberProcessor extends Writable {
         If this member contained blank nodes, multiple instances of the same blank nodes will be created.
       `);
       quadsToAdd = member.quads;
+    }
+    if (quadsToAdd.length > 0) {
+      this.insertedMembers = this.insertedMembers + 1;
     }
     await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
   }

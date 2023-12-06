@@ -57,7 +57,7 @@ export default class LdesPipeline {
     this.datasetIri = datasetIri;
   }
 
-  async consumeStream() {
+  async consumeStream(jobURL: string) {
     const lastState = PERSIST_STATE ? await fetchState(this.datasetIri) : undefined;
     try {
       const ldesStream = this.client.createReadStream(
@@ -65,7 +65,7 @@ export default class LdesPipeline {
         this.ldesOptions,
         lastState as State | undefined
       );
-      const memberProcessor = new MemberProcessor();
+      const memberProcessor = new MemberProcessor(jobURL);
       await pipeline(
         ldesStream,
         memberProcessor
