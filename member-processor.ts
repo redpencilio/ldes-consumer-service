@@ -28,7 +28,7 @@ export default class MemberProcessor extends Writable {
   private latestVersionMap : Map<string, Date> = new Map();
   membersToProcess: MemberWithCallBack[] = [];
 
-  constructor() {
+  constructor () {
     super({ objectMode: true, highWaterMark: 1000 });
     this.treeProperties = {
       versionOfPath: LDES_VERSION_OF_PATH,
@@ -37,8 +37,10 @@ export default class MemberProcessor extends Writable {
     this.processingLoop();
   }
 
-  _write(member: Member, _encoding : string , callback: () => void) {
-    this.membersToProcess.push({member, callback});
+  _write (member: Member, _encoding : string, callback: () => void) {
+    if (member.id) {
+      this.membersToProcess.push({ member, callback });
+    }
     return true;
   }
 
@@ -57,7 +59,7 @@ export default class MemberProcessor extends Writable {
         }
       }
       await timeout(10);
-    }  while (! this.closed);
+    } while (!this.closed);
   }
 
   async processMember (member: Member) {
