@@ -12,8 +12,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "release-it"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "redpencil.io <info@redpencil.io>",
+  "license": "MIT",
   "devDependencies": {
     "@rdfjs/types": "^1.1.0",
     "@types/cron": "^2.0.0",
