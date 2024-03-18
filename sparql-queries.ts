@@ -1,5 +1,5 @@
 import * as RDF from "@rdfjs/types";
-import { extractEndpointHeadersFromEnv, toString, TreeProperties } from "./utils";
+import { extractEndpointHeadersFromEnv, toString, TreeProperties } from "./rdf-utils";
 import { DataFactory } from "n3";
 import { EXT } from "./namespaces";
 import {

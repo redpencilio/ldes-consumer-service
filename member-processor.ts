@@ -1,6 +1,6 @@
 import { Writable } from "stream";
 import * as RDF from "rdf-js";
-import { TreeProperties, extractVersionTimestamp, extractBaseResourceUri, convertBlankNodes } from "./utils";
+import { TreeProperties, extractVersionTimestamp, extractBaseResourceUri, convertBlankNodes } from "./rdf-utils";
 import { LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH, REPLACE_VERSIONS } from "./config";
 import { executeDeleteInsertQuery, getLatestTimestamp } from "./sparql-queries";
 import { DataFactory } from "n3";

@@ -2,7 +2,7 @@ import { pipeline } from "stream/promises";
 import { newEngine, LDESClient, State } from "@treecg/actor-init-ldes-client";
 import * as RDF from "rdf-js";
 import { NamedNode } from "rdf-js";
-import { extractEndpointHeadersFromEnv } from "./utils";
+import { extractEndpointHeadersFromEnv } from "./rdf-utils";
 import { LDES_ENDPOINT_HEADER_PREFIX, PERSIST_STATE } from "./config";
 import { fetchState, updateState } from "./sparql-queries";
 import MemberProcessor from "./member-processor";
