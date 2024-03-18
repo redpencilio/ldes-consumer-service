@@ -1,0 +1,37 @@
+version: "3.7"
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  virtuoso:
+    image: redpencil/virtuoso:1.2.0-rc.1
+    ports:
+      - "8996:8890"
+    environment:
+      SPARQL_UPDATE: "true"
+      DEFAULT_GRAPH: "http://mu.semte.ch/application"
+    volumes:
+      - ./data-tests/db:/data
+    restart: always
+    logging: *default-logging
+
+  ldes-stub:
+    build: ./ldes-stub
+    volumes:
+      - ./ldes-stub:/usr/app/src
+    environment:
+      HOSTNAME: 'ldes-stub'
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:80/InstanceJsonLdContext.jsonld" ]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 200
+    ports:
+      - "35000:80"
+
