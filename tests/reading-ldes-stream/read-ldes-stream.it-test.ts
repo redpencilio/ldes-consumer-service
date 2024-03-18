@@ -51,37 +51,80 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 
       const requirements = quadsToTurtle.filter(q => q.predicate.value === "http://vocab.belgif.be/ns/publicservice#hasRequirement");
       expect(requirements.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both requirements
+      console.log(requirements);
+
+      let requirement1Quads = await queryQuadsFor(sparqlQuerying, requirements[0].object.value);
+      const evidenceRequirement1 = requirement1Quads.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasSupportingEvidence");
+      expect(evidenceRequirement1.length).toEqual(1);
+
+      const requirement1evidenceQuads = await queryQuadsFor(sparqlQuerying, evidenceRequirement1[0].object.value);
+
+      expect(requirement1evidenceQuads.map(q => q.toNQ())).toEqual([
+        "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Evidence> <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Bewijs - 1\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Evidence - 1\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">If you collect the document yourself:<ul><li>your own identity card.</li></ul>If you are requesting the document for someone else:<ul><li>a power of attorney from that person and a copy of their identity card</li></ul><ul><li>as well as your own identity card.</li></ul> - 1</p>\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">Als u het document zelf ophaalt:<ul><li>uw eigen identiteitskaart.</li></ul>Als u het document voor iemand anders aanvraagt:<ul><li>een volmacht van de betrokkene en een kopie van zijn of haar identiteitskaart</li><li>uw eigen identiteitskaart.</li></ul> - nl - 1</p>\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> ."
+      ].map(l => l.replace("BLANK_ID", evidenceRequirement1[0].object.value)));
+
+      requirement1Quads = requirement1Quads.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasSupportingEvidence");
+      expect(requirement1Quads.map(q => q.toNQ())).toEqual([
+        "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Requirement> <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Requirements - 1\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Voorwaarden - 1\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">De akte vermeldt:<ul><li>de naam, de voornamen, de geboortedatum en de geboorteplaats van de persoon op wie de akte betrekking heeft</li><li>de wettelijke basis van de verklaring op basis waarvan de akte werd opgesteld</li><li>in geval van nationaliteitstoekenning op basis van de artikelen 8, § 1, 2°, b), 9, 2°, b), en 11, § 2, van het Wetboek van de Belgische nationaliteit: de naam, de voornamen, de geboortedatum en de geboorteplaats van de verklaarder of verklaarders.</li></ul>Onder bepaalde voorwaarden kunt u een afschrift of een uittreksel van de akte van Belgische nationaliteit aanvragen:<ul><li>Een afschrift vermeldt de oorspronkelijke gegevens van de akte en de historiek van de staat van de persoon op wie de akte betrekking heeft.</li><li>Een uittreksel vermeldt daarentegen enkel de actuele gegevens van de akte, zonder vermelding van de historiek van de staat van de persoon op wie de akte betrekking heeft. Op een uittreksel is dus enkel de huidige toestand van de gegevens zichtbaar.</li></ul><h3>Wie kan een afschrift of uittreksel aanvragen?</h3>Voor akten van Belgische nationaliteit wordt het recht op een afschrift of uittreksel beperkt tot:<ul><li>uzelf</li><li>de echtgeno(o)te, overlevende echtgeno(o)te of wettelijk samenwonende</li><li>uw wettelijke vertegenwoordiger (bv. ouder, voogd, bewindvoerder)</li><li>bloedverwanten in opgaande of neerdalende lijn (geen aanverwanten en zijtakken)</li><li>uw erfgenamen</li><li>bijzondere gemachtigden zoals een notaris of advocaat.</li></ul>Als de akte meer dan 100 jaar oud is, heeft iedereen recht op een afschrift of uittreksel. - nl - 1</p>\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">The right to receive a copy of or an extract from certificates of Belgian nationality is limited to:<ul><li>yourself</li><li>your spouse, surviving spouse, or legal cohabitant</li><li>your legal representative (e.g. a parent, guardian, conservator)</li><li>blood relatives in the ascending or descending line (no relatives by affinity and side branches)</li><li>your heirs</li><li>special agents, such as notaries or lawyers.</li></ul>If the certificate is more than 100 years old, anyone is entitled to request a copy or an extract. - 1</p>\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://www.w3.org/ns/shacl#order> \"0\"^^<http://www.w3.org/2001/XMLSchema#integer> <http://mu.semte.ch/graphs/ldes/example-ldes-data> ."
+      ].map(l => l.replace("BLANK_ID", requirements[0].object.value)));
+
+      let requirement2Quads = await queryQuadsFor(sparqlQuerying, requirements[1].object.value);
+      const evidenceRequirement2 = requirement2Quads.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasSupportingEvidence");
+      expect(evidenceRequirement2.length).toEqual(1);
+
+      const requirement2evidenceQuads = await queryQuadsFor(sparqlQuerying, evidenceRequirement2[0].object.value);
+
+      expect(requirement2evidenceQuads.map(q => q.toNQ())).toEqual([
+        "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Evidence> <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Bewijs - 2\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Evidence - 2\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">Als u het document zelf ophaalt:<ul><li>uw eigen identiteitskaart.</li></ul>Als u het document voor iemand anders aanvraagt:<ul><li>een volmacht van de betrokkene en een kopie van zijn of haar identiteitskaart</li><li>uw eigen identiteitskaart.</li></ul> - nl - 2</p>\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">If you collect the document yourself:<ul><li>your own identity card.</li></ul>If you are requesting the document for someone else:<ul><li>a power of attorney from that person and a copy of their identity card</li></ul><ul><li>as well as your own identity card.</li></ul> - 2</p>\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> ."
+      ].map(l => l.replace("BLANK_ID", evidenceRequirement2[0].object.value)));
+
+      requirement2Quads = requirement2Quads.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasSupportingEvidence");
+      expect(requirement2Quads.map(q => q.toNQ())).toEqual([
+        "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Requirement> <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Requirements - 2\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/title> \"Voorwaarden - 2\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">The right to receive a copy of or an extract from certificates of Belgian nationality is limited to:<ul><li>yourself</li><li>your spouse, surviving spouse, or legal cohabitant</li><li>your legal representative (e.g. a parent, guardian, conservator)</li><li>blood relatives in the ascending or descending line (no relatives by affinity and side branches)</li><li>your heirs</li><li>special agents, such as notaries or lawyers.</li></ul>If the certificate is more than 100 years old, anyone is entitled to request a copy or an extract. - 2</p>\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://purl.org/dc/terms/description> \"<p data-indentation-level=\\\"0\\\">De akte vermeldt:<ul><li>de naam, de voornamen, de geboortedatum en de geboorteplaats van de persoon op wie de akte betrekking heeft</li><li>de wettelijke basis van de verklaring op basis waarvan de akte werd opgesteld</li><li>in geval van nationaliteitstoekenning op basis van de artikelen 8, § 1, 2°, b), 9, 2°, b), en 11, § 2, van het Wetboek van de Belgische nationaliteit: de naam, de voornamen, de geboortedatum en de geboorteplaats van de verklaarder of verklaarders.</li></ul>Onder bepaalde voorwaarden kunt u een afschrift of een uittreksel van de akte van Belgische nationaliteit aanvragen:<ul><li>Een afschrift vermeldt de oorspronkelijke gegevens van de akte en de historiek van de staat van de persoon op wie de akte betrekking heeft.</li><li>Een uittreksel vermeldt daarentegen enkel de actuele gegevens van de akte, zonder vermelding van de historiek van de staat van de persoon op wie de akte betrekking heeft. Op een uittreksel is dus enkel de huidige toestand van de gegevens zichtbaar.</li></ul><h3>Wie kan een afschrift of uittreksel aanvragen?</h3>Voor akten van Belgische nationaliteit wordt het recht op een afschrift of uittreksel beperkt tot:<ul><li>uzelf</li><li>de echtgeno(o)te, overlevende echtgeno(o)te of wettelijk samenwonende</li><li>uw wettelijke vertegenwoordiger (bv. ouder, voogd, bewindvoerder)</li><li>bloedverwanten in opgaande of neerdalende lijn (geen aanverwanten en zijtakken)</li><li>uw erfgenamen</li><li>bijzondere gemachtigden zoals een notaris of advocaat.</li></ul>Als de akte meer dan 100 jaar oud is, heeft iedereen recht op een afschrift of uittreksel. - nl - 2</p>\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data> .",
+        "<BLANK_ID> <http://www.w3.org/ns/shacl#order> \"1\"^^<http://www.w3.org/2001/XMLSchema#integer> <http://mu.semte.ch/graphs/ldes/example-ldes-data> ."
+      ].map(l => l.replace("BLANK_ID", requirements[1].object.value)));
+
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://vocab.belgif.be/ns/publicservice#hasRequirement");
 
       const rules = quadsToTurtle.filter(q => q.predicate.value === "http://purl.org/vocab/cpsv#follows");
       expect(rules.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both rules
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://purl.org/vocab/cpsv#follows");
 
       const websites = quadsToTurtle.filter(q => q.predicate.value === "http://www.w3.org/2000/01/rdf-schema#seeAlso");
       expect(websites.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both websites
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://www.w3.org/2000/01/rdf-schema#seeAlso");
 
       const costs = quadsToTurtle.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasCost");
       expect(costs.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both costs
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasCost");
 
       const financialAdvantages = quadsToTurtle.filter(q => q.predicate.value === "http://purl.org/vocab/cpsv#produces");
       expect(financialAdvantages.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both financialadvantages
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://purl.org/vocab/cpsv#produces");
 
       const legalResources = quadsToTurtle.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasLegalResource");
       expect(legalResources.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both legalresources
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasLegalResource");
 
       const contactPoints = quadsToTurtle.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasContactPoint");
       expect(contactPoints.length).toEqual(2);
-      // TODO LPDC-998 verify contents of both contactpoints
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasContactPoint");
 
       expect(quadsToTurtle.map(q => q.toNQ())).toEqual([
