@@ -2,12 +2,11 @@ import { SparqlQuerying } from "../test-helpers/sparql-querying";
 import { Statement } from "rdflib";
 
 describe("can read several pages from ldes, and create correct (nested) triples ", () => {
-  const sparqlQuerying = new SparqlQuerying();
 
   describe("first page", () => {
     test("Verify the first member read from the first page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5126";
-      const quadsToTurtle = (await queryQuadsFor(sparqlQuerying, s)).map((q) => q.toNQ());
+      const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
       expect(quadsToTurtle).toEqual([
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5126> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -26,7 +25,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 
     test("Verify the updated first member read from the first page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/84d1e739-d20c-4986-84d8-331bd58feb09";
-      const quadsToTurtle = (await queryQuadsFor(sparqlQuerying, s)).map((q) => q.toNQ());
+      const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
       expect(quadsToTurtle).toEqual([
         "<http://data.lblod.info/id/public-service-snapshot/84d1e739-d20c-4986-84d8-331bd58feb09> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -47,16 +46,16 @@ describe("can read several pages from ldes, and create correct (nested) triples 
   describe("second page", () => {
     test("Verify first member read from the second page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5127";
-      let quadsToTurtle = await queryQuadsFor(sparqlQuerying, s);
+      let quadsToTurtle = await queryQuadsFor(s);
 
       const requirements = quadsToTurtle.filter(q => q.predicate.value === "http://vocab.belgif.be/ns/publicservice#hasRequirement");
       expect(requirements.length).toEqual(2);
 
-      let requirement1Quads = await queryQuadsFor(sparqlQuerying, requirements[0].object.value);
+      let requirement1Quads = await queryQuadsFor(requirements[0].object.value);
       const evidenceRequirement1 = requirement1Quads.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasSupportingEvidence");
       expect(evidenceRequirement1.length).toEqual(1);
 
-      const requirement1evidenceQuads = await queryQuadsFor(sparqlQuerying, evidenceRequirement1[0].object.value);
+      const requirement1evidenceQuads = await queryQuadsFor(evidenceRequirement1[0].object.value);
 
       expect(requirement1evidenceQuads.map(q => q.toNQ())).toEqual([
         "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Evidence> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -76,11 +75,11 @@ describe("can read several pages from ldes, and create correct (nested) triples 
         "<BLANK_ID> <http://www.w3.org/ns/shacl#order> \"0\"^^<http://www.w3.org/2001/XMLSchema#integer> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> ."
       ].map(l => l.replace("BLANK_ID", requirements[0].object.value)));
 
-      let requirement2Quads = await queryQuadsFor(sparqlQuerying, requirements[1].object.value);
+      let requirement2Quads = await queryQuadsFor(requirements[1].object.value);
       const evidenceRequirement2 = requirement2Quads.filter(q => q.predicate.value === "http://data.europa.eu/m8g/hasSupportingEvidence");
       expect(evidenceRequirement2.length).toEqual(1);
 
-      const requirement2evidenceQuads = await queryQuadsFor(sparqlQuerying, evidenceRequirement2[0].object.value);
+      const requirement2evidenceQuads = await queryQuadsFor(evidenceRequirement2[0].object.value);
 
       expect(requirement2evidenceQuads.map(q => q.toNQ())).toEqual([
         "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Evidence> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -172,7 +171,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 
     test("Verify the second member read from the second page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/a62cee64-9086-4864-9be9-1f72798a8c72";
-      const quadsToTurtle = (await queryQuadsFor(sparqlQuerying, s)).map((q) => q.toNQ());
+      const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
       expect(quadsToTurtle).toEqual([
         "<http://data.lblod.info/id/public-service-snapshot/a62cee64-9086-4864-9be9-1f72798a8c72> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -192,7 +191,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 
     test("Verify the third member read from the second page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/f9aceb0a-5225-4b0c-be55-e14a2954347a";
-      const quadsToTurtle = (await queryQuadsFor(sparqlQuerying, s)).map((q) => q.toNQ());
+      const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
       expect(quadsToTurtle).toEqual([
         "<http://data.lblod.info/id/public-service-snapshot/f9aceb0a-5225-4b0c-be55-e14a2954347a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -214,7 +213,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
   describe("third page", () => {
     test("Verify the first member read from the third page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3";
-      const quadsToTurtle = (await queryQuadsFor(sparqlQuerying, s)).map((q) => q.toNQ());
+      const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
       expect(quadsToTurtle).toEqual([
         "<http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-02-29T14:32:10.377Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -232,7 +231,8 @@ describe("can read several pages from ldes, and create correct (nested) triples 
   });
 });
 
-async function queryQuadsFor (sparqlQuerying: SparqlQuerying, s: string): Promise<Statement[]> {
+const sparqlQuerying = new SparqlQuerying();
+async function queryQuadsFor (s: string): Promise<Statement[]> {
   const rawResults = await sparqlQuerying.list(
         `select ?s ?p ?o where { graph <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> { BIND(<${s}> as ?s) ?s ?p ?o } }`);
   return sparqlQuerying.asQuads(rawResults, "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state");
