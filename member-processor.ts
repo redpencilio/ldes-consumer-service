@@ -1,4 +1,4 @@
-import { Writable } from 'stream';
+import { Writable } from "stream";
 import * as RDF from "rdf-js";
 import { TreeProperties, extractVersionTimestamp, extractBaseResourceUri, convertBlankNodes } from "./utils";
 import { LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH, REPLACE_VERSIONS } from "./config";
@@ -6,13 +6,12 @@ import { executeDeleteInsertQuery, getLatestTimestamp } from "./sparql-queries";
 import { DataFactory } from "n3";
 const { quad, variable } = DataFactory;
 
-
 export type Member = {
   id: RDF.Term;
   quads: RDF.Quad[];
 };
 
-type  MemberWithCallBack = {
+type MemberWithCallBack = {
   member: Member;
   callback: (e?: Error) => void;
 }
@@ -28,7 +27,7 @@ export default class MemberProcessor extends Writable {
   private latestVersionMap : Map<string, Date> = new Map();
   membersToProcess: MemberWithCallBack[] = [];
 
-  constructor() {
+  constructor () {
     super({ objectMode: true, highWaterMark: 1000 });
     this.treeProperties = {
       versionOfPath: LDES_VERSION_OF_PATH,
@@ -37,8 +36,8 @@ export default class MemberProcessor extends Writable {
     this.processingLoop();
   }
 
-  _write(member: Member, _encoding : string , callback: () => void) {
-    this.membersToProcess.push({member, callback});
+  _write (member: Member, _encoding : string, callback: () => void) {
+    this.membersToProcess.push({ member, callback });
     return true;
   }
 
@@ -48,16 +47,17 @@ export default class MemberProcessor extends Writable {
       if (next) {
         try {
           await this.processMember(next.member);
-          await next.callback();
-        }
-        catch (e) {
+          next.callback();
+        } catch (e) {
           console.error(e);
-          await next.callback(e);
+          // @ts-ignore
+          next.callback(e);
+          // @ts-ignore
           this.destroy(e);
         }
       }
       await timeout(10);
-    }  while (! this.closed);
+    } while (!this.closed);
   }
 
   async processMember (member: Member) {
@@ -75,12 +75,12 @@ export default class MemberProcessor extends Writable {
         if (versionTimestamp) {
           this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
         }
+        // eslint-disable-next-line brace-style
       }
-      // Case: the retreived version is newer then the last version found in the store.
+      // Case: the retrieved version is newer then the last version found in the store.
       else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
-
         // Here, we only want the latest version of the resource in the store.
-        if(REPLACE_VERSIONS) {
+        if (REPLACE_VERSIONS) {
           quadsToRemove.push(
             quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
           );
@@ -92,8 +92,7 @@ export default class MemberProcessor extends Writable {
         }
         quadsToAdd = member.quads;
       }
-    }
-    else {
+    } else {
       console.warn(`
         No baseResourceUri found for the member. This might potentialy be an odd LDES-feed.
         If this member contained blank nodes, multiple instances of the same blank nodes will be created.

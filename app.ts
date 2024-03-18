@@ -12,8 +12,7 @@ import {
   REPLACE_VERSIONS,
   RUNONCE
 } from "./config";
-import { ConfigurableLDESOptions } from "./consumer";
-import LdesPipeline from "./ldes-pipeline";
+import LdesPipeline, { ConfigurableLDESOptions } from "./ldes-pipeline";
 import { NamedNode } from "n3";
 let taskIsRunning = false;
 

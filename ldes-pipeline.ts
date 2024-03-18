@@ -1,20 +1,18 @@
-import { pipeline } from 'stream/promises';
+import { pipeline } from "stream/promises";
 import { newEngine, LDESClient, State } from "@treecg/actor-init-ldes-client";
 import * as RDF from "rdf-js";
 import { NamedNode } from "rdf-js";
 import { extractEndpointHeadersFromEnv } from "./utils";
 import { LDES_ENDPOINT_HEADER_PREFIX, PERSIST_STATE } from "./config";
 import { fetchState, updateState } from "./sparql-queries";
-import { DataFactory } from "n3";
-const { quad, variable } = DataFactory;
-import MemberProcessor from './member-processor';
+import MemberProcessor from "./member-processor";
 
 export interface ConfigurableLDESOptions {
   pollingInterval?: number;
   mimeType?: string;
   dereferenceMembers?: boolean;
   requestsPerMinute?: number;
-};
+}
 
 interface LDESOptions {
   representation: string
@@ -57,11 +55,12 @@ export default class LdesPipeline {
     this.datasetIri = datasetIri;
   }
 
-  async consumeStream() {
+  async consumeStream () {
     const lastState = PERSIST_STATE ? await fetchState(this.datasetIri) : undefined;
     try {
       const ldesStream = this.client.createReadStream(
         this.endpoint,
+        // @ts-ignore
         this.ldesOptions,
         lastState as State | undefined
       );
@@ -69,16 +68,12 @@ export default class LdesPipeline {
       await pipeline(
         ldesStream,
         memberProcessor
-      )
-      if (PERSIST_STATE)
-        await updateState(this.datasetIri, ldesStream.exportState());
-      console.log('finished processing stream');
-    }
-    catch (e) {
-      console.log('processing stream failed');
+      );
+      if (PERSIST_STATE) { await updateState(this.datasetIri, ldesStream.exportState()); }
+      console.log("finished processing stream");
+    } catch (e) {
+      console.log("processing stream failed");
       console.error(e);
     }
   }
-
-
 }

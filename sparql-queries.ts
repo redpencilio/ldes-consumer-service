@@ -1,42 +1,41 @@
 import * as RDF from "@rdfjs/types";
-import { TreeProperties, extractEndpointHeadersFromEnv, toString } from "./utils";
+import { extractEndpointHeadersFromEnv, toString, TreeProperties } from "./utils";
 import { DataFactory } from "n3";
 import { EXT } from "./namespaces";
 import {
+  ENABLE_SPARQL_BATCHING,
   MU_APPLICATION_GRAPH,
-  SPARQL_AUTH_USER,
   SPARQL_AUTH_PASSWORD,
-  SPARQL_ENDPOINT_HEADER_PREFIX,
+  SPARQL_AUTH_USER,
   SPARQL_BATCH_SIZE,
-  ENABLE_SPARQL_BATCHING
+  SPARQL_ENDPOINT_HEADER_PREFIX
 } from "./config";
 import { State } from "@treecg/actor-init-ldes-client";
 // @ts-ignore
-import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
+import { ConnectionOptions, querySudo, updateSudo } from "@lblod/mu-auth-sudo";
+
 const { quad, namedNode, variable, literal } = DataFactory;
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
 
 function constructTriplesString (quads: RDF.Quad[]) {
-  const triplesString = quads.map(toString)
+  return quads.map(toString)
     .filter((item, index, array) => array.indexOf(item) === index)
     .join("\n        ");
-  return triplesString;
 }
 
 export function constructInsertQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparqlQuery = `INSERT DATA {
+  return `INSERT DATA {
     GRAPH <${MU_APPLICATION_GRAPH}> {
         ${triplesString}
     }
 }`;
-  return sparqlQuery;
 }
 
 export function constructDeleteQuery (quads: RDF.Quad[]) {
   const triplesString = constructTriplesString(quads);
-  const sparqlQuery = `DELETE {
+  return `DELETE {
     GRAPH <${MU_APPLICATION_GRAPH}> {
           ${triplesString}
     }
@@ -45,7 +44,6 @@ export function constructDeleteQuery (quads: RDF.Quad[]) {
         ${triplesString}
     }
 }`;
-  return sparqlQuery;
 }
 
 export function constructSelectQuery (
@@ -61,7 +59,7 @@ export function constructSelectQuery (
         ${triplesString}
       }
     }
-    ${orderBy ? orderBy : ''}`;
+    ${orderBy || ""}`;
   return sparqlQuery;
 }
 
@@ -128,7 +126,7 @@ export async function getLatestTimestamp (baseResource: RDF.NamedNode, treePrope
     quad(variable("version"), treeProperties.timestampPath, variable("timestamp"))
   ];
   const variables = [variable("timestamp")];
-  const sparqlQuery = constructSelectQuery(variables, quads, 'ORDER BY DESC(?timestamp)');
+  const sparqlQuery = constructSelectQuery(variables, quads, "ORDER BY DESC(?timestamp)");
   try {
     const response = await query(sparqlQuery);
     const timestamp = extractVariableFromResponse(response, "timestamp")?.shift();
