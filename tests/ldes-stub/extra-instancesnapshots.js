@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-export const instanceSnapshot = (instanceId, gearchiveerd = false) => {
+export const instanceSnapshot = (instanceId) => {
   const instanceSnapshotId = uuid();
   return {
     "@id": `http://data.lblod.info/id/public-service-snapshot/${instanceSnapshotId}`,
@@ -27,6 +27,6 @@ export const instanceSnapshot = (instanceId, gearchiveerd = false) => {
     uitvoerendeOverheden: [
       "353234a365664e581db5c2f7cc07add2534b47b8e1ab87c821fc6e6365e6bef5"
     ],
-    gearchiveerd: gearchiveerd.toString()
+    gearchiveerd: false
   };
 };
