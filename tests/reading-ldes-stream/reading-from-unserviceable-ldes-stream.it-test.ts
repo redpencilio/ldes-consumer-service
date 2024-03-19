@@ -3,8 +3,7 @@ import {wait} from "../test-helpers/test-utils";
 import {v4 as uuid} from "uuid";
 import {SparqlQuerying} from "../test-helpers/sparql-querying";
 import {Statement} from "rdflib";
-
-const {toIncludeAllMembers} = require('jest-extended');
+import {toIncludeAllMembers} from 'jest-extended';
 
 expect.extend({toIncludeAllMembers});
 

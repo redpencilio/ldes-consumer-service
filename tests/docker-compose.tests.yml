@@ -54,3 +54,22 @@ services:
     links:
       - virtuoso:database #link to virtuoso directly for testing purposes
 
+  ldes-consumer-with-persist-state:
+    build: ../
+    depends_on:
+      ldes-stub:
+        condition: service_healthy
+    environment:
+      LDES_STREAM: "http://ldes-stub/doc/instancesnapshot"
+      LDES_ENDPOINT_VIEW: "http://ldes-stub/doc/instancesnapshot?pageNumber=0" # first page of the stream
+      LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
+      CRON_PATTERN: "*/10 * * * * *" # run the job every 10 seconds
+      LDES_POLLING_INTERVAL: 30000 # every 30 seconds
+      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
+      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state"
+      LDES_ENDPOINT_HEADER_X-API-KEY: "<your endpoint api key here>"
+      PERSIST_STATE: "true"
+    restart: no
+    links:
+      - virtuoso:database #link to virtuoso directly for testing purposes
+
