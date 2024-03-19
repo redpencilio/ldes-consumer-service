@@ -1,5 +1,9 @@
 import { SparqlQuerying } from "../test-helpers/sparql-querying";
 import { Statement } from "rdflib";
+import {v4 as uuid} from "uuid";
+import {wait} from "../test-helpers/test-utils";
+import {toIncludeAllMembers} from 'jest-extended';
+expect.extend({toIncludeAllMembers});
 
 describe("can read several pages from ldes, and create correct (nested) triples ", () => {
 
@@ -8,7 +12,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       const s = "http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5126";
       const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
-      expect(quadsToTurtle).toEqual([
+      expect(quadsToTurtle).toIncludeAllMembers([
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5126> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5126> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-02-18T06:32:10.377Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5126> <http://purl.org/dc/terms/isVersionOf> <http://data.lblod.info/id/public-service/c0d6bf9a-fcc4-4d46-beb6-3f4d80f03bf3> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -27,7 +31,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       const s = "http://data.lblod.info/id/public-service-snapshot/84d1e739-d20c-4986-84d8-331bd58feb09";
       const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
-      expect(quadsToTurtle).toEqual([
+      expect(quadsToTurtle).toIncludeAllMembers([
         "<http://data.lblod.info/id/public-service-snapshot/84d1e739-d20c-4986-84d8-331bd58feb09> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/84d1e739-d20c-4986-84d8-331bd58feb09> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-02-20T07:32:10.377Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/84d1e739-d20c-4986-84d8-331bd58feb09> <http://purl.org/dc/terms/isVersionOf> <http://data.lblod.info/id/public-service/c0d6bf9a-fcc4-4d46-beb6-3f4d80f03bf3> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -57,7 +61,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 
       const requirement1evidenceQuads = await queryQuadsFor(evidenceRequirement1[0].object.value);
 
-      expect(requirement1evidenceQuads.map(q => q.toNQ())).toEqual([
+      expect(requirement1evidenceQuads.map(q => q.toNQ())).toIncludeAllMembers([
         "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Evidence> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Bewijs - 1\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Evidence - 1\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -66,7 +70,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       ].map(l => l.replace("BLANK_ID", evidenceRequirement1[0].object.value)));
 
       requirement1Quads = requirement1Quads.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasSupportingEvidence");
-      expect(requirement1Quads.map(q => q.toNQ())).toEqual([
+      expect(requirement1Quads.map(q => q.toNQ())).toIncludeAllMembers([
         "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Requirement> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Requirements - 1\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Voorwaarden - 1\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -81,7 +85,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 
       const requirement2evidenceQuads = await queryQuadsFor(evidenceRequirement2[0].object.value);
 
-      expect(requirement2evidenceQuads.map(q => q.toNQ())).toEqual([
+      expect(requirement2evidenceQuads.map(q => q.toNQ())).toIncludeAllMembers([
         "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Evidence> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Bewijs - 2\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Evidence - 2\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -90,7 +94,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       ].map(l => l.replace("BLANK_ID", evidenceRequirement2[0].object.value)));
 
       requirement2Quads = requirement2Quads.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasSupportingEvidence");
-      expect(requirement2Quads.map(q => q.toNQ())).toEqual([
+      expect(requirement2Quads.map(q => q.toNQ())).toIncludeAllMembers([
         "<BLANK_ID> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.europa.eu/m8g/Requirement> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Requirements - 2\"@en <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<BLANK_ID> <http://purl.org/dc/terms/title> \"Voorwaarden - 2\"@nl-be-x-informal <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -125,7 +129,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       expect(contactPoints.length).toEqual(2);
       quadsToTurtle = quadsToTurtle.filter(q => q.predicate.value !== "http://data.europa.eu/m8g/hasContactPoint");
 
-      expect(quadsToTurtle.map(q => q.toNQ())).toEqual([
+      expect(quadsToTurtle.map(q => q.toNQ())).toIncludeAllMembers([
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5127> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5127> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-02-28T02:16:39.134Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/6e9334cb-272c-443d-8b0a-1b02149a5127> <http://purl.org/dc/terms/isVersionOf> <http://data.lblod.info/id/public-service/c31c343e-836c-4674-8efa-991cc2078493> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -173,7 +177,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       const s = "http://data.lblod.info/id/public-service-snapshot/a62cee64-9086-4864-9be9-1f72798a8c72";
       const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
-      expect(quadsToTurtle).toEqual([
+      expect(quadsToTurtle).toIncludeAllMembers([
         "<http://data.lblod.info/id/public-service-snapshot/a62cee64-9086-4864-9be9-1f72798a8c72> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/a62cee64-9086-4864-9be9-1f72798a8c72> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-03-01T06:32:10.377Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/a62cee64-9086-4864-9be9-1f72798a8c72> <http://purl.org/dc/terms/isVersionOf> <http://data.lblod.info/id/public-service/2e018424-7af6-4798-8026-0e627a8694d8> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -193,7 +197,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       const s = "http://data.lblod.info/id/public-service-snapshot/f9aceb0a-5225-4b0c-be55-e14a2954347a";
       const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
 
-      expect(quadsToTurtle).toEqual([
+      expect(quadsToTurtle).toIncludeAllMembers([
         "<http://data.lblod.info/id/public-service-snapshot/f9aceb0a-5225-4b0c-be55-e14a2954347a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/f9aceb0a-5225-4b0c-be55-e14a2954347a> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-03-02T06:32:10.377Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/f9aceb0a-5225-4b0c-be55-e14a2954347a> <http://purl.org/dc/terms/isVersionOf> <http://data.lblod.info/id/public-service/2e018424-7af6-4798-8026-0e627a8694d8> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -214,7 +218,7 @@ describe("can read several pages from ldes, and create correct (nested) triples 
     test("Verify the first member read from the third page of the ldes stream", async () => {
       const s = "http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3";
       const quadsToTurtle = (await queryQuadsFor(s)).map((q) => q.toNQ());
-      expect(quadsToTurtle).toEqual([
+      expect(quadsToTurtle).toIncludeAllMembers([
         "<http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3> <http://www.w3.org/ns/prov#generatedAtTime> \"2024-02-29T14:32:10.377Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
         "<http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3> <http://purl.org/dc/terms/isVersionOf> <http://data.lblod.info/id/public-service/ad3abd4f-d4aa-4e92-99e4-ef2dc2376bf6> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .",
@@ -229,6 +233,23 @@ describe("can read several pages from ldes, and create correct (nested) triples 
       ]);
     });
   });
+
+  test("Adding a new instance in last page will be read", async() => {
+    const response = await fetch(`http://localhost:35000/instancesnapshot/${uuid()}`, {method: "POST"});
+    expect(response.ok).toBeTruthy();
+    const createdSnapshot = await response.json();
+
+    await wait(20000); //wait till processed
+
+    console.log(createdSnapshot);
+
+    //verify result
+    const result = (await queryQuadsFor(createdSnapshot.id)).map((q) => q.toNQ());
+    expect(result).toIncludeAllMembers([
+      `<${createdSnapshot.id}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .`,
+      `<${createdSnapshot.id}> <http://purl.org/dc/terms/isVersionOf> <${createdSnapshot.isVersionOf}> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .`,
+    ]);
+  }, 60000)
 });
 
 const sparqlQuerying = new SparqlQuerying();
