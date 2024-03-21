@@ -1,0 +1,75 @@
+version: "3.7"
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  virtuoso:
+    image: redpencil/virtuoso:1.2.0-rc.1
+    ports:
+      - "8996:8890"
+    environment:
+      SPARQL_UPDATE: "true"
+      DEFAULT_GRAPH: "http://mu.semte.ch/application"
+    volumes:
+      - ./data-tests/db:/data
+    restart: always
+    logging: *default-logging
+
+  ldes-stub:
+    build: ./ldes-stub
+    volumes:
+      - ./ldes-stub:/usr/app/src
+    environment:
+      HOSTNAME: 'ldes-stub'
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "http://localhost:80/InstanceJsonLdContext.jsonld" ]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 200
+    ports:
+      - "35000:80"
+
+  ldes-consumer-no-persist-state:
+    build: ../
+    depends_on:
+      ldes-stub:
+        condition: service_healthy
+    environment:
+      LDES_STREAM: "http://ldes-stub/doc/instancesnapshot"
+      LDES_ENDPOINT_VIEW: "http://ldes-stub/doc/instancesnapshot?pageNumber=0" # first page of the stream
+      LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
+      CRON_PATTERN: "*/10 * * * * *" # run the job every 10 seconds
+      LDES_POLLING_INTERVAL: 30000 # every 30 seconds
+      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
+      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state"
+      LDES_ENDPOINT_HEADER_X-API-KEY: "<your endpoint api key here>"
+      PERSIST_STATE: "false"
+    restart: no
+    links:
+      - virtuoso:database #link to virtuoso directly for testing purposes
+
+  ldes-consumer-with-persist-state:
+    build: ../
+    depends_on:
+      ldes-stub:
+        condition: service_healthy
+    environment:
+      LDES_STREAM: "http://ldes-stub/doc/instancesnapshot"
+      LDES_ENDPOINT_VIEW: "http://ldes-stub/doc/instancesnapshot?pageNumber=0" # first page of the stream
+      LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
+      CRON_PATTERN: "*/10 * * * * *" # run the job every 10 seconds
+      LDES_POLLING_INTERVAL: 30000 # every 30 seconds
+      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
+      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state"
+      LDES_ENDPOINT_HEADER_X-API-KEY: "<your endpoint api key here>"
+      PERSIST_STATE: "true"
+    restart: no
+    links:
+      - virtuoso:database #link to virtuoso directly for testing purposes
+
