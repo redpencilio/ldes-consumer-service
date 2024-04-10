@@ -12,6 +12,7 @@ export interface ConfigurableLDESOptions {
   mimeType?: string;
   dereferenceMembers?: boolean;
   requestsPerMinute?: number;
+  loggingLevel: string;
 }
 
 interface LDESOptions {
@@ -23,6 +24,7 @@ interface LDESOptions {
   pollingInterval?: number;
   dereferenceMembers?: boolean;
   requestsPerMinute?: number;
+  loggingLevel: string;
 }
 
 export type ConsumerArgs = {
@@ -49,7 +51,8 @@ export default class LdesPipeline {
       mimeType: "application/ld+json",
       requestHeaders: extractEndpointHeadersFromEnv(LDES_ENDPOINT_HEADER_PREFIX),
       emitMemberOnce: true,
-      disableSynchronization: true
+      disableSynchronization: true,
+      loggingLevel: "info",
     };
     this.ldesOptions = { ...defaultOptions, ...ldesOptions };
     this.datasetIri = datasetIri;

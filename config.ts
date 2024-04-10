@@ -12,6 +12,7 @@ export const LDES_REQUESTS_PER_MINUTE = env.get("LDES_REQUESTS_PER_MINUTE").defa
 export const LDES_STREAM = env.get("LDES_STREAM").default("http://example.org/example-stream").asString();
 export const LDES_TIMESTAMP_PATH = process.env.LDES_TIMESTAMP_PATH ? namedNode(process.env.LDES_TIMESTAMP_PATH) : PROV("generatedAtTime");
 export const LDES_VERSION_OF_PATH = process.env.LDES_VERSION_OF_PATH ? namedNode(process.env.LDES_VERSION_OF_PATH) : DCTERMS("isVersionOf");
+export const LDES_LOGGING_LEVEL = env.get("LDES_LOGGING_LEVEL").default("info").asString();
 export const MU_APPLICATION_GRAPH = env.get("MU_APPLICATION_GRAPH").required().asString();
 export const REPLACE_VERSIONS = env.get("REPLACE_VERSIONS").asBool();
 export const RUNONCE = env.get("RUNONCE").asBool();

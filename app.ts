@@ -3,7 +3,7 @@ import {
   CRON_PATTERN,
   LDES_DEREFERENCE_MEMBERS,
   LDES_ENDPOINT_HEADER_PREFIX,
-  LDES_ENDPOINT_VIEW,
+  LDES_ENDPOINT_VIEW, LDES_LOGGING_LEVEL,
   LDES_POLLING_INTERVAL,
   LDES_REQUESTS_PER_MINUTE,
   LDES_STREAM,
@@ -27,7 +27,8 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     if (endpoint) {
       const ldesOptions: ConfigurableLDESOptions = {
         dereferenceMembers: LDES_DEREFERENCE_MEMBERS,
-        pollingInterval: LDES_POLLING_INTERVAL
+        pollingInterval: LDES_POLLING_INTERVAL,
+        loggingLevel: LDES_LOGGING_LEVEL,
       };
       if (LDES_REQUESTS_PER_MINUTE) {
         ldesOptions.requestsPerMinute = LDES_REQUESTS_PER_MINUTE;
