@@ -25,13 +25,12 @@
     "eslint-plugin-n": "^15.2.4",
     "eslint-plugin-promise": "^6.0.0",
     "release-it": "^15.2.0",
-    "release-it-lerna-changelog": "^5.0.0"
+    "release-it-lerna-changelog": "^5.0.0",
+    "@rdfjs/types": "^1.1.0"
   },
   "dependencies": {
     "@lblod/mu-auth-sudo": "1.0.0-beta.4",
     "@rdfjs/namespace": "^1.1.0",
-    "@rdfjs/types": "^1.1.0",
-    "rdf-js": "^4.0.2",
     "cron": "^2.1.0",
     "env-var": "^7.3.0",
     "express-http-context": "^1.2.4",
