@@ -37,7 +37,9 @@ export default class MemberProcessor extends Writable {
   }
 
   _write (member: Member, _encoding : string, callback: () => void) {
-    this.membersToProcess.push({ member, callback });
+    if (member.id) {
+      this.membersToProcess.push({ member, callback });
+    }
     return true;
   }
 
