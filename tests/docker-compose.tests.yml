@@ -50,6 +50,7 @@ services:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state"
       LDES_ENDPOINT_HEADER_APIKEY: "X-API-KEY;some magic key"
       PERSIST_STATE: "false"
+      LDES_LOGGING_LEVEL: "trace"
     restart: no
     links:
       - virtuoso:database #link to virtuoso directly for testing purposes
@@ -69,6 +70,7 @@ services:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state"
       LDES_ENDPOINT_HEADER_X-API-KEY: "<your endpoint api key here>"
       PERSIST_STATE: "true"
+      LDES_LOGGING_LEVEL: "trace"
     restart: no
     links:
       - virtuoso:database #link to virtuoso directly for testing purposes

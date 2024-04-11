@@ -1,4 +1,4 @@
-import { pipeline } from "stream/promises";
+import { pipeline, finished } from "stream/promises";
 import { newEngine, LDESClient, State } from "@treecg/actor-init-ldes-client";
 import * as RDF from '@rdfjs/types';
 import { NamedNode } from '@rdfjs/types';
@@ -68,6 +68,11 @@ export default class LdesPipeline {
         lastState as State | undefined
       );
       const memberProcessor = new MemberProcessor();
+
+          //TODO LPDC-1103: how to handle the catch ?
+      finished(ldesStream)
+          .then(() => console.log('Stream has finished.'))
+          .catch(error => console.error('Stream failed:', error));
       await pipeline(
         ldesStream,
         memberProcessor
