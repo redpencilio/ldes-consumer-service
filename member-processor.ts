@@ -88,7 +88,7 @@ export default class MemberProcessor extends Writable {
       // Case: the retrieved version is newer then the last version found in the store.
       else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
         // Here, we only want the latest version of the resource in the store.
-        if (REPLACE_VERSIONS) {
+        if (REPLACE_VERSIONS) { //TODO LPDC-1103: what about nested blank nodes ? that is not going to work here ... (or at least we leave orphans in the database)
           quadsToRemove.push(
             quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
           );
