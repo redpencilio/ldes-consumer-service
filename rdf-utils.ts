@@ -40,21 +40,24 @@ export function fromDate (date: Date): RDF.Literal {
 }
 
 export function convertBlankNodes (quads: RDF.Quad[]) {
-  const blankNodesMap = new Map<RDF.Term, RDF.NamedNode>();
-  return quads.map((quad) => {
+  const blankNodesMap = new Map<string, RDF.NamedNode>();
+  for (const quad of quads) {
     if (quad.subject.termType === "BlankNode") {
-      if (!blankNodesMap.has(quad.subject)) {
-        blankNodesMap.set(quad.subject, BLANK(uuidv4()));
+      if (!blankNodesMap.has(quad.subject.value)) {
+        blankNodesMap.set(quad.subject.value, BLANK(uuidv4()));
       }
     }
     if (quad.object.termType === "BlankNode") {
-      if (!blankNodesMap.has(quad.object)) {
-        blankNodesMap.set(quad.object, BLANK(uuidv4()));
+      if (!blankNodesMap.has(quad.object.value)) {
+        blankNodesMap.set(quad.object.value, BLANK(uuidv4()));
       }
     }
+  }
+
+  return quads.map((quad) => {
     if (quad.subject.termType === "BlankNode" || quad.object.termType === "BlankNode") {
-      const newSubject = blankNodesMap.get(quad.subject) || quad.subject;
-      const newObject = blankNodesMap.get(quad.object) || quad.object;
+      const newSubject = blankNodesMap.get(quad.subject.value) || quad.subject;
+      const newObject = blankNodesMap.get(quad.object.value) || quad.object;
       return DataFactory.quad(newSubject, quad.predicate, newObject, quad.graph);
     } else {
       return quad;
