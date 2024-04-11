@@ -93,9 +93,18 @@ export function extractEndpointHeadersFromEnv (prefix: string) {
   } = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (key.startsWith(prefix)) {
-      const headerKey = key.split(prefix).pop();
-      if (headerKey && value) {
-        headers[headerKey.toLowerCase()] = value;
+      const environmentKey = key.split(prefix).pop();
+      if (environmentKey && value) {
+        let headerKey = environmentKey;
+        let headerValue = value;
+
+        const valueSplitted = value.split(';');
+        if(valueSplitted.length > 1) {
+          headerKey = valueSplitted[0];
+          headerValue = valueSplitted[1];
+        }
+
+        headers[headerKey.toLowerCase()] = headerValue;
       }
     }
   }
