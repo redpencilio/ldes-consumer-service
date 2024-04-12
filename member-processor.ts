@@ -28,10 +28,7 @@ export default class MemberProcessor extends Writable {
   membersToProcess: MemberWithCallBack[] = [];
 
   constructor () {
-    super({ objectMode: true, highWaterMark: 100000 }); //TODO LPDC-1103: it works to set it higher, but we should here listen to events ... and when the high water mark gets called
-    // -> log that in a variable -> and then when the membersToProcess < 100 => call resume again ...
-    // or maybe we are not correctly offloading ... meaning that the stream thinks that the numbers of items in the stream are just mounting, even if we _write() them ...
-    //
+    super({ objectMode: true, highWaterMark: 100 });
     this.treeProperties = {
       versionOfPath: LDES_VERSION_OF_PATH,
       timestampPath: LDES_TIMESTAMP_PATH
@@ -40,11 +37,8 @@ export default class MemberProcessor extends Writable {
   }
 
   _write (member: Member, _encoding : string, callback: () => void) {
-    //TODO LPDC-1103: add more logging here ?
     if (member.id) {
       this.membersToProcess.push({ member, callback });
-    } else {
-      console.log(member);
     }
     return true;
   }
