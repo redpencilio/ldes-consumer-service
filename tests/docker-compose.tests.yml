@@ -17,6 +17,7 @@ services:
       DEFAULT_GRAPH: "http://mu.semte.ch/application"
     volumes:
       - ./data-tests/db:/data
+      - ./config/virtuoso/virtuoso.ini:/data/virtuoso.ini # Note: Override this setting on production
     restart: always
     logging: *default-logging
 
@@ -55,7 +56,7 @@ services:
     links:
       - virtuoso:database #link to virtuoso directly for testing purposes
 
-  ldes-consumer-with-persist-state:
+  ldes-consumer-save-all-versions-ignoring-timestamp-data:
     build: ../
     depends_on:
       ldes-stub:
@@ -66,12 +67,71 @@ services:
       LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
       CRON_PATTERN: "*/10 * * * * *" # run the job every 10 seconds
       LDES_POLLING_INTERVAL: 30000 # every 30 seconds
+      SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA: "true"
       REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
-      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state"
-      LDES_ENDPOINT_HEADER_X-API-KEY: "<your endpoint api key here>"
-      PERSIST_STATE: "true"
+      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/save-all-versions-ignoring-timestamp-data"
+      LDES_ENDPOINT_HEADER_APIKEY: "X-API-KEY;some magic key"
+      PERSIST_STATE: "false"
       LDES_LOGGING_LEVEL: "trace"
     restart: no
     links:
       - virtuoso:database #link to virtuoso directly for testing purposes
+
+# ldes-consumer-with-persist-state:
+#   build: ../
+#   depends_on:
+#     ldes-stub:
+#       condition: service_healthy
+#   environment:
+#     LDES_STREAM: "http://ldes-stub/doc/instancesnapshot"
+#     LDES_ENDPOINT_VIEW: "http://ldes-stub/doc/instancesnapshot?pageNumber=0" # first page of the stream
+#     LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
+#     CRON_PATTERN: "*/10 * * * * *" # run the job every 10 seconds
+#     LDES_POLLING_INTERVAL: 30000 # every 30 seconds
+#     REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
+#     MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state"
+#     LDES_ENDPOINT_HEADER_APIKEY: "X-API-KEY;some magic key"
+#     PERSIST_STATE: "true"
+#     LDES_LOGGING_LEVEL: "trace"
+#   restart: no
+#   links:
+#     - virtuoso:database #link to virtuoso directly for testing purposes
+
+#  ldes-consumer-v071:
+#    image: redpencil/ldes-consumer:0.7.1-arm64-build
+#    depends_on:
+#      ldes-stub:
+#        condition: service_healthy
+#    environment:
+#      LDES_ENDPOINT_HEADER_X-API-KEY: "some magic key"
+#      LDES_STREAM: "https://ipdc.vlaanderen.be/id/conceptsnapshot"
+#      LDES_ENDPOINT_VIEW: "https://ipdc.vlaanderen.be/id/conceptsnapshot?limit=25&pageNumber=0" # first page of the stream
+#      LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
+#      CRON_PATTERN: "*/1 * * * *" # run the job every 1 minutes
+#      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
+#      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/ldes-consumer-v071"
+#      RUNONCE: "true"
+#      LDES_LOGGING_LEVEL: "debug"
+#    restart: no
+#    links:
+#      - virtuoso:database #link to virtuoso directly for testing purposes
+
+#  ldes-consumer-stability-improvements:
+#    build: ../
+#    depends_on:
+#      ldes-stub:
+#        condition: service_healthy
+#    environment:
+#      LDES_ENDPOINT_HEADER_APIKEY: "X-API-KEY;some magic key"
+#      LDES_STREAM: "https://ipdc.vlaanderen.be/id/conceptsnapshot"
+#      LDES_ENDPOINT_VIEW: "https://ipdc.vlaanderen.be/id/conceptsnapshot?limit=25&pageNumber=0" # first page of the stream
+#      LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
+#      CRON_PATTERN: "*/1 * * * *" # run the job every 1 minutes
+#      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
+#      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/ldes-consumer-stability-improvements"
+#      RUNONCE: "true"
+#      LDES_LOGGING_LEVEL: "debug"
+#    restart: no
+#    links:
+#      - virtuoso:database #link to virtuoso directly for testing purposes
 

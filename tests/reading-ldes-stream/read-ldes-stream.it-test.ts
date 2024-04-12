@@ -234,6 +234,23 @@ describe("can read several pages from ldes, and create correct (nested) triples 
     });
   });
 
+  test('an member with earlier generatedAtTime appearing later in stream is saved when SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA is enabled on reading', async() => {
+    let s = "http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3dsdf";
+    let quadsToTurtle = (await queryQuadsFor(s, "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state")).map((q) => q.toNQ());
+    expect(quadsToTurtle.length).toEqual(11);
+
+    quadsToTurtle = (await queryQuadsFor(s, "http://mu.semte.ch/graphs/ldes/save-all-versions-ignoring-timestamp-data")).map((q) => q.toNQ());
+    expect(quadsToTurtle.length).toEqual(11);
+
+    s = "http://data.lblod.info/id/public-service-snapshot/1e9d08b6-c298-4884-a201-bf5f17f30bb3sdfef";
+    quadsToTurtle = (await queryQuadsFor(s, "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state")).map((q) => q.toNQ());
+    expect(quadsToTurtle.length).toEqual(0);
+
+    quadsToTurtle = (await queryQuadsFor(s, "http://mu.semte.ch/graphs/ldes/save-all-versions-ignoring-timestamp-data")).map((q) => q.toNQ());
+    expect(quadsToTurtle.length).toEqual(11);
+
+  });
+
   test("Adding a new instance in last page will be read", async() => {
     const response = await fetch(`http://localhost:35000/instancesnapshot/${uuid()}`, {method: "POST"});
     expect(response.ok).toBeTruthy();
@@ -253,8 +270,8 @@ describe("can read several pages from ldes, and create correct (nested) triples 
 });
 
 const sparqlQuerying = new SparqlQuerying();
-async function queryQuadsFor (s: string): Promise<Statement[]> {
+async function queryQuadsFor (s: string, graph = "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state"): Promise<Statement[]> {
   const rawResults = await sparqlQuerying.list(
         `select ?s ?p ?o where { graph <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> { BIND(<${s}> as ?s) ?s ?p ?o } }`);
-  return sparqlQuerying.asQuads(rawResults, "http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state");
+  return sparqlQuerying.asQuads(rawResults, graph);
 }

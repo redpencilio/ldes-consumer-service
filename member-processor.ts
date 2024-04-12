@@ -96,7 +96,7 @@ export default class MemberProcessor extends Writable {
       }
     } else {
       console.warn(`
-        No baseResourceUri found for the member. This might potentialy be an odd LDES-feed.
+        No baseResourceUri found for the member. This might potentially be an odd LDES-feed.
         If this member contained blank nodes, multiple instances of the same blank nodes will be created.
       `);
       quadsToAdd = member.quads;

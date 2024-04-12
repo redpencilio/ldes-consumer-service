@@ -175,23 +175,6 @@ function extractVariableFromResponse (
   }
 }
 
-export async function getVersion (resource: RDF.NamedNode, treeProperties: TreeProperties) {
-  const quads = [quad(variable("v"), treeProperties.versionOfPath, resource)];
-  const variables = [variable("v")];
-  const sparqlQuery = constructSelectQuery(variables, quads);
-
-  try {
-    const response = await query(sparqlQuery);
-    const versionUris = extractVariableFromResponse(response, "v");
-    if (versionUris) {
-      return namedNode(versionUris[0]);
-    }
-    return;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
 export async function updateState (stream: RDF.NamedNode, state: State) {
   const stateString = JSON.stringify(state);
   const genericStateQuads = [
