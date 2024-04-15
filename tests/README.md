@@ -15,7 +15,10 @@ You can use the [run-development.sh](run-development.sh) script to start and cle
 Before running, add an empty `docker-compose.tests.override.yml`, to provide hooks in your tests if needed
 
 ```dockerfile
-  services:
+services:
+
+  virtuoso:
+    image: redpencil/virtuoso:1.2.0-rc.1
 ```
 
 To clear virtuoso database, and clean up, and start containers, you can use script:
