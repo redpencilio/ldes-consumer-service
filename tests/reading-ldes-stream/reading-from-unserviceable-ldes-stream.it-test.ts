@@ -87,7 +87,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
 
         //note all these test fail, out of the box, only succeed if 1/ either you auto restart the ldes-consumer in docker config 2/ you manually restart the ldes consumer while running the tests
 
-        test("connection end while reading json ld context crashes the ldes consumer", async () => {
+        test("connection end while reading json ld context propagates the error and retries on next cron tick", async () => {
             //mimic the json ld context read connection end
             let response = await fetch(`http://localhost:35000/config?failJsonLdContext=connection_end`, {method: "POST"});
             expect(response.ok).toBeTruthy();
@@ -102,7 +102,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
 
         }, 60000);
 
-        test("connection destroyed while reading json ld context crashes the ldes consumer", async () => {
+        test("connection destroyed while reading json ld context propagates the error and retries on next cron tick", async () => {
             //mimic the json ld context read connection destroy
             let response = await fetch(`http://localhost:35000/config?failJsonLdContext=connection_destroy`, {method: "POST"});
             expect(response.ok).toBeTruthy();
@@ -116,7 +116,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
             await setUpNewInstanceInLdesStubWaitTillProcessedAndVerifyResult();
         }, 60000);
 
-        test("http-500 while reading json ld context crashes the ldes consumer", async () => {
+        test("http-500 while reading json ld context propagates the error and retries on next cron tick", async () => {
             //mimic the json ld context read http-500
             let response = await fetch(`http://localhost:35000/config?failJsonLdContext=http_500`, {method: "POST"});
             expect(response.ok).toBeTruthy();
@@ -130,7 +130,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
             await setUpNewInstanceInLdesStubWaitTillProcessedAndVerifyResult();
         }, 60000);
 
-        test("http-404 while reading json ld context crashes the ldes consumer", async () => {
+        test("http-404 while reading json ld context propagates the error and retries on next cron tick", async () => {
             //mimic the json ld context read http-404
             let response = await fetch(`http://localhost:35000/config?failJsonLdContext=http_404`, {method: "POST"});
             expect(response.ok).toBeTruthy();
@@ -144,7 +144,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
             await setUpNewInstanceInLdesStubWaitTillProcessedAndVerifyResult();
         }, 60000);
 
-        test("invalid json while reading json ld context crashes the ldes consumer", async () => {
+        test("invalid json while reading json ld context propagates the error and retries on next cron tick", async () => {
             //mimic the json ld context read invalid json
             let response = await fetch(`http://localhost:35000/config?failJsonLdContext=invalid_json`, {method: "POST"});
             expect(response.ok).toBeTruthy();

@@ -39,7 +39,7 @@ export default class MemberProcessor extends Writable {
             versionOfPath: LDES_VERSION_OF_PATH,
             timestampPath: LDES_TIMESTAMP_PATH
         };
-        this.processingLoop();
+        this.processingLoop().then(r => {});
     }
 
     _write(member: Member, _encoding: string, callback: () => void) {
