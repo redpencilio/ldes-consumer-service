@@ -10,7 +10,8 @@ import {
   LDES_TIMESTAMP_PATH,
   LDES_VERSION_OF_PATH,
   REPLACE_VERSIONS,
-  RUNONCE
+  RUNONCE,
+  validateConfig
 } from "./config";
 import LdesPipeline, { ConfigurableLDESOptions } from "./ldes-pipeline";
 import { NamedNode } from "n3";
@@ -52,6 +53,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
+//TODO LPDC-1103: print more variables to config export log
 console.log("config", {
   CRON_PATTERN,
   LDES_DEREFERENCE_MEMBERS,
@@ -65,5 +67,7 @@ console.log("config", {
   REPLACE_VERSIONS,
   RUNONCE
 });
+
+validateConfig();
 
 consumerJob.start();

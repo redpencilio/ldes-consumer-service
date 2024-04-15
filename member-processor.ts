@@ -1,120 +1,135 @@
-import { Writable } from "stream";
+import {Writable} from "stream";
 import * as RDF from '@rdfjs/types';
-import { TreeProperties, extractVersionTimestamp, extractBaseResourceUri, convertBlankNodes } from "./rdf-utils";
-import { LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH, REPLACE_VERSIONS } from "./config";
-import { executeDeleteInsertQuery, getLatestTimestamp } from "./sparql-queries";
-import { DataFactory } from "n3";
-const { quad, variable } = DataFactory;
+import {TreeProperties, extractVersionTimestamp, extractBaseResourceUri, convertBlankNodes} from "./rdf-utils";
+import {
+    LDES_VERSION_OF_PATH,
+    LDES_TIMESTAMP_PATH,
+    REPLACE_VERSIONS,
+    SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA
+} from "./config";
+import {executeDeleteInsertQuery, getLatestTimestamp, isSnapshotSaved} from "./sparql-queries";
+import {DataFactory} from "n3";
+
+const {quad, variable} = DataFactory;
 
 export type Member = {
-  id: RDF.Term;
-  quads: RDF.Quad[];
+    id: RDF.Term;
+    quads: RDF.Quad[];
 };
 
 type MemberWithCallBack = {
-  member: Member;
-  callback: (e?: Error) => void;
+    member: Member;
+    callback: (e?: Error) => void;
 }
 
-function timeout (ms: number) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
+function timeout(ms: number) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    });
 }
 
 export default class MemberProcessor extends Writable {
-  private treeProperties: TreeProperties;
-  private latestVersionMap : Map<string, Date> = new Map();
-  membersToProcess: MemberWithCallBack[] = [];
+    private treeProperties: TreeProperties;
+    private latestVersionMap: Map<string, Date> = new Map();
+    membersToProcess: MemberWithCallBack[] = [];
 
-  constructor () {
-    super({ objectMode: true, highWaterMark: 100 });
-    this.treeProperties = {
-      versionOfPath: LDES_VERSION_OF_PATH,
-      timestampPath: LDES_TIMESTAMP_PATH
-    };
-    this.processingLoop();
-  }
-
-  _write (member: Member, _encoding : string, callback: () => void) {
-    if (member.id) {
-      this.membersToProcess.push({ member, callback });
+    constructor() {
+        super({objectMode: true, highWaterMark: 100});
+        this.treeProperties = {
+            versionOfPath: LDES_VERSION_OF_PATH,
+            timestampPath: LDES_TIMESTAMP_PATH
+        };
+        this.processingLoop();
     }
-    return true;
-  }
 
-  async processingLoop () {
-    do {
-      const next = this.membersToProcess.shift();
-      if (next) {
-        try {
-          await this.processMember(next.member);
-          next.callback();
-        } catch (e) {
-          console.error(e);
-          // @ts-ignore
-          next.callback(e);
-          // @ts-ignore
-          this.destroy(e);
+    _write(member: Member, _encoding: string, callback: () => void) {
+        if (member.id) {
+            this.membersToProcess.push({member, callback});
         }
-      }
-      await timeout(10);
-    } while (!this.closed);
-  }
+        return true;
+    }
 
-  async processMember (member: Member) {
-    let quadsToAdd: RDF.Quad[] = [];
-    const quadsToRemove: RDF.Quad[] = [];
-    member.quads = convertBlankNodes(member.quads);
-    const baseResourceUri = extractBaseResourceUri(member, this.treeProperties);
-    if (baseResourceUri) {
-      const latestTimestamp = await this.latestVersionTimestamp(baseResourceUri, this.treeProperties);
-      const versionTimestamp = extractVersionTimestamp(member, this.treeProperties);
+    async processingLoop() {
+        do {
+            const next = this.membersToProcess.shift();
+            if (next) {
+                try {
+                    await this.processMember(next.member);
+                    next.callback();
+                } catch (e) {
+                    console.error(e);
+                    // @ts-ignore
+                    next.callback(e);
+                    // @ts-ignore
+                    this.destroy(e);
+                }
+            }
+            await timeout(10);
+        } while (!this.closed);
+    }
 
-      // Case: the first time we ingest a version for this resource.
-      if (latestTimestamp === null) {
-        quadsToAdd = member.quads;
-        if (versionTimestamp) {
-          this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
-        }
-        // eslint-disable-next-line brace-style
-      }
-      // Case: the retrieved version is newer then the last version found in the store.
-      else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
-        // Here, we only want the latest version of the resource in the store.
-        if (REPLACE_VERSIONS) { //TODO LPDC-1103: what about nested blank nodes ? that is not going to work here ... (or at least we leave orphans in the database)
-          quadsToRemove.push(
-            quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
-          );
-          quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
-        }
+    async processMember(member: Member) {
+        let quadsToAdd: RDF.Quad[] = [];
+        const quadsToRemove: RDF.Quad[] = [];
+        member.quads = convertBlankNodes(member.quads);
+        const baseResourceUri = extractBaseResourceUri(member, this.treeProperties);
+        if (baseResourceUri) {
+            if (SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA
+                && !REPLACE_VERSIONS) {
+                const memberId = member.id;
+                const snapshotSavedAlready = await isSnapshotSaved(memberId as RDF.NamedNode, this.treeProperties);
+                if (!snapshotSavedAlready) {
+                    quadsToAdd = member.quads;
+                }
+            } else {
+                const latestTimestamp = await this.latestVersionTimestamp(baseResourceUri, this.treeProperties);
+                const versionTimestamp = extractVersionTimestamp(member, this.treeProperties);
 
-        if (versionTimestamp) {
-          this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
-        }
-        quadsToAdd = member.quads;
-      }
-    } else {
-      console.warn(`
+                // Case: the first time we ingest a version for this resource.
+                if (latestTimestamp === null) {
+                    quadsToAdd = member.quads;
+                    if (versionTimestamp) {
+                        this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
+                    }
+                    // eslint-disable-next-line brace-style
+                }
+                // Case: the retrieved version is newer then the last version found in the store.
+                else if (latestTimestamp && versionTimestamp && versionTimestamp > latestTimestamp) {
+                    // Here, we only want the latest version of the resource in the store.
+                    if (REPLACE_VERSIONS) {
+                        quadsToRemove.push(
+                            quad(variable("s"), this.treeProperties.versionOfPath, baseResourceUri)
+                        );
+                        quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
+                    }
+
+                    if (versionTimestamp) {
+                        this.latestVersionMap.set(baseResourceUri.value, versionTimestamp);
+                    }
+                    quadsToAdd = member.quads;
+                }
+            }
+        } else {
+            console.warn(`
         No baseResourceUri found for the member. This might potentially be an odd LDES-feed.
         If this member contained blank nodes, multiple instances of the same blank nodes will be created.
       `);
-      quadsToAdd = member.quads;
+            quadsToAdd = member.quads;
+        }
+        await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
     }
-    await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
-  }
 
-  async latestVersionTimestamp (resource: RDF.NamedNode, treeProperties: TreeProperties): Promise<Date | null> {
-    if (this.latestVersionMap.has(resource.value)) {
-      return this.latestVersionMap.get(resource.value)!;
-    } else {
-      const timestampStr = await getLatestTimestamp(resource, treeProperties);
-      if (timestampStr) {
-        const timestamp : Date = new Date(timestampStr);
-        this.latestVersionMap.set(resource.value, timestamp);
-        return timestamp;
-      }
-      return null;
+    async latestVersionTimestamp(resource: RDF.NamedNode, treeProperties: TreeProperties): Promise<Date | null> {
+        if (this.latestVersionMap.has(resource.value)) {
+            return this.latestVersionMap.get(resource.value)!;
+        } else {
+            const timestampStr = await getLatestTimestamp(resource, treeProperties);
+            if (timestampStr) {
+                const timestamp: Date = new Date(timestampStr);
+                this.latestVersionMap.set(resource.value, timestamp);
+                return timestamp;
+            }
+            return null;
+        }
     }
-  }
 }
