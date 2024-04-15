@@ -98,39 +98,5 @@ services:
     links:
       - virtuoso:database #link to virtuoso directly for testing purposes
 
-#  ldes-consumer-v071:
-#    image: redpencil/ldes-consumer:0.7.1-arm64-build
-#    depends_on:
-#      ldes-stub:
-#        condition: service_healthy
-#    environment:
-#      LDES_ENDPOINT_HEADER_X-API-KEY: "some magic key"
-#      LDES_STREAM: "https://ipdc.vlaanderen.be/id/conceptsnapshot"
-#      LDES_ENDPOINT_VIEW: "https://ipdc.vlaanderen.be/id/conceptsnapshot?limit=25&pageNumber=0" # first page of the stream
-#      CRON_PATTERN: "*/1 * * * *" # run the job every 1 minutes
-#      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
-#      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/ldes-consumer-v071"
-#      RUNONCE: "true"
-#      LDES_LOGGING_LEVEL: "debug"
-#    restart: no
-#    links:
-#      - virtuoso:database #link to virtuoso directly for testing purposes
 
-#  ldes-consumer-stability-improvements:
-#    build: ../
-#    depends_on:
-#      ldes-stub:
-#        condition: service_healthy
-#    environment:
-#      LDES_ENDPOINT_HEADER_APIKEY: "X-API-KEY;some magic key"
-#      LDES_STREAM: "https://ipdc.vlaanderen.be/id/conceptsnapshot"
-#      LDES_ENDPOINT_VIEW: "https://ipdc.vlaanderen.be/id/conceptsnapshot?limit=25&pageNumber=0" # first page of the stream
-#      CRON_PATTERN: "*/1 * * * *" # run the job every 1 minutes
-#      REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
-#      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/ldes/ldes-consumer-stability-improvements"
-#      RUNONCE: "true"
-#      LDES_LOGGING_LEVEL: "debug"
-#    restart: no
-#    links:
-#      - virtuoso:database #link to virtuoso directly for testing purposes
 
