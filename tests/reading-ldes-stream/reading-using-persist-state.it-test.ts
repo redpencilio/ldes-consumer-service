@@ -29,8 +29,8 @@ describe("can read several pages from ldes, and persist the state, rereading if 
         //verify result
         const result = (await queryQuadsFor(createdSnapshot.id)).map((q) => q.toNQ());
         expect(result).toIncludeAllMembers([
-            `<${createdSnapshot.id}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .`,
-            `<${createdSnapshot.id}> <http://purl.org/dc/terms/isVersionOf> <${createdSnapshot.isVersionOf}> <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> .`,
+            `<${createdSnapshot.id}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://productencatalogus.data.vlaanderen.be/ns/ipdc-lpdc#InstancePublicServiceSnapshot> <http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state> .`,
+            `<${createdSnapshot.id}> <http://purl.org/dc/terms/isVersionOf> <${createdSnapshot.isVersionOf}> <http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state> .`,
         ]);
     }, 60000)
 
@@ -40,7 +40,7 @@ const sparqlQuerying = new SparqlQuerying();
 
 async function queryQuadsFor(s: string): Promise<Statement[]> {
     const rawResults = await sparqlQuerying.list(
-        `select ?s ?p ?o where { graph <http://mu.semte.ch/graphs/ldes/example-ldes-data-no-persist-state> { BIND(<${s}> as ?s) ?s ?p ?o } }`);
+        `select ?s ?p ?o where { graph <http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state> { BIND(<${s}> as ?s) ?s ?p ?o } }`);
     return sparqlQuerying.asQuads(rawResults, "http://mu.semte.ch/graphs/ldes/example-ldes-data-with-persist-state");
 }
 

@@ -44,7 +44,6 @@ services:
     environment:
       LDES_STREAM: "http://ldes-stub/doc/instancesnapshot"
       LDES_ENDPOINT_VIEW: "http://ldes-stub/doc/instancesnapshot?pageNumber=0" # first page of the stream
-      LDES_RELATION_PATH: "http://www.w3.org/ns/prov#generatedAtTime"
       CRON_PATTERN: "*/10 * * * * *" # run the job every 10 seconds
       LDES_POLLING_INTERVAL: 30000 # every 30 seconds
       REPLACE_VERSIONS: "false" # we query snapshots. snapshots don't change ...
