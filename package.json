@@ -36,7 +36,7 @@
     "express-http-context": "^1.2.4",
     "n3": "^1.16.1",
     "rdf-parse": "^2.0.0",
-    "@treecg/actor-init-ldes-client": "https://github.com/lblod/event-stream-client/releases/download/v4.0.15/treecg-actor-init-ldes-client-4.0.15.tar.gz"
+    "@treecg/actor-init-ldes-client": "https://github.com/lblod/event-stream-client/releases/download/v4.0.16/treecg-actor-init-ldes-client-4.0.16.tar.gz"
   },
   "volta": {
     "node": "18.19.0"

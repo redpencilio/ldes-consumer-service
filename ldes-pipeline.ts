@@ -48,6 +48,7 @@ export default class LdesPipeline {
             emitMemberOnce: true,
             disableSynchronization: true,
             loggingLevel: "info",
+            reportErrorOnEmptyPage: true,
         };
         this.ldesOptions = {...defaultOptions, ...ldesOptions};
         this.datasetIri = datasetIri;
