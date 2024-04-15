@@ -12,6 +12,12 @@ You can use the [run-development.sh](run-development.sh) script to start and cle
 - ldes-consumer-no-persist-state: a build of the ldes-consumer (the current checked out version) is done. It is configured to read the ldes from the ldes-stub every 10 seconds. Does not persist its state, re-reads the entire stream every time.
 - ldes-consumer-with-persist-state: similar, but with state persisting, configured to verify if new data is present on a page every 20 seconds.
 
+Before running, add an empty `docker-compose.tests.override.yml`, to provide hooks in your tests if needed
+
+```dockerfile
+  services:
+```
+
 To clear virtuoso database, and clean up, and start containers, you can use script:
 ```shell
  ./run-development.sh --clear-test-data

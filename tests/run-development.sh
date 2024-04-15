@@ -24,6 +24,6 @@ cd ..
 npm install
 cd ./tests || exit
 
-docker compose -f ./docker-compose.tests.yml -p ldes-consumer-services-tests down --remove-orphans
-docker compose -f ./docker-compose.tests.yml -p ldes-consumer-services-tests pull
-docker compose -f ./docker-compose.tests.yml -p ldes-consumer-services-tests up -d --build
+docker compose -f ./docker-compose.tests.yml -f ./docker-compose.tests.override.yml -p ldes-consumer-services-tests down --remove-orphans
+docker compose -f ./docker-compose.tests.yml -f ./docker-compose.tests.override.yml -p ldes-consumer-services-tests pull
+docker compose -f ./docker-compose.tests.yml -f ./docker-compose.tests.override.yml -p ldes-consumer-services-tests up -d --build
