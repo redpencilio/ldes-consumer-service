@@ -2,3 +2,5 @@ node_modules
 .vscode
 .idea
 /tests/data-tests/
+/tests/.env
+/tests/docker-compose.tests.override.yml
