@@ -69,10 +69,12 @@ export default class LdesPipeline {
       );
       const memberProcessor = new MemberProcessor();
 
-          //TODO LPDC-1103: how to handle the catch ?
       finished(ldesStream)
           .then(() => console.log('Stream has finished.'))
-          .catch(error => console.error('Stream failed:', error));
+          .catch(error => {
+            console.log("processing stream failed");
+            console.error(error);
+          });
       await pipeline(
         ldesStream,
         memberProcessor

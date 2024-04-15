@@ -1,6 +1,6 @@
 import { CronJob } from "cron";
 import {
-  CRON_PATTERN,
+  CRON_PATTERN, ENABLE_SPARQL_BATCHING,
   LDES_DEREFERENCE_MEMBERS,
   LDES_ENDPOINT_HEADER_PREFIX,
   LDES_ENDPOINT_VIEW, LDES_LOGGING_LEVEL,
@@ -9,8 +9,12 @@ import {
   LDES_STREAM,
   LDES_TIMESTAMP_PATH,
   LDES_VERSION_OF_PATH,
+  MU_APPLICATION_GRAPH,
+  PERSIST_STATE,
   REPLACE_VERSIONS,
   RUNONCE,
+  SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA,
+  SPARQL_BATCH_SIZE,
   validateConfig
 } from "./config";
 import LdesPipeline, { ConfigurableLDESOptions } from "./ldes-pipeline";
@@ -53,7 +57,6 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
-//TODO LPDC-1103: print more variables to config export log
 console.log("config", {
   CRON_PATTERN,
   LDES_DEREFERENCE_MEMBERS,
@@ -64,8 +67,14 @@ console.log("config", {
   LDES_STREAM,
   LDES_TIMESTAMP_PATH,
   LDES_VERSION_OF_PATH,
+  LDES_LOGGING_LEVEL,
+  MU_APPLICATION_GRAPH,
   REPLACE_VERSIONS,
-  RUNONCE
+  SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA,
+  RUNONCE,
+  SPARQL_BATCH_SIZE,
+  ENABLE_SPARQL_BATCHING,
+  PERSIST_STATE
 });
 
 validateConfig();
