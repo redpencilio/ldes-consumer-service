@@ -39,7 +39,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
             await setUpNewInstanceInLdesStubWaitTillProcessedAndVerifyResult();
         }, 60000);
 
-        test("http-500 while reading ldes page leaves is ignored", async () => {
+        test("http-500 while reading ldes page propagates the error and retries on next cron tick", async () => {
             //mimic the ldes page read http-500
             let response = await fetch(`http://localhost:35000/config?failLdesPages=http_500`, {method: "POST"});
             expect(response.ok).toBeTruthy();
@@ -53,7 +53,7 @@ describe("can (re)read / recover from a (temporarily) unserviceable ldes stream 
             await setUpNewInstanceInLdesStubWaitTillProcessedAndVerifyResult();
         }, 60000);
 
-        test("http-404 while reading ldes page leaves is ignored", async () => {
+        test("http-404 while reading ldes page propagates the error and retries on next cron tick", async () => {
             //mimic the ldes page read http-404
             let response = await fetch(`http://localhost:35000/config?failLdesPages=http_404`, {method: "POST"});
             expect(response.ok).toBeTruthy();

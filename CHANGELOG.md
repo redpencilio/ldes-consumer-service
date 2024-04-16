@@ -14,6 +14,7 @@
   * Resume read stream again (after it has been paused by node's stream back pressure feature)
   * Error handling: propagate errors to outer ldes read stream, so client can act accordingly
   * Add option to `reportErrorOnEmptyPage` when an ldes page contains no (parseable) members
+  * Error handling: verify http response status when reading a page, and throw error if non success (4xx, 5xx) 
 * ldes-consumer-service
   * Fix broken conversion of Blank Nodes
   * Implement work-around for not passed along environment variables from docker to node process when they contain '-' characters (e.g. X-API-KEY)
