@@ -1,8 +1,7 @@
 pipeline:
   build-and-push:
-    image: woodpeckerci/plugin-docker-buildx
+    image: plugins/docker
     settings:
-      platforms: linux/amd64,linux/arm64
       repo: "${CI_REPO_OWNER%%io}/${CI_REPO_NAME%%-service}"
       tags: latest
     secrets: [docker_username, docker_password]
