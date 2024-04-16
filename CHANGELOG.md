@@ -1,4 +1,4 @@
-## feature/stability-improvements:1.0 (2024-04-16)
+## feature-stability-improvements-1.0 (2024-04-16)
 
 #### :rocket: Enhancement
 * actor-init-ldes-client
@@ -14,16 +14,16 @@
   * Resume read stream again (after it has been paused by node's stream back pressure feature)
   * Error handling: propagate errors to outer ldes read stream, so client can act accordingly
   * Add option to `reportErrorOnEmptyPage` when an ldes page contains no (parseable) members
-  * Error handling: verify http response status when reading a page, and throw error if non success (4xx, 5xx) 
+  * Error handling: verify http response status when reading a page, and throw error if non success (e.g. 4xx, 5xx) 
 * ldes-consumer-service
   * Fix broken conversion of Blank Nodes
   * Implement work-around for not passed along environment variables from docker to node process when they contain '-' characters (e.g. X-API-KEY)
-  * Use `reportErrorOnEmptyPage` to capture incorrect pages, and stop the reading automatically
+  * Use `reportErrorOnEmptyPage` to capture incorrect pages, and stop the reading automatically with an error
 
 #### :house: Internal
 * Test suite added
 * Upgraded to mu-javascript-template-1.8.0
-* Uses Woodpecker to create builds
+* Use Woodpecker to create builds
 * Fix several compile errors and warnings
 * Upgrade to latest version of actor-init-ldes-client + integrate a series of patches for it 
 
