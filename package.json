@@ -18,7 +18,7 @@
     "@lblod/mu-auth-sudo": "1.0.0-beta.4",
     "@rdfjs/namespace": "^1.1.0",
     "@rdfjs/types": "^1.1.0",
-    "@treecg/actor-init-ldes-client": "^4.0.9",
+    "@treecg/actor-init-ldes-client": "https://github.com/redpencilio/event-stream-client/releases/download/v4.0.9-feat-use-streaming-backpressure/treecg-actor-init-ldes-client-4.0.9.tgz",
     "@types/cron": "^2.0.0",
     "@types/n3": "^1.10.4",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
