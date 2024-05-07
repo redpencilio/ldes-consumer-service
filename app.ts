@@ -2,18 +2,15 @@ import { CronJob } from "cron";
 import {
   CRON_PATTERN,
   LDES_DEREFERENCE_MEMBERS,
-  LDES_ENDPOINT_HEADER_PREFIX,
-  LDES_ENDPOINT_VIEW,
+  LDES_ENDPOINT_VIEW, LDES_LOGGING_LEVEL,
   LDES_POLLING_INTERVAL,
   LDES_REQUESTS_PER_MINUTE,
   LDES_STREAM,
-  LDES_TIMESTAMP_PATH,
-  LDES_VERSION_OF_PATH,
-  REPLACE_VERSIONS,
-  RUNONCE
+  logConfig,
+  RUNONCE,
+  validateConfig
 } from "./config";
-import { ConfigurableLDESOptions } from "./consumer";
-import LdesPipeline from "./ldes-pipeline";
+import LdesPipeline, { ConfigurableLDESOptions } from "./ldes-pipeline";
 import { NamedNode } from "n3";
 let taskIsRunning = false;
 
@@ -28,7 +25,8 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
     if (endpoint) {
       const ldesOptions: ConfigurableLDESOptions = {
         dereferenceMembers: LDES_DEREFERENCE_MEMBERS,
-        pollingInterval: LDES_POLLING_INTERVAL
+        pollingInterval: LDES_POLLING_INTERVAL,
+        loggingLevel: LDES_LOGGING_LEVEL,
       };
       if (LDES_REQUESTS_PER_MINUTE) {
         ldesOptions.requestsPerMinute = LDES_REQUESTS_PER_MINUTE;
@@ -52,18 +50,7 @@ const consumerJob = new CronJob(CRON_PATTERN, async () => {
   }
 });
 
-console.log("config", {
-  CRON_PATTERN,
-  LDES_DEREFERENCE_MEMBERS,
-  LDES_ENDPOINT_HEADER_PREFIX,
-  LDES_ENDPOINT_VIEW,
-  LDES_POLLING_INTERVAL,
-  LDES_REQUESTS_PER_MINUTE,
-  LDES_STREAM,
-  LDES_TIMESTAMP_PATH,
-  LDES_VERSION_OF_PATH,
-  REPLACE_VERSIONS,
-  RUNONCE
-});
+logConfig()
+validateConfig();
 
 consumerJob.start();

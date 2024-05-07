@@ -1,12 +1,41 @@
+## feature-stability-improvements-1.1 (2024-05-07)
 
+#### :rocket: Enhancement
+* ldes-consumer-service
+  * When setting `LDES_LOGGING_LEVEL` to `debug` or `trace`, increase logging on member processing.
 
+#### :bug: Bug Fix
+* ldes-consumer-service
+  * When receiving a (temporary) empty member on the stream in the member processing writestream, and the stream was paused due to high watermark exceeding, the stream was not correctly resumed.
 
+## feature-stability-improvements-1.0 (2024-04-16)
 
+#### :rocket: Enhancement
+* actor-init-ldes-client
+  * Add tracing logs to easier follow the flow of the reading and parsing of the LDES stream
+* ldes-consumer-service
+  * Add `LDES_LOGGING_LEVEL` option to set logging level for actor-init-ldes-client library
+  * Print all relevant params to console on startup
+  * Add `SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA` option : when the ldes stream returns members out of order in relation to the generatedAtTime triple, this allows to still save them all
 
+#### :bug: Bug Fix
+* actor-init-ldes-client
+  * When multiple predicates existed between a subject and an object (:s :p :o), only one was saved
+  * Resume read stream again (after it has been paused by node's stream back pressure feature)
+  * Error handling: propagate errors to outer ldes read stream, so client can act accordingly
+  * Add option to `reportErrorOnEmptyPage` when an ldes page contains no (parseable) members
+  * Error handling: verify http response status when reading a page, and throw error if non success (e.g. 4xx, 5xx) 
+* ldes-consumer-service
+  * Fix broken conversion of Blank Nodes
+  * Implement work-around for not passed along environment variables from docker to node process when they contain '-' characters (e.g. X-API-KEY)
+  * Use `reportErrorOnEmptyPage` to capture incorrect pages, and stop the reading automatically with an error
 
-
-
-
+#### :house: Internal
+* Test suite added
+* Upgraded to mu-javascript-template-1.8.0
+* Use Woodpecker to create builds
+* Fix several compile errors and warnings
+* Upgrade to latest version of actor-init-ldes-client + integrate a series of patches for it 
 
 ## 0.8.0-rc1 (2023-08-29)
 
