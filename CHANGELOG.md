@@ -1,3 +1,13 @@
+## feature-stability-improvements-1.1 (2024-05-07)
+
+#### :rocket: Enhancement
+* ldes-consumer-service
+  * When setting `LDES_LOGGING_LEVEL` to `debug` or `trace`, increase logging on member processing.
+
+#### :bug: Bug Fix
+* ldes-consumer-service
+  * When receiving a (temporary) empty member on the stream in the member processing writestream, and the stream was paused due to high watermark exceeding, the stream was not correctly resumed.
+
 ## feature-stability-improvements-1.0 (2024-04-16)
 
 #### :rocket: Enhancement
