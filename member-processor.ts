@@ -5,7 +5,9 @@ import {
     LDES_VERSION_OF_PATH,
     LDES_TIMESTAMP_PATH,
     REPLACE_VERSIONS,
-    SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA
+    SAVE_ALL_VERSIONS_IGNORING_TIMESTAMP_DATA,
+    LDES_DEBUG_LOGGING,
+    LDES_TRACE_LOGGING
 } from "./config";
 import {executeDeleteInsertQuery, getLatestTimestamp, isSnapshotSaved} from "./sparql-queries";
 import {DataFactory} from "n3";
@@ -39,7 +41,28 @@ export default class MemberProcessor extends Writable {
             versionOfPath: LDES_VERSION_OF_PATH,
             timestampPath: LDES_TIMESTAMP_PATH
         };
-        this.processingLoop().then(r => {});
+        this.processingLoop().then(r => {
+        });
+        if (LDES_DEBUG_LOGGING || LDES_TRACE_LOGGING) {
+            this.on('close', () => {
+                console.log('close event received');
+            });
+            this.on('error', () => {
+                console.log('error event received');
+            });
+            this.on('finish', () => {
+                console.log('finish event received');
+            });
+            this.on('drain', () => {
+                console.log('drain event received');
+            });
+            this.on('pipe', () => {
+                console.log('pipe event received');
+            });
+            this.on('unpipe', () => {
+                console.log('unpipe event received');
+            });
+        }
     }
 
     _write(member: Member, _encoding: string, callback: () => void) {
@@ -64,8 +87,11 @@ export default class MemberProcessor extends Writable {
                     this.destroy(e);
                 }
             }
-            await timeout(10);
+            await timeout(50);
         } while (!this.closed);
+        if (LDES_DEBUG_LOGGING || LDES_TRACE_LOGGING) {
+            console.log(`processingLoop stopped since closed = ${this.closed}`);
+        }
     }
 
     async processMember(member: Member) {
