@@ -72,9 +72,8 @@ export default class MemberProcessor extends Writable {
             }
             this.membersToProcess.push({member, callback});
         } else {
-            if (LDES_TRACE_LOGGING) {
-                console.log(`Received something else: [${JSON.stringify(member)}]`);
-            }
+            console.log(`Received something else: [${JSON.stringify(member)}]; attempting continue`);
+            callback();
         }
         return true;
     }
