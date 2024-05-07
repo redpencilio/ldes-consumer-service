@@ -66,11 +66,15 @@ export default class MemberProcessor extends Writable {
     }
 
     _write(member: Member, _encoding: string, callback: () => void) {
-        if (LDES_TRACE_LOGGING) {
-            console.log(`Received member with id ${member.id}`);
-        }
         if (member.id) {
+            if (LDES_TRACE_LOGGING) {
+                console.log(`Received member with id ${JSON.stringify(member?.id)}`);
+            }
             this.membersToProcess.push({member, callback});
+        } else {
+            if (LDES_TRACE_LOGGING) {
+                console.log(`Received something else: [${JSON.stringify(member)}]`);
+            }
         }
         return true;
     }
@@ -80,13 +84,13 @@ export default class MemberProcessor extends Writable {
             const next = this.membersToProcess.shift();
             if (next) {
                 if (LDES_TRACE_LOGGING) {
-                    console.log(`Processing member with id ${next.member.id}`);
+                    console.log(`Processing member with id ${JSON.stringify(next?.member?.id)}`);
                 }
                 try {
                     await this.processMember(next.member);
                     next.callback();
                     if (LDES_TRACE_LOGGING) {
-                        console.log(`Finished processing member with id ${next.member.id}`);
+                        console.log(`Finished processing member with id ${JSON.stringify(next?.member?.id)}`);
                     }
                 } catch (e) {
                     console.error(e);
