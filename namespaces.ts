@@ -9,3 +9,6 @@ export const XSD = namespace("http://www.w3.org/2001/XMLSchema#");
 export const BLANK = namespace(BLANK_NODE_NAMESPACE);
 export const LDES = namespace("https://w3id.org/ldes#");
 export const EXT = namespace("http://mu.semte.ch/vocabularies/ext/");
+export const COGS = namespace("http://vocab.deri.ie/cogs#");
+export const RDF = namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+export const MU = namespace("http://mu.semte.ch/vocabularies/core/");
