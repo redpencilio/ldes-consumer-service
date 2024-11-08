@@ -11,7 +11,9 @@ Add the following snipped to your docker-compose.yml to include the consumer ser
 
 ```
 consumer:
-    image: redpencil/ldes-consumer
+  image: redpencil/ldes-consumer
+  volumes:
+    - ./data/ldes-consumer:/data
 ```
 
 
