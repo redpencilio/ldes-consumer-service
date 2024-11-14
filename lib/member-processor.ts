@@ -1,16 +1,18 @@
-import { Quad } from "@rdfjs/types";
-import { Member } from "@greyoda/ldes-client";
+import { Quad, Term } from "@rdfjs/types";
+import { Member } from "ldes-client";
 import { executeDeleteInsertQuery } from "./sparql-queries";
 import { convertBlankNodes } from './utils';
 import { INGEST_MODE, REPLACE_VERSIONS } from '../cfg';
-import { DCTERMS } from './namespaces';
 import { getLoggerFor } from "./logger";
 // @ts-ignore
 import { DataFactory } from "n3";
 
 const { quad, variable, namedNode } = DataFactory;
 
-export function memberProcessor(): WritableStream<Member> {
+export function memberProcessor(
+  versionOfPath?: Term,
+  _timestampPath?: Term,
+): WritableStream<Member> {
   const logger = getLoggerFor("member-processor");
 
   const processMember = async (member: Member) => {
@@ -25,15 +27,15 @@ export function memberProcessor(): WritableStream<Member> {
     const quadsToAdd: Quad[] = member.quads;
     const quadsToRemove: Quad[] = [];
     if (REPLACE_VERSIONS) {
+      if (versionOfPath === undefined) {
+        throw new Error(`Consumer is configured to replacace versions, but LDES feed did not contain versioning metadata (ldes:versionOfPath).`);
+      }
+
       if (INGEST_MODE === "MATERIALIZE") {
         quadsToRemove.push(quad(baseResourceUri, variable("p"), variable("o")));
       } else {
         quadsToRemove.push(
-          /* TODO: hardcoding the predicate is not a good idea,
-           * either the LDES client should inform us about this metadata
-           * or we should make this configurable and bypass the client's
-           * built-in versioning support. */
-          quad(variable("s"), DCTERMS.versionOf, baseResourceUri)
+          quad(variable("s"), namedNode(versionOfPath?.value), baseResourceUri)
         );
         quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
       }

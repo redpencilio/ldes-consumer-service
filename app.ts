@@ -1,4 +1,4 @@
-import { enhanced_fetch, intoConfig, replicateLDES } from '@greyoda/ldes-client';
+import { enhanced_fetch, intoConfig, LDESInfo, replicateLDES } from 'ldes-client';
 import {
   INGEST_MODE,
   REPLACE_VERSIONS,
@@ -11,6 +11,7 @@ import {
 } from "./cfg";
 import { memberProcessor } from './lib/member-processor';
 import { custom_fetch } from './lib/fetch/custom-fetch';
+import { getLoggerFor } from './lib/logger';
 
 logConfig();
 
@@ -49,20 +50,41 @@ async function main() {
           base: 500, // Seems to be unused in the client code
           maxRetries: 5,
         }*/
-    }, custom_fetch),
+      }, custom_fetch),
 
     }),
     "none",
   );
 
-  try {
-    await client
-      .stream({ highWaterMark: 10 })
-      .pipeTo(memberProcessor());
+  const getLDESInfo = async (): Promise<LDESInfo> => {
+    return new Promise(
+      (resolve, reject) => {
+        try {
+          client.on('description', (info: LDESInfo) => {
+            resolve(info);
+          });
+        } catch (e) {
+          reject(e);
+        }
+      }
+    )
+  };
 
-    console.log('Finished processing stream');
+  const logger = getLoggerFor('main');
+  try {
+    logger.info('Starting stream...');
+
+    const ldesStream = client.stream({ highWaterMark: 10 });
+
+    logger.info('Waiting for LDES info...');
+    const { isVersionOfPath: versionOfPath, timestampPath } = await getLDESInfo();
+    logger.info(`Received LDES info: ${JSON.stringify({ versionOfPath, timestampPath })}`);
+
+    await ldesStream.pipeTo(memberProcessor(versionOfPath, timestampPath));
+
+    logger.info('Finished processing stream');
   } catch (e) {
-    console.log('Processing stream failed');
-    console.error(e);
+    logger.error('Processing stream failed');
+    logger.error(e);
   }
 }
