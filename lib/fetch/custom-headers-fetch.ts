@@ -1,7 +1,4 @@
 import { LDES_ENDPOINT_HEADERS } from "../../cfg";
-import { getLoggerFor } from "../logger";
-
-const logger = getLoggerFor("custom-headers-fetch");
 
 export async function custom_headers_fetch(
   input: RequestInfo | URL,
@@ -13,7 +10,6 @@ export async function custom_headers_fetch(
   const headers = new Headers(reqInit.headers);
   
   for (const [header, value] of Object.entries(LDES_ENDPOINT_HEADERS)) {
-    logger.debug(`Setting header ${header}: "${value}"`);
     headers.append(header, value as string);
   }
 
