@@ -8,10 +8,15 @@ import {
   RUN_ONCE,
   NODE_ENV,
   logConfig,
+  LDES_VERSION_OF_PATH,
+  LDES_TIMESTAMP_PATH,
 } from "./cfg";
 import { memberProcessor } from './lib/member-processor';
 import { custom_fetch } from './lib/fetch/custom-fetch';
 import { getLoggerFor } from './lib/logger';
+import { DataFactory } from "n3";
+
+const { namedNode } = DataFactory;
 
 logConfig();
 
@@ -78,9 +83,21 @@ async function main() {
 
     logger.info('Waiting for LDES info...');
     const { isVersionOfPath: versionOfPath, timestampPath } = await getLDESInfo();
-    logger.info(`Received LDES info: ${JSON.stringify({ versionOfPath, timestampPath })}`);
+    if (versionOfPath !== undefined && timestampPath !== undefined) {
+      logger.info(`Received LDES info: ${JSON.stringify({ versionOfPath, timestampPath })}`);
+    } else if (LDES_VERSION_OF_PATH !== undefined && LDES_TIMESTAMP_PATH !== undefined) {
+      logger.info(`LDES feed info contained no versionOfPath & timestampPath, using provided values: ${JSON.stringify({ LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH })}`);
+    } else {
+      ldesStream.cancel();
+      throw new Error('LDES feed info contained no versionOfPath & timestampPath and no LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH were provided to service, exiting.');
+    }
 
-    await ldesStream.pipeTo(memberProcessor(versionOfPath, timestampPath));
+    await ldesStream.pipeTo(
+      memberProcessor(
+        versionOfPath ?? namedNode(LDES_VERSION_OF_PATH as string),
+        timestampPath ?? namedNode(LDES_TIMESTAMP_PATH as string),
+      )
+    );
 
     logger.info('Finished processing stream');
   } catch (e) {

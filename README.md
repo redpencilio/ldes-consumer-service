@@ -30,6 +30,8 @@ The service can be configured with the following environment variables:
 | `LDES_POLLING_INTERVAL` | `60000` | Number of milliseconds before refetching uncacheable fragments |
 | `LDES_REQUESTS_PER_MINUTE` | `0` (unlimited) | How many requests per minutes may be sent to the same host. This is optional, but any passed in value must be a positive number. |
 | `LDES_ENDPOINT_HEADERS` | `{}` (no headers will be added) | Extra headers that will be added to the requests sent to the LDES endpoint. Recommended syntax:<pre>environment:<br>  LDES_ENDPOINT_HEADERS: ><br>    { "HEADER-NAME": "header-value" } # The leading whitespace is important!</pre> |
+| `LDES_VERSION_OF_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the link to the non version object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
+| `LDES_TIMESTAMP_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the timestamp of an object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
 | `SPARQL_ENDPOINT_HEADER_<key>` | N/A | A header key-value combination which should be send as part of the headers to the SPARQL endpoint. |
 | `SPARQL_BATCH_SIZE` | `0` (disabled) | The amount of triples sent per query, used to work around triplestore query-length limitations. Value must be a non-negative integer. If set to 0, no batching will be applied. |
 | `SPARQL_AUTH_USER` | N/A | Optional value to provide a username to be used in a digest auth to be sent to the SPARQL endpoint. |
