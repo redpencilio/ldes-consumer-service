@@ -62,6 +62,12 @@ async function main() {
     "none",
   );
 
+  client.on("error", (error: any) => {
+    logger.info("Received an error from the LDES client!");
+    logger.error(error);
+    logger.error(error.stack);
+  })
+
   const getLDESInfo = async (): Promise<LDESInfo> => {
     return new Promise(
       (resolve, reject) => {
@@ -77,11 +83,9 @@ async function main() {
   };
 
   const logger = getLoggerFor('main');
+  logger.info('Starting stream...');
+  const ldesStream = client.stream({ highWaterMark: 10 });
   try {
-    logger.info('Starting stream...');
-
-    const ldesStream = client.stream({ highWaterMark: 10 });
-
     logger.info('Waiting for LDES info...');
     const { isVersionOfPath: versionOfPath, timestampPath } = await getLDESInfo();
     if (versionOfPath !== undefined && timestampPath !== undefined) {
@@ -89,7 +93,6 @@ async function main() {
     } else if (LDES_VERSION_OF_PATH !== undefined && LDES_TIMESTAMP_PATH !== undefined) {
       logger.info(`LDES feed info contained no versionOfPath & timestampPath, using provided values: ${JSON.stringify({ LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH })}`);
     } else {
-      ldesStream.cancel();
       throw new Error('LDES feed info contained no versionOfPath & timestampPath and no LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH were provided to service, exiting.');
     }
 
@@ -104,5 +107,7 @@ async function main() {
   } catch (e) {
     logger.error('Processing stream failed');
     logger.error(e);
+  } finally {
+    ldesStream.cancel();
   }
 }
