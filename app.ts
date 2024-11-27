@@ -48,6 +48,7 @@ async function main() {
       lastVersionOnly: REPLACE_VERSIONS, // Won't emit members if they're known to be older than what is already in the state file
       loose: true, // Make this configurable? IPDC needs this to be true
       fetch: enhanced_fetch({
+        safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
         /* In comment are the default values, perhaps we want to make these configurable
         concurrent: 10, // Amount of concurrent requests to a single domain
         retry: {
