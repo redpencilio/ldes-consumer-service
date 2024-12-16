@@ -26,11 +26,15 @@ export function memberProcessor(
     try {
       if (!member.isVersionOf) {
         const isVersionOf = memberStore.getQuads(member.id, versionOfPath, null, null).map((quad) => quad.object)[0];
+        if (!isVersionOf)
+          throw new Error(`Member did not contain a versionOf property (path: ${versionOfPath.value})`);
         member.isVersionOf = isVersionOf.value;
       }
 
       if (!member.timestamp) {
         const timestamp = memberStore.getQuads(member.id, timestampPath, null, null).map((quad) => quad.object)[0];
+        if (!timestamp)
+          throw new Error(`Member did not contain a timestamp property (path: ${timestampPath.value})`);
         member.timestamp = timestamp.value;
       }
       return member;

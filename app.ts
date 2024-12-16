@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { enhanced_fetch, intoConfig, LDESInfo, replicateLDES } from 'ldes-client';
 import {
   INGEST_MODE,
@@ -37,6 +38,10 @@ async function main() {
     throw new Error("Provided endpoint couldn't be parsed as URL, double check your settings.");
   }
 
+  let shapeFile;
+  if (fs.existsSync('/config/shape.ttl')) {
+    shapeFile = '/config/shape.ttl';
+  }
   const client = replicateLDES(
     intoConfig({
       url: LDES_ENDPOINT_VIEW,
@@ -47,6 +52,7 @@ async function main() {
       materialize: INGEST_MODE === 'MATERIALIZE',
       lastVersionOnly: REPLACE_VERSIONS, // Won't emit members if they're known to be older than what is already in the state file
       loose: true, // Make this configurable? IPDC needs this to be true
+      shapeFile,
       fetch: enhanced_fetch({
         safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
         /* In comment are the default values, perhaps we want to make these configurable
