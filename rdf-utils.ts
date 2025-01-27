@@ -4,7 +4,7 @@ import { BLANK, XSD } from "./namespaces";
 import { v4 as uuidv4 } from "uuid";
 // @ts-ignore
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
-import { Member } from "./consumer";
+import { Member } from "./member-processor";
 const { literal } = DataFactory;
 
 export interface TreeProperties {
@@ -63,7 +63,7 @@ export function convertBlankNodes (quads: RDF.Quad[]) {
 }
 
 export function extractVersionTimestamp (member: Member, treeProperties: TreeProperties) : Date | null {
-  const timestampMatches = member.quads.filter((quad) =>
+  const timestampMatches = member.quads.filter((quad: { predicate: { equals: (arg0: RDF.NamedNode<string>) => any; }; }) =>
     quad.predicate.equals(treeProperties.timestampPath)
   );
   if (timestampMatches && timestampMatches.length) {
@@ -76,7 +76,7 @@ export function extractBaseResourceUri (
   member: Member,
   treeProperties: TreeProperties
 ): RDF.NamedNode | undefined {
-  const baseResourceMatches = member.quads.filter((quadObj) =>
+  const baseResourceMatches = member.quads.filter((quadObj: { predicate: { equals: (arg0: RDF.NamedNode<string>) => any; }; }) =>
     quadObj.predicate.equals(treeProperties.versionOfPath)
   );
   if (baseResourceMatches && baseResourceMatches.length) {
