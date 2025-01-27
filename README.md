@@ -25,7 +25,7 @@ The service can be configured with the following environment variables:
 |----------------------|---------|-------------|
 | `INGEST_MODE` | `ALL` | How the LDES feed should be ingested. Valid options are `ALL` and `MATERIALIZE`. `ALL` will ingest all versioned members as-is and store them in the triplestore. `MATERIALIZE` will store the [materializations of the members](https://semiceu.github.io/LinkedDataEventStreams/#version-materializations). |
 | `REPLACE_VERSIONS` | `false` | Whether to remove old versions of a resource when adding a new version or not. |
-| `PERSIST_STATE` | `false` | Whether to persist the state of the LDES client. The state is stored as a file in `/data/$LDES_ENDPOINT_VIEW-state.json`, make sure to mount the data folder to have access to store the state across container rebuilds! |
+| `PERSIST_STATE` | `false` | Whether to persist the state of the LDES client. The state is stored as a file in `/data/hostname($LDES_ENDPOINT_VIEW)-state.json`, make sure to mount the data folder to have access to store the state across container rebuilds! |
 | `LDES_ENDPOINT_VIEW` | N/A (required) | The view of the LDES endpoint that will be ingested. If not set, the service will not start. |
 | `LDES_POLLING_INTERVAL` | `60000` | Number of milliseconds before refetching uncacheable fragments |
 | `LDES_REQUESTS_PER_MINUTE` | `0` (unlimited) | How many requests per minutes may be sent to the same host. This is optional, but any passed in value must be a positive number. |
