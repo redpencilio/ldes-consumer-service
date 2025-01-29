@@ -5,7 +5,7 @@
     "cron": "^2.1.0",
     "env-var": "^7.3.0",
     "express-http-context": "^1.2.4",
-    "ldes-client": "0.0.16-rpio.3",
+    "ldes-client": "0.0.16-rpio.4",
     "n3": "^1.16.1",
     "rdf-parse": "^2.0.0"
   },
