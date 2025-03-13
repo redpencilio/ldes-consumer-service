@@ -1,69 +1,119 @@
-import { CronJob } from "cron";
+import fs from 'fs';
+import { enhanced_fetch, intoConfig, LDESInfo, replicateLDES } from 'ldes-client';
 import {
-  CRON_PATTERN,
-  LDES_DEREFERENCE_MEMBERS,
-  LDES_ENDPOINT_HEADER_PREFIX,
+  INGEST_MODE,
+  REPLACE_VERSIONS,
+  PERSIST_STATE,
   LDES_ENDPOINT_VIEW,
   LDES_POLLING_INTERVAL,
-  LDES_REQUESTS_PER_MINUTE,
-  LDES_STREAM,
-  LDES_TIMESTAMP_PATH,
+  RUN_ONCE,
+  NODE_ENV,
+  logConfig,
   LDES_VERSION_OF_PATH,
-  REPLACE_VERSIONS,
-  RUNONCE
-} from "./config";
-import { ConfigurableLDESOptions } from "./consumer";
-import LdesPipeline from "./ldes-pipeline";
-import { NamedNode } from "n3";
-let taskIsRunning = false;
+  LDES_TIMESTAMP_PATH,
+} from "./cfg";
+import { memberProcessor } from './lib/member-processor';
+import { custom_fetch } from './lib/fetch/custom-fetch';
+import { getLoggerFor } from './lib/logger';
+import { DataFactory } from "n3";
 
-const consumerJob = new CronJob(CRON_PATTERN, async () => {
-  if (taskIsRunning) {
-    console.log("Another task is still running");
-    return;
-  }
+const { namedNode } = DataFactory;
+
+logConfig();
+
+if (NODE_ENV === "production") {
+  main();
+} else {
+  const timeout = 10_000; // Make this configurable?
+  console.log(`Starting LDES consumer in ${timeout}ms, connect to your debugger now :)`);
+  setTimeout(main, timeout);
+}
+
+async function main() {
+  let stateFilePath;
   try {
-    taskIsRunning = true;
-    const endpoint = LDES_ENDPOINT_VIEW;
-    if (endpoint) {
-      const ldesOptions: ConfigurableLDESOptions = {
-        dereferenceMembers: LDES_DEREFERENCE_MEMBERS,
-        pollingInterval: LDES_POLLING_INTERVAL
-      };
-      if (LDES_REQUESTS_PER_MINUTE) {
-        ldesOptions.requestsPerMinute = LDES_REQUESTS_PER_MINUTE;
-      }
-      const datasetIri = new NamedNode(LDES_STREAM);
-      const consumer = new LdesPipeline({ datasetIri, endpoint, ldesOptions });
-      console.log("Started processing " + endpoint);
-      await consumer.consumeStream();
-      console.log("Finished processing " + endpoint);
-      if (RUNONCE) {
-        console.log("Job is complete.");
-        process.exit();
-      }
-    } else {
-      throw new Error("No endpoint provided");
-    }
-  } catch (e) {
-    console.error(e);
-  } finally {
-    taskIsRunning = false;
+    const url = new URL(LDES_ENDPOINT_VIEW);
+    stateFilePath = `/data/${url.host}-state.json`;
+  } catch (e: any) {
+    throw new Error("Provided endpoint couldn't be parsed as URL, double check your settings.");
   }
-});
 
-console.log("config", {
-  CRON_PATTERN,
-  LDES_DEREFERENCE_MEMBERS,
-  LDES_ENDPOINT_HEADER_PREFIX,
-  LDES_ENDPOINT_VIEW,
-  LDES_POLLING_INTERVAL,
-  LDES_REQUESTS_PER_MINUTE,
-  LDES_STREAM,
-  LDES_TIMESTAMP_PATH,
-  LDES_VERSION_OF_PATH,
-  REPLACE_VERSIONS,
-  RUNONCE
-});
+  let shapeFile;
+  if (fs.existsSync('/config/shape.ttl')) {
+    shapeFile = '/config/shape.ttl';
+  }
+  const client = replicateLDES(
+    intoConfig({
+      url: LDES_ENDPOINT_VIEW,
+      urlIsView: true,
+      polling: !RUN_ONCE,
+      pollInterval: LDES_POLLING_INTERVAL,
+      stateFile: PERSIST_STATE ? stateFilePath : undefined,
+      materialize: INGEST_MODE === 'MATERIALIZE',
+      lastVersionOnly: REPLACE_VERSIONS, // Won't emit members if they're known to be older than what is already in the state file
+      loose: true, // Make this configurable? IPDC needs this to be true
+      shapeFile,
+      fetch: enhanced_fetch({
+        safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
+        /* In comment are the default values, perhaps we want to make these configurable
+        concurrent: 10, // Amount of concurrent requests to a single domain
+        retry: {
+          codes: [408, 425, 429, 500, 502, 503, 504], // Which faulty HTTP status codes will trigger retry
+          base: 500, // Seems to be unused in the client code
+          maxRetries: 5,
+        }*/
+      }, custom_fetch),
 
-consumerJob.start();
+    }),
+    "none",
+  );
+
+  client.on("error", (error: any) => {
+    logger.info("Received an error from the LDES client!");
+    logger.error(error);
+    logger.error(error.stack);
+  })
+
+  const getLDESInfo = async (): Promise<LDESInfo> => {
+    return new Promise(
+      (resolve, reject) => {
+        try {
+          client.on('description', (info: LDESInfo) => {
+            resolve(info);
+          });
+        } catch (e) {
+          reject(e);
+        }
+      }
+    )
+  };
+
+  const logger = getLoggerFor('main');
+  logger.info('Starting stream...');
+  const ldesStream = client.stream({ highWaterMark: 10 });
+  try {
+    logger.info('Waiting for LDES info...');
+    const { isVersionOfPath: versionOfPath, timestampPath } = await getLDESInfo();
+    if (versionOfPath !== undefined && timestampPath !== undefined) {
+      logger.info(`Received LDES info: ${JSON.stringify({ versionOfPath, timestampPath })}`);
+    } else if (LDES_VERSION_OF_PATH !== undefined && LDES_TIMESTAMP_PATH !== undefined) {
+      logger.info(`LDES feed info contained no versionOfPath & timestampPath, using provided values: ${JSON.stringify({ LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH })}`);
+    } else {
+      throw new Error('LDES feed info contained no versionOfPath & timestampPath and no LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH were provided to service, exiting.');
+    }
+
+    await ldesStream.pipeTo(
+      memberProcessor(
+        versionOfPath ?? namedNode(LDES_VERSION_OF_PATH as string),
+        timestampPath ?? namedNode(LDES_TIMESTAMP_PATH as string),
+      )
+    );
+
+    logger.info('Finished processing stream');
+  } catch (e) {
+    logger.error('Processing stream failed');
+    logger.error(e);
+  } finally {
+    ldesStream.cancel();
+  }
+}

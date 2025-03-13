@@ -1,6 +1,6 @@
 # LDES Consumer Service
 
-This service uses a consumer (based on https://github.com/TREEcg/event-stream-client/tree/main/packages/actor-init-ldes-client) to fetch new versions of resources (members) from an (time-based) LDES stream.
+This service uses a consumer (based on  https://github.com/rdf-connect/ldes-client) to fetch new versions of resources (members) from an (time-based) LDES stream.
 You can learn more about LDES at https://semiceu.github.io/LinkedDataEventStreams/.
 
 The consumer is run periodically using a cron job. Each time it is run, it checks if new members have been added to the LDES stream and adds them to the virtuoso endpoint.
@@ -11,7 +11,9 @@ Add the following snipped to your docker-compose.yml to include the consumer ser
 
 ```
 consumer:
-    image: redpencil/ldes-consumer
+  image: redpencil/ldes-consumer
+  volumes:
+    - ./data/ldes-consumer:/data
 ```
 
 
@@ -19,24 +21,44 @@ consumer:
 
 The service can be configured with the following environment variables:
 
-- `BLANK_NODE_NAMESPACE` [string]: namespace to use for skolemizing blank nodes (default 'http://mu.semte.ch/blank#')
-- `CRON_PATTERN` [string]: the cron pattern which the cronjob should use. (default: `* 0 * * * *`)
-- `DEBUG_AUTH_HEADERS`: Debugging of [mu-authorization](https://github.com/mu-semtech/mu-authorization) access-control related headers (default `false`)
-- `LDES_DEREFERENCE_MEMBERS`: whether to dereference members, because the collection pages do not contain all information (default: false)
-- `LDES_ENDPOINT_HEADER_<key>` [string]: A header key-value combination which should be send as part of the headers to the LDES ENDPOINT. E.g. `LDES_ENDPOINT_HEADER_X-API-KEY: <api_key>`.
-- `LDES_ENDPOINT_VIEW` [string]: the ldes endpoint containing the view (the first page) of the stream.
-- `LDES_POLLING_INTERVAL`: Number of milliseconds before refetching uncacheable fragments (default: 60000)
-- `LDES_REQUESTS_PER_MINUTE`: how many requests per minutes may be sent to the same host (optional, any positive number)
-- `LDES_STREAM` [string]: the uri which should be used as a subject to store the latest page and timestamp consumed in the database. (default: `http://mu.semte.ch/example-stream`)
-- `LDES_TIMESTAMP_PATH` [string]: the predicate to be used to find the timestamp of an object, default: `prov:generatedAtTime`)
-- `LDES_VERSION_OF_PATH` [string]: the predicate to be used to find the link to the non version object, default: `dcterms:isVersionOf`)
-- `LOG_SPARQL_ALL` [boolean]: log executed SPARQL queries (default: `false`)
-- `MU_APPLICATION_GRAPH` [string]: The graph where the data should be ingested. (default: see [semantic.works default graph](https://github.com/mu-semtech/mu-javascript-template/blob/d3281b8dff24502919a75147f7737b83d4dd724f/Dockerfile#L8))
-- `MU_SPARQL_ENDPOINT` [string]: SPARQL endpoint to connect to, defaults to 'http://database:8890/sparql'
-- `REPLACE_VERSIONS` [boolean]: boolean which indicates whether to remove old versions of a resource when adding a new version or not (default: `true`)
-- `RUNONCE` [boolean]: set to true to run the consumer only once (e.g. when running the service as a Kubernetes CronJob). (default: `false`)
-- `SPARQL_AUTH_PASSWORD` [string]: provide a passwords to be used in a digest auth to be sent to the SPARQL endpoint.
-- `SPARQL_AUTH_USER` [string]: (optional) provide a username to be used in a digest auth to be sent to the SPARQL endpoint.
-- `SPARQL_BATCH_SIZE` [integer]: amount of triples sent per query. To work around triplestore query-length limitations (default: `0` - disabled).
-- `SPARQL_ENDPOINT_HEADER_<key>` [string]: A header key-value combination which should be send as part of the headers to the SPARQL ENDPOINT.
-- `PERSIST_STATE` [boolean]: whether to persist (and restore) state of the ldes client on runs. (default: `false`)
+| Environment variable | Default | Description |
+|----------------------|---------|-------------|
+| `INGEST_MODE` | `ALL` | How the LDES feed should be ingested. Valid options are `ALL` and `MATERIALIZE`. `ALL` will ingest all versioned members as-is and store them in the triplestore. `MATERIALIZE` will store the [materializations of the members](https://semiceu.github.io/LinkedDataEventStreams/#version-materializations). |
+| `REPLACE_VERSIONS` | `true` | Whether to remove old versions of a resource when adding a new version or not. |
+| `PERSIST_STATE` | `false` | Whether to persist the state of the LDES client. The state is stored as a file in `/data/hostname($LDES_ENDPOINT_VIEW)-state.json`, make sure to mount the data folder to have access to store the state across container rebuilds! |
+| `LDES_ENDPOINT_VIEW` | N/A (required) | The view of the LDES endpoint that will be ingested. If not set, the service will not start. |
+| `LDES_POLLING_INTERVAL` | `60000` | Number of milliseconds before refetching uncacheable fragments |
+| `LDES_REQUESTS_PER_MINUTE` | `0` (unlimited) | How many requests per minutes may be sent to the same host. This is optional, but any passed in value must be a positive number. |
+| `LDES_ENDPOINT_HEADERS` | `{}` (no headers will be added) | Extra headers that will be added to the requests sent to the LDES endpoint. Recommended syntax:<pre>environment:<br>  LDES_ENDPOINT_HEADERS: ><br>    { "HEADER-NAME": "header-value" } # The leading whitespace is important!</pre> |
+| `LDES_VERSION_OF_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the link to the non version object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
+| `LDES_TIMESTAMP_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the timestamp of an object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
+| `SPARQL_ENDPOINT_HEADER_<key>` | N/A | A header key-value combination which should be send as part of the headers to the SPARQL endpoint. |
+| `SPARQL_BATCH_SIZE` | `0` (disabled) | The amount of triples sent per query, used to work around triplestore query-length limitations. Value must be a non-negative integer. If set to 0, no batching will be applied. |
+| `SPARQL_AUTH_USER` | N/A | Optional value to provide a username to be used in a digest auth to be sent to the SPARQL endpoint. |
+| `SPARQL_AUTH_PASSWORD` | N/A | Optional value to provide a password to be used in a digest auth to be sent to the SPARQL endpoint. |
+| `BLANK_NODE_NAMESPACE` | `http://mu.semte.ch/blank#` | namespace to use for skolemizing blank nodes. |
+| `CRON_PATTERN` | `* 0 * * * *` | The cron pattern which the cronjob should use. |
+| `RUN_ONCE` | `false` | Set to true to run the consumer only once (e.g. when running the service as a Kubernetes CronJob).
+| `MU_APPLICATION_GRAPH` | See [semantic.works default graph](https://github.com/mu-semtech/mu-javascript-template/blob/d3281b8dff24502919a75147f7737b83d4dd724f/Dockerfile#L8) | The graph where the data should be ingested. |
+| `MU_SPARQL_ENDPOINT` | `http://database:8890/sparql` | SPARQL endpoint to connect to. |
+| `LOG_SPARQL_ALL` | `false` | Log executed SPARQL queries |
+| `DEBUG_AUTH_HEADERS` | `false` | Debugging of [mu-authorization](https://github.com/mu-semtech/mu-authorization) access-control related headers |
+
+
+> [!WARNING]
+> The following environment variables are **deprecated** and slated to be removed at a later time, but still supported:
+
+| Environment variable | Default | Description |
+|----------------------|---------|-------------|
+| `RUNONCE` | `false` | Set to true to run the consumer only once (e.g. when running the service as a Kubernetes CronJob). Replaced with `RUN_ONCE` environment variable. |
+
+> [!CAUTION]
+> The following environment variables are **no longer supported**:
+
+| Environment variable | Reason | Description |
+|----------------------|--------|-------------|
+| `LDES_DEREFERENCE_MEMBERS` | The underlying library does not make dereferencing optional. | Whether to dereference members, because the collection pages do not contain all information. |
+| `LDES_STREAM` | The underlying library stores the LDES stream state in a file and we no longer store this info in the triplestore. | The uri which should be used as a subject to store the latest page and timestamp consumed in the database. |
+| `LDES_TIMESTAMP_PATH` | Materialization and versioning support is provided by the underlying library, which expects to find this information attached to the LDES feed. | The predicate to be used to find the timestamp of an object. |
+| `LDES_VERSION_OF_PATH` | Materialization and versioning support is provided by the underlying library, which expects to find this information attached to the LDES feed.| The predicate to be used to find the link to the non version object. |
+| `LDES_ENDPOINT_HEADER_<key>` | Newer versions of Node.js do not support environment variables with dashes in their name. Stuff like `LDES_ENDPOINT_HEADER_X-API-KEY` is no longer supported. | A header key-value combination which should be send as part of the headers to the LDES endpoint. E.g. `LDES_ENDPOINT_HEADER_X-API-KEY: <api_key>`. |
