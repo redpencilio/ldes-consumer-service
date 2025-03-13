@@ -1,6 +1,6 @@
 # LDES Consumer Service
 
-This service uses a consumer (based on https://github.com/TREEcg/event-stream-client/tree/main/packages/actor-init-ldes-client) to fetch new versions of resources (members) from an (time-based) LDES stream.
+This service uses a consumer (based on  https://github.com/rdf-connect/ldes-client) to fetch new versions of resources (members) from an (time-based) LDES stream.
 You can learn more about LDES at https://semiceu.github.io/LinkedDataEventStreams/.
 
 The consumer is run periodically using a cron job. Each time it is run, it checks if new members have been added to the LDES stream and adds them to the virtuoso endpoint.
