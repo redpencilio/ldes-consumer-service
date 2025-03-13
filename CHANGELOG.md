@@ -1,12 +1,8 @@
 
 
-
-
-
-
-
-
-
+## 0.9.0 (2025-03-13)
+#### :boom: Breaking Change
+* [#45](https://github.com/redpencilio/ldes-consumer-service/pull/45) Use rdf-connect/ldes-client
 
 ## 0.8.0-rc1 (2023-08-29)
 
