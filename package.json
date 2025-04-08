@@ -40,6 +40,6 @@
     "release-it-lerna-changelog": "^5.0.0"
   },
   "volta": {
-    "node": "18.20.7"
+    "node": "20.19.0"
   }
 }
