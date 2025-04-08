@@ -5,9 +5,9 @@ steps:
       repo: ${CI_REPO_OWNER%%io}/${CI_REPO_NAME%%-service}
       tags: ${CI_COMMIT_TAG##v}
       platforms: linux/amd64, linux/arm64
-      docker_username:
+      username:
         from_secret: docker_username
-      docker_password:
+      password:
         from_secret: docker_password
 when:
   - event: tag
