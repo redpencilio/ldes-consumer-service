@@ -3,7 +3,7 @@
 This service uses a consumer (based on  https://github.com/rdf-connect/ldes-client) to fetch new versions of resources (members) from an (time-based) LDES stream.
 You can learn more about LDES at https://semiceu.github.io/LinkedDataEventStreams/.
 
-The consumer is run periodically using a cron job. Each time it is run, it checks if new members have been added to the LDES stream and adds them to the virtuoso endpoint.
+By default the service will start polling when the LDES feed has been consumed. You can disable this by setting the `RUN_ONCE` ENV var to `true`. Consumer state can be saved in a json file under /data, make sure to enable this by setting `PERSIST_STATE` to true and mounting /data in a local volume if you want it to be persisted when recreating the container.
 
 ## Integrating the consumer service in a semantic.works project
 
@@ -37,8 +37,7 @@ The service can be configured with the following environment variables:
 | `SPARQL_AUTH_USER` | N/A | Optional value to provide a username to be used in a digest auth to be sent to the SPARQL endpoint. |
 | `SPARQL_AUTH_PASSWORD` | N/A | Optional value to provide a password to be used in a digest auth to be sent to the SPARQL endpoint. |
 | `BLANK_NODE_NAMESPACE` | `http://mu.semte.ch/blank#` | namespace to use for skolemizing blank nodes. |
-| `CRON_PATTERN` | `* 0 * * * *` | The cron pattern which the cronjob should use. |
-| `RUN_ONCE` | `false` | Set to true to run the consumer only once (e.g. when running the service as a Kubernetes CronJob).
+| `RUN_ONCE` | `false` | Set to true to run the consumer only once, this disables polling. (useful when running the service as a Kubernetes CronJob).
 | `MU_APPLICATION_GRAPH` | See [semantic.works default graph](https://github.com/mu-semtech/mu-javascript-template/blob/d3281b8dff24502919a75147f7737b83d4dd724f/Dockerfile#L8) | The graph where the data should be ingested. |
 | `MU_SPARQL_ENDPOINT` | `http://database:8890/sparql` | SPARQL endpoint to connect to. |
 | `LOG_SPARQL_ALL` | `false` | Log executed SPARQL queries |
