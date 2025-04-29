@@ -33,7 +33,6 @@ export const SPARQL_AUTH_USER = env.get("SPARQL_AUTH_USER").asString();
 export const SPARQL_AUTH_PASSWORD = env.get("SPARQL_AUTH_PASSWORD").asString();
 
 export const BLANK_NODE_NAMESPACE = env.get("BLANK_NODE_NAMESPACE").default("http://mu.semte.ch/blank#").asString();
-export const CRON_PATTERN = env.get("CRON_PATTERN").default("* 0 * * * *").asString();
 
 const RUN_ONCE_VAR = env.get("RUN_ONCE").default("false").asBool();
 const RUNONCE_VAR = env.get("RUNONCE").default("false").asBool();
@@ -58,7 +57,6 @@ export function logConfig() {
     SPARQL_AUTH_USER,
     SPARQL_AUTH_PASSWORD,
     BLANK_NODE_NAMESPACE,
-    CRON_PATTERN,
     RUN_ONCE,
     MU_APPLICATION_GRAPH,
     MU_SPARQL_ENDPOINT,
