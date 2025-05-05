@@ -1,5 +1,9 @@
 
 
+## 0.9.1 (2025-05-05)
+#### :rocket: Enhancement
+* [#48](https://github.com/redpencilio/ldes-consumer-service/pull/48) bumps the client to 0.1.7 ([@nvdk](https://github.com/nvdk))
+
 ## 0.9.0 (2025-03-13)
 #### :boom: Breaking Change
 * [#45](https://github.com/redpencilio/ldes-consumer-service/pull/45) Use rdf-connect/ldes-client
