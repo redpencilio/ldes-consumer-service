@@ -4,7 +4,11 @@ steps:
     settings:
       repo: ${CI_REPO_OWNER%%io}/${CI_REPO_NAME%%-service}
       tags: latest
-    secrets: [docker_username, docker_password]
+      platforms: linux/amd64, linux/arm64
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
 when:
   - event: push
     branch: [master, main]

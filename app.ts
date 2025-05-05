@@ -93,7 +93,7 @@ async function main() {
   const ldesStream = client.stream({ highWaterMark: 10 });
   try {
     logger.info('Waiting for LDES info...');
-    const { isVersionOfPath: versionOfPath, timestampPath } = await getLDESInfo();
+    const { versionOfPath, timestampPath } = await getLDESInfo();
     if (versionOfPath !== undefined && timestampPath !== undefined) {
       logger.info(`Received LDES info: ${JSON.stringify({ versionOfPath, timestampPath })}`);
     } else if (LDES_VERSION_OF_PATH !== undefined && LDES_TIMESTAMP_PATH !== undefined) {
