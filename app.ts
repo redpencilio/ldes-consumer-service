@@ -12,6 +12,7 @@ import {
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
 } from "./cfg";
+import { waitForDatabase } from './lib/database-helpers';
 import { memberProcessor } from './lib/member-processor';
 import { custom_fetch } from './lib/fetch/custom-fetch';
 import { getLoggerFor } from './lib/logger';
@@ -21,13 +22,15 @@ const { namedNode } = DataFactory;
 
 logConfig();
 
-if (NODE_ENV === "production") {
-  main();
-} else {
-  const timeout = 10_000; // Make this configurable?
-  console.log(`Starting LDES consumer in ${timeout}ms, connect to your debugger now :)`);
-  setTimeout(main, timeout);
-}
+waitForDatabase(() => {
+  if (NODE_ENV === "production") {
+    main();
+  } else {
+    const timeout = 10_000; // Make this configurable?
+    console.log(`Starting LDES consumer in ${timeout}ms, connect to your debugger now :)`);
+    setTimeout(main, timeout);
+  }
+});
 
 async function main() {
   let stateFilePath;
