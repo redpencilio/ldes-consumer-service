@@ -16,11 +16,21 @@ import { waitForDatabase } from './lib/database-helpers';
 import { memberProcessor } from './lib/member-processor';
 import { custom_fetch } from './lib/fetch/custom-fetch';
 import { getLoggerFor } from './lib/logger';
-import { DataFactory } from "n3";
+import { DataFactory } from 'n3';
+import { beforeExit } from 'mu';
 
 const { namedNode } = DataFactory;
+let ldesClient;
 
 logConfig();
+
+beforeExit( async () => {
+  console.log("Cancel LDES stream and persist state...");
+  if (ldesClient) {
+    await ldesClient.stateFactory.write();
+  }
+  console.log("Finished cancelling LDES stream.");
+});
 
 waitForDatabase(() => {
   if (NODE_ENV === "production") {
@@ -45,7 +55,7 @@ async function main() {
   if (fs.existsSync('/config/shape.ttl')) {
     shapeFile = '/config/shape.ttl';
   }
-  const client = replicateLDES(
+  ldesClient = replicateLDES(
     intoConfig({
       url: LDES_ENDPOINT_VIEW,
       urlIsView: true,
@@ -71,7 +81,7 @@ async function main() {
     "none",
   );
 
-  client.on("error", (error: any) => {
+  ldesClient.on("error", (error: any) => {
     logger.info("Received an error from the LDES client!");
     logger.error(error);
     logger.error(error.stack);
@@ -81,7 +91,7 @@ async function main() {
     return new Promise(
       (resolve, reject) => {
         try {
-          client.on('description', (info: LDESInfo) => {
+          ldesClient.on('description', (info: LDESInfo) => {
             resolve(info);
           });
         } catch (e) {
@@ -93,7 +103,7 @@ async function main() {
 
   const logger = getLoggerFor('main');
   logger.info('Starting stream...');
-  const ldesStream = client.stream({ highWaterMark: 10 });
+  const ldesStream = ldesClient.stream({ highWaterMark: 10 });
   try {
     logger.info('Waiting for LDES info...');
     const { versionOfPath, timestampPath } = await getLDESInfo();
