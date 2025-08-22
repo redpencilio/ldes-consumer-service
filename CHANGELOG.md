@@ -1,4 +1,13 @@
+## 0.10.0 (2025-08-22)
+#### :boom: Breaking Change
+* Exit service on error
 
+#### :rocket: Enhancement
+* Bump ldes-client to 0.1.8
+* Bump semtech/mu-javascript-template to 1.9.1
+* Wait for database to be up before starting LDES feed consumption
+* Write state on exit of the service
+* Write state on succesful run
 
 ## 0.9.1 (2025-05-05)
 #### :rocket: Enhancement
