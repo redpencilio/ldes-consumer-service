@@ -1,14 +1,4 @@
 {
-  "dependencies": {
-    "@lblod/mu-auth-sudo": "1.0.0-beta.4",
-    "@rdfjs/namespace": "^1.1.0",
-    "cron": "^2.1.0",
-    "env-var": "^7.3.0",
-    "express-http-context": "^1.2.4",
-    "ldes-client": "0.1.7",
-    "n3": "^1.16.1",
-    "rdf-parse": "^2.0.0"
-  },
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
   "version": "0.9.1",
@@ -22,8 +12,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "release-it"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "redpencil <info@redpencil.io>",
+  "license": "MIT",
   "devDependencies": {
     "@rdfjs/types": "^1.1.0",
     "@types/cron": "^2.0.0",
@@ -38,6 +28,16 @@
     "rdf-js": "^4.0.2",
     "release-it": "^15.2.0",
     "release-it-lerna-changelog": "^5.0.0"
+  },
+  "dependencies": {
+    "@lblod/mu-auth-sudo": "1.0.0-beta.4",
+    "@rdfjs/namespace": "^1.1.0",
+    "cron": "^2.1.0",
+    "env-var": "^7.3.0",
+    "express-http-context": "^1.2.4",
+    "ldes-client": "0.1.7",
+    "n3": "^1.16.1",
+    "rdf-parse": "^2.0.0"
   },
   "volta": {
     "node": "20.19.0"
