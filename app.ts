@@ -113,10 +113,11 @@ async function main() {
     );
 
     logger.info('Finished processing stream');
+    ldesStream.cancel();
   } catch (e) {
     logger.error('Processing stream failed');
     logger.error(e);
-  } finally {
     ldesStream.cancel();
+    process.exit(1);
   }
 }
