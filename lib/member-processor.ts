@@ -57,7 +57,7 @@ export function memberProcessor(
     const quadsToRemove: Quad[] = [];
     if (REPLACE_VERSIONS) {
       if (versionOfPath === undefined) {
-        throw new Error(`Consumer is configured to replacace versions, but LDES feed did not contain versioning metadata (ldes:versionOfPath).`);
+        throw new Error(`Consumer is configured to replace versions, but LDES feed did not contain versioning metadata (ldes:versionOfPath).`);
       }
 
       if (INGEST_MODE === "MATERIALIZE") {
