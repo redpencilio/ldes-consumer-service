@@ -14,7 +14,7 @@ export let LDES_ENDPOINT_HEADERS = {};
 try {
   LDES_ENDPOINT_HEADERS = JSON.parse(LDES_ENDPOINT_HEADERS_STRING);
 } catch (e: any) {
-  logger.error(`Failed to parse contents of LDES_HEADERS. Faulty content: ${LDES_ENDPOINT_HEADERS_STRING}`);
+  logger.error(`Failed to parse contents of LDES_ENDPOINT_HEADERS. Faulty content: ${LDES_ENDPOINT_HEADERS_STRING}`);
   logger.error(e);
   throw e;
 }
