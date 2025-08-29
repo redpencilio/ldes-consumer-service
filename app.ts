@@ -11,7 +11,7 @@ import {
   logConfig,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
-} from "./cfg";
+} from './cfg';
 import { waitForDatabase } from './lib/database-helpers';
 import { memberProcessor } from './lib/member-processor';
 import { custom_fetch } from './lib/fetch/custom-fetch';
