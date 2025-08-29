@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { enhanced_fetch, intoConfig, LDESInfo, replicateLDES } from 'ldes-client';
+import { enhanced_fetch, LDESInfo, replicateLDES } from 'ldes-client';
 import {
   INGEST_MODE,
   REPLACE_VERSIONS,
@@ -56,7 +56,7 @@ async function main() {
     shapeFile = '/config/shape.ttl';
   }
   ldesClient = replicateLDES(
-    intoConfig({
+    {
       url: LDES_ENDPOINT_VIEW,
       urlIsView: true,
       polling: !RUN_ONCE,
@@ -77,8 +77,7 @@ async function main() {
         }*/
       }, custom_fetch),
 
-    }),
-    "none",
+    }
   );
 
   ldesClient.on("error", (error: any) => {
