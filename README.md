@@ -29,6 +29,7 @@ The service can be configured with the following environment variables:
 | `LDES_ENDPOINT_VIEW` | N/A (required) | The view of the LDES endpoint that will be ingested. If not set, the service will not start. |
 | `LDES_POLLING_INTERVAL` | `60000` | Number of milliseconds before refetching uncacheable fragments |
 | `LDES_REQUESTS_PER_MINUTE` | `0` (unlimited) | How many requests per minutes may be sent to the same host. This is optional, but any passed in value must be a positive number. |
+| `LDES_INFO_REQUEST_TIMEOUT` | `60000` | Number of milliseconds to wait on the LDES info at startup of the stream. If the info is not received in time, the process will be terminated. |
 | `LDES_ENDPOINT_HEADERS` | `{}` (no headers will be added) | Extra headers that will be added to the requests sent to the LDES endpoint. Recommended syntax:<pre>environment:<br>  LDES_ENDPOINT_HEADERS: ><br>    { "HEADER-NAME": "header-value" } # The leading whitespace is important!</pre> |
 | `LDES_VERSION_OF_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the link to the non version object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
 | `LDES_TIMESTAMP_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the timestamp of an object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |

@@ -6,6 +6,7 @@ import {
   PERSIST_STATE,
   LDES_ENDPOINT_VIEW,
   LDES_POLLING_INTERVAL,
+  LDES_INFO_REQUEST_TIMEOUT,
   RUN_ONCE,
   NODE_ENV,
   logConfig,
@@ -86,16 +87,18 @@ async function main() {
     logger.error(error.stack);
   })
 
+  // Wrap 'description' event of ldes-client lib in a Promise
   const getLDESInfo = async (): Promise<LDESInfo> => {
     return new Promise(
       (resolve, reject) => {
-        try {
-          ldesClient.on('description', (info: LDESInfo) => {
-            resolve(info);
-          });
-        } catch (e) {
-          reject(e);
-        }
+        // Avoid waiting forever on the 'description' event
+        const timer = setTimeout(() => {
+          reject(new Error(`Didn't receive LDES feed info in ${LDES_INFO_REQUEST_TIMEOUT}ms. We will stop waiting.`));
+        }, LDES_INFO_REQUEST_TIMEOUT);
+        ldesClient.on('description', (info: LDESInfo) => {
+          clearTimeout(timer);
+          resolve(info);
+        });
       }
     )
   };
@@ -122,11 +125,14 @@ async function main() {
     );
 
     logger.info('Finished processing stream');
-    ldesStream.cancel();
+    await ldesStream.cancel();
   } catch (e) {
     logger.error('Processing stream failed');
     logger.error(e);
-    ldesStream.cancel();
+    // Calling ldesStream.cancel() may fail here if ldesStream
+    // is not yet fully initialized. Also, we probably we don't
+    // want to persist the state here as we are in an error state.
+    // It may overwrite a previous valid state.
     process.exit(1);
   }
 }

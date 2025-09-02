@@ -6,6 +6,7 @@ const logger = getLoggerFor("config");
 export const LDES_ENDPOINT_VIEW = env.get("LDES_ENDPOINT_VIEW").required().asString();
 export const LDES_POLLING_INTERVAL = env.get("LDES_POLLING_INTERVAL").default(60000).asIntPositive();
 export const LDES_REQUESTS_PER_MINUTE = env.get("LDES_REQUESTS_PER_MINUTE").default(0).asIntPositive();
+export const LDES_INFO_REQUEST_TIMEOUT = env.get("LDES_INFO_REQUEST_TIMEOUT").default(60000).asIntPositive();
 export const LDES_ENDPOINT_HEADERS_STRING = env.get("LDES_ENDPOINT_HEADERS").default("{}").asString();
 export const LDES_VERSION_OF_PATH = env.get("LDES_VERSION_OF_PATH").asString();
 export const LDES_TIMESTAMP_PATH = env.get("LDES_TIMESTAMP_PATH").asString();
@@ -53,6 +54,7 @@ export function logConfig() {
     LDES_ENDPOINT_VIEW,
     LDES_POLLING_INTERVAL,
     LDES_REQUESTS_PER_MINUTE,
+    LDES_INFO_REQUEST_TIMEOUT,
     SPARQL_BATCH_SIZE,
     SPARQL_AUTH_USER,
     SPARQL_AUTH_PASSWORD,
