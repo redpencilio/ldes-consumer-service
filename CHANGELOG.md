@@ -1,3 +1,7 @@
+## 0.11.0 (2025-09-04)
+#### :rocket: Enhancement
+* Timeout on description event during LDES stream init
+
 ## 0.10.0 (2025-08-22)
 #### :boom: Breaking Change
 * Exit service on error
