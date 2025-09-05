@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { enhanced_fetch, LDESInfo, replicateLDES } from 'ldes-client';
+import { LDESInfo, replicateLDES } from 'ldes-client';
 import {
   INGEST_MODE,
   REPLACE_VERSIONS,
@@ -67,17 +67,7 @@ async function main() {
       lastVersionOnly: REPLACE_VERSIONS, // Won't emit members if they're known to be older than what is already in the state file
       loose: true, // Make this configurable? IPDC needs this to be true
       shapeFile,
-      fetch: enhanced_fetch({
-        safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
-        /* In comment are the default values, perhaps we want to make these configurable
-        concurrent: 10, // Amount of concurrent requests to a single domain
-        retry: {
-          codes: [408, 425, 429, 500, 502, 503, 504], // Which faulty HTTP status codes will trigger retry
-          base: 500, // Seems to be unused in the client code
-          maxRetries: 5,
-        }*/
-      }, custom_fetch),
-
+      fetch: custom_fetch
     }
   );
 
