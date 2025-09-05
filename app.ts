@@ -129,10 +129,7 @@ async function main() {
   } catch (e) {
     logger.error('Processing stream failed');
     logger.error(e);
-    // Calling ldesStream.cancel() may fail here if ldesStream
-    // is not yet fully initialized. Also, we probably we don't
-    // want to persist the state here as we are in an error state.
-    // It may overwrite a previous valid state.
+    await ldesStream.cancel();
     process.exit(1);
   }
 }
