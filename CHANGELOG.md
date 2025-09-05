@@ -1,3 +1,7 @@
+## Not released
+#### :boom: Breaking Change
+* Upgrade of ldes-client to v2.0.1. State file persisted in `/data` is not backwards compatible.
+
 ## 0.11.0 (2025-09-04)
 #### :rocket: Enhancement
 * Timeout on description event during LDES stream init
