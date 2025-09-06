@@ -75,6 +75,7 @@ async function main() {
     logger.info("Received an error from the LDES client!");
     logger.error(error);
     logger.error(error.stack);
+    process.exit(1);
   })
 
   // Wrap 'description' event of ldes-client lib in a Promise
