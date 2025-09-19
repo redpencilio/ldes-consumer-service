@@ -1,3 +1,7 @@
+## 0.12.1 (2025-09-19)
+#### :bug: Bug Fix
+* Exit service on error event of the LDES client
+
 ## 0.12.0 (2025-09-05)
 #### :boom: Breaking Change
 * Upgrade of ldes-client to v2.0.1. State file persisted in `/data` is not backwards compatible.
