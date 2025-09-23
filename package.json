@@ -34,7 +34,7 @@
     "@lblod/mu-auth-sudo": "1.0.0-beta.4",
     "@rdfjs/namespace": "^1.1.0",
     "env-var": "^7.3.0",
-    "ldes-client": "0.2.1",
+    "ldes-client": "0.2.4",
     "n3": "^1.16.1"
   },
   "volta": {
