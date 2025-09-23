@@ -1,7 +1,7 @@
 {
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "type": "module",
   "repository": {
     "type": "git",

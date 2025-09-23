@@ -1,3 +1,7 @@
+## 0.12.2 (2025-09-23)
+#### :bug: Bug Fix
+* Retry on failed request by bumping ldes-client to v2.0.4
+
 ## 0.12.1 (2025-09-19)
 #### :bug: Bug Fix
 * Exit service on error event of the LDES client
