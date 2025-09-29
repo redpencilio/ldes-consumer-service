@@ -10,6 +10,9 @@ export const LDES_INFO_REQUEST_TIMEOUT = env.get("LDES_INFO_REQUEST_TIMEOUT").de
 export const LDES_ENDPOINT_HEADERS_STRING = env.get("LDES_ENDPOINT_HEADERS").default("{}").asString();
 export const LDES_VERSION_OF_PATH = env.get("LDES_VERSION_OF_PATH").asString();
 export const LDES_TIMESTAMP_PATH = env.get("LDES_TIMESTAMP_PATH").asString();
+export const LDES_SANITIZE_CONTENTS_REGEX = env.get("LDES_SANITIZE_CONTENTS_REGEX").asRegExp("g");
+export const LDES_SANITIZE_CONTENTS_STRING = env.get("LDES_SANITIZE_CONTENTS_STRING").asString();
+export const LDES_SANITIZE_CONTENTS_REPLACEMENT = env.get("LDES_SANITIZE_CONTENTS_REPLACEMENT").asString();
 export let LDES_ENDPOINT_HEADERS = {};
 
 try {
