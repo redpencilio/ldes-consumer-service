@@ -19,6 +19,8 @@
     "@rdfjs/types": "^1.1.0",
     "@types/cron": "^2.0.0",
     "@types/n3": "^1.10.4",
+    "@types/node": "^24.6.0",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "eslint": "^8.21.0",
@@ -34,6 +36,7 @@
     "@lblod/mu-auth-sudo": "1.0.0-beta.4",
     "@rdfjs/namespace": "^1.1.0",
     "env-var": "^7.3.0",
+    "jose": "^6.1.0",
     "ldes-client": "0.2.4",
     "n3": "^1.16.1",
     "string-replace-transform-stream": "^1.0.1"
