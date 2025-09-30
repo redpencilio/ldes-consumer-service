@@ -23,10 +23,24 @@ try {
   throw e;
 }
 
+export const JWT_USE_JWT_AUTH = env.get("JWT_USE_JWT_AUTH").default("false").asBool();
+
+export const JWT_CONFIG = JWT_USE_JWT_AUTH
+  ? {
+      clientId: env.get("JWT_CLIENT_ID").required().asString(),
+      keyPath: env.get("JWT_KEY_PATH").default("/data/jwk.json").asString(),
+      keyAlgorithm: env.get("JWT_KEY_ALGORITHM").default("RS256").asString(),
+      tokenUrl: env.get("JWT_TOKEN_URL").required().asString(),
+      tokenAudience: env.get("JWT_TOKEN_REQUEST_AUDIENCE").required().asString(),
+      tokenExpiry: env.get("JWT_TOKEN_REQUEST_EXPIRY").default("10minutes").asString(),
+      tokenScope: env.get("JWT_TOKEN_SCOPE").required().asString(),
+      clientAssertionType: env.get("JWT_CLIENT_ASSERTION_TYPE").default("urn:ietf:params:oauth:client-assertion-type:jwt-bearer").asString()
+    }
+  : undefined;
 
 export const INGEST_MODE = env.get("INGEST_MODE").default("ALL").asEnum(["ALL", "MATERIALIZE"]);
 export const REPLACE_VERSIONS = env.get("REPLACE_VERSIONS").default("true").asBool();
-export const PERSIST_STATE = env.get("PERSIST_STATE").default("false").asBool()
+export const PERSIST_STATE = env.get("PERSIST_STATE").default("false").asBool();
 
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
 
@@ -48,7 +62,7 @@ export const DEBUG_AUTH_HEADERS = env.get("DEBUG_AUTH_HEADERS").default("false")
 
 export const NODE_ENV = env.get("NODE_ENV").default("production").asEnum(["development", "production"]);
 
-export function logConfig() {
+export function logConfig () {
   // Should this use the logger instead?
   console.log("Config", {
     INGEST_MODE,
@@ -68,5 +82,10 @@ export function logConfig() {
     DEBUG_AUTH_HEADERS,
     LDES_VERSION_OF_PATH,
     LDES_TIMESTAMP_PATH,
+    LDES_SANITIZE_CONTENTS_REGEX,
+    LDES_SANITIZE_CONTENTS_STRING,
+    LDES_SANITIZE_CONTENTS_REPLACEMENT,
+    JWT_USE_JWT_AUTH,
+    JWT_CONFIG
   });
 }

@@ -24,33 +24,47 @@ async function getKey (keyPath: string) {
 }
 
 function isCloseToExpiry (token: AccessToken) {
-  const now = Date.now();
-  return !lastTokenRefresh || lastTokenRefresh + token.expires_in * 0.95 > now;
+  const now = Date.now() / 1000;
+  return !lastTokenRefresh || (now - lastTokenRefresh) > (token.expires_in * 0.95);
 }
 
 export interface JwtAuthArgs {
   clientId: string;
   keyPath: string;
+  keyAlgorithm: string;
   tokenUrl: string;
+  tokenAudience: string;
+  tokenExpiry: string;
+  tokenScope: string;
+  clientAssertionType: string;
 }
 
-async function refreshAccessToken ({ clientId, keyPath, tokenUrl }: JwtAuthArgs) {
+async function refreshAccessToken ({
+  clientId,
+  keyPath,
+  keyAlgorithm,
+  tokenUrl,
+  tokenAudience,
+  tokenExpiry,
+  tokenScope,
+  clientAssertionType
+}: JwtAuthArgs) {
   logger.info("Refreshing access token");
-  lastTokenRefresh = Date.now() / 1000;
-  const secret = await importJWK(await getKey(keyPath));
-  const jwt = await new SignJWT({
-    iss: clientId,
-    sub: clientId,
-    aud: "https://authenticatie.vlaanderen.be/op",
-    jti: uuidv4()
-  })
-    .setProtectedHeader({ alg: "RS256", typ: "JWT" })
-    .setIssuedAt()
-    .setExpirationTime("10minutes")
-    .sign(secret);
-
   let tokenReq: Response;
   try {
+    lastTokenRefresh = Date.now() / 1000;
+    const secret = await importJWK(await getKey(keyPath));
+    const jwt = await new SignJWT({
+      iss: clientId,
+      sub: clientId,
+      aud: tokenAudience,
+      jti: uuidv4()
+    })
+      .setProtectedHeader({ alg: keyAlgorithm, typ: "JWT" })
+      .setIssuedAt()
+      .setExpirationTime(tokenExpiry)
+      .sign(secret);
+
     tokenReq = await fetch(tokenUrl, {
       method: "POST",
       headers: {
@@ -60,8 +74,8 @@ async function refreshAccessToken ({ clientId, keyPath, tokenUrl }: JwtAuthArgs)
         grant_type: "client_credentials",
         client_id: clientId,
         client_assertion: jwt,
-        client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        scope: "awv_toep_services" // alternatief: "vo_info" voor een key op de PUB omgeving
+        client_assertion_type: clientAssertionType,
+        scope: tokenScope
       })
     });
   } catch (err) {
