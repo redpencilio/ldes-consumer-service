@@ -4,7 +4,7 @@ import {
   LDES_SANITIZE_CONTENTS_REPLACEMENT,
   LDES_SANITIZE_CONTENTS_STRING
 } from "../../cfg";
-import { custom_headers_fetch } from "./custom-headers-fetch";
+import { customHeadersFetch } from "./custom-headers-fetch";
 import ThrottledFetch from "./throttled-fetch";
 import { StringReplaceTransformStream } from "string-replace-transform-stream";
 
@@ -34,11 +34,11 @@ if (LDES_REQUESTS_PER_MINUTE > 0) {
   fetchF = sanitizedFetch;
 }
 
-export async function custom_fetch (
+export async function customFetch (
   input: FetchArgs[0],
   init?: FetchArgs[1]
 ): Promise<Response> {
-  return custom_headers_fetch(
+  return customHeadersFetch(
     input,
     init,
     fetchF
