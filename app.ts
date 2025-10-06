@@ -85,7 +85,13 @@ async function main() {
     logger.error(error);
     logger.error(error.stack);
     process.exit(1);
-  })
+  });
+
+  ldesClient.on("poll", async () => {
+    logger.info('Persisting state at start of new poll cycle');
+    await ldesClient.stateFactory.write();
+    logger.info('Finished persisting state');
+  });
 
   // Wrap 'description' event of ldes-client lib in a Promise
   const getLDESInfo = async (): Promise<LDESInfo> => {
