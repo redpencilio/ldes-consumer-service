@@ -46,7 +46,15 @@ The service can be configured with the following environment variables:
 | `MU_SPARQL_ENDPOINT` | `http://database:8890/sparql` | SPARQL endpoint to connect to. |
 | `LOG_SPARQL_ALL` | `false` | Log executed SPARQL queries |
 | `DEBUG_AUTH_HEADERS` | `false` | Debugging of [mu-authorization](https://github.com/mu-semtech/mu-authorization) access-control related headers |
-
+| `JWT_USE_JWT_AUTH` | `false` | Whether to use a JWT based access token authentication flow when fetching the feed. |
+| `JWT_CLIENT_ID` | N/A | Required when JWT_USE_JWT_AUTH = true. The client ID coresponding to the JWK used. |
+| `JWT_KEY_PATH` | `/data/jwk.json` | Where to find the JWK key file on disk. |
+| `JWT_KEY_ALGORITHM` | `RS256` | The algorithm used to generate the JWK. |
+| `JWT_TOKEN_URL` | N/A | Required when JWT_USE_JWT_AUTH = true. The URL to request the access token from. |
+| `JWT_TOKEN_REQUEST_AUDIENCE` | N/A | Required when JWT_USE_JWT_AUTH = true. The audience to set in the JWT when requesting an access token. |
+| `JWT_TOKEN_REQUEST_EXPIRY` | `10minutes` | The expiry of the signed JWT used to request the access token. Note: this is not the same as the expiry of the token itself. |
+| `JWT_TOKEN_SCOPE` | N/A | Required when JWT_USE_JWT_AUTH = true. The scope of the access token being requested. |
+| `JWT_CLIENT_ASSERTION_TYPE` | `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` | The assertion type of the access token being requested. |
 
 > [!WARNING]
 > The following environment variables are **deprecated** and slated to be removed at a later time, but still supported:

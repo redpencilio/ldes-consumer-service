@@ -15,7 +15,7 @@ import {
 } from './cfg';
 import { waitForDatabase } from './lib/database-helpers';
 import { memberProcessor } from './lib/member-processor';
-import { custom_fetch } from './lib/fetch/custom-fetch';
+import { customFetch } from './lib/fetch/custom-fetch';
 import { getLoggerFor } from './lib/logger';
 import { DataFactory } from 'n3';
 import { beforeExit } from 'mu';
@@ -76,7 +76,7 @@ async function main() {
           base: 500, // Seems to be unused in the client code
           maxRetries: 5,
         }*/
-      }, custom_fetch)
+      }, customFetch)
     }
   );
 
