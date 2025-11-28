@@ -22,12 +22,41 @@ export default defineConfig([
       "n/no-unsupported-features/node-builtins": [
         "error",
         {
-          ignores: ["fetch", "Response"],
+          ignores: [
+            "fetch",
+            "Response",
+            "Headers",
+            "WritableStream",
+            "Request",
+            "stream/web"
+          ],
+        },
+      ],
+      "n/no-process-exit": "off",
+      "n/no-missing-import": [
+        "error",
+        {
+          ignoreTypeImport: true,
         },
       ],
     },
   },
-  tseslint.configs.recommended,
+  {
+    files: ["**/*.{ts,mts,cts}"],
+    plugins: { tseslint },
+    extends: ["tseslint/recommended"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
   {
     files: ["**/*.json"],
     plugins: { json },
