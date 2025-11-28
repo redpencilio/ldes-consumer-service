@@ -17,6 +17,7 @@
   "license": "MIT",
   "devDependencies": {
     "@rdfjs/types": "^1.1.0",
+    "@tsconfig/node20": "^20.1.8",
     "@types/cron": "^2.0.0",
     "@types/n3": "^1.10.4",
     "@types/node": "^24.6.0",
