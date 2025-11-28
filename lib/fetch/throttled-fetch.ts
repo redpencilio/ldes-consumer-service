@@ -1,5 +1,5 @@
 import { Logger } from "winston";
-import { getLoggerFor } from "../logger";
+import { getLoggerFor } from "../logger.ts";
 
 // From: https://github.com/TREEcg/event-stream-client/blob/main/packages/actor-init-ldes-client/lib/RateLimiter.ts
 export default class ThrottledFetch {

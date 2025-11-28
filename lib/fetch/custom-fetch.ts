@@ -3,9 +3,9 @@ import {
   LDES_SANITIZE_CONTENTS_REGEX,
   LDES_SANITIZE_CONTENTS_REPLACEMENT,
   LDES_SANITIZE_CONTENTS_STRING
-} from "../../cfg";
-import { customHeadersFetch } from "./custom-headers-fetch";
-import ThrottledFetch from "./throttled-fetch";
+} from "../../cfg.ts";
+import { customHeadersFetch } from "./custom-headers-fetch.ts";
+import ThrottledFetch from "./throttled-fetch.ts";
 import { StringReplaceTransformStream } from "string-replace-transform-stream";
 
 type FetchArgs = Parameters<typeof fetch>;

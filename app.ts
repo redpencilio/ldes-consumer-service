@@ -12,11 +12,11 @@ import {
   logConfig,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
-} from './cfg';
-import { waitForDatabase } from './lib/database-helpers';
-import { memberProcessor } from './lib/member-processor';
-import { customFetch } from './lib/fetch/custom-fetch';
-import { getLoggerFor } from './lib/logger';
+} from './cfg.ts';
+import { waitForDatabase } from './lib/database-helpers.ts';
+import { memberProcessor } from './lib/member-processor.ts';
+import { customFetch } from './lib/fetch/custom-fetch.ts';
+import { getLoggerFor } from './lib/logger.ts';
 import { DataFactory } from 'n3';
 import { beforeExit } from 'mu';
 

@@ -1,5 +1,5 @@
 import env from "env-var";
-import { getLoggerFor } from "./lib/logger";
+import { getLoggerFor } from "./lib/logger.ts";
 
 const logger = getLoggerFor("config");
 

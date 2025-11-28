@@ -1,5 +1,5 @@
 import * as RDF from "@rdfjs/types";
-import { extractEndpointHeadersFromEnv, toString } from "./utils";
+import { extractEndpointHeadersFromEnv, toString } from "./utils.ts";
 import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
@@ -7,7 +7,7 @@ import {
   SPARQL_ENDPOINT_HEADER_PREFIX,
   SPARQL_BATCH_SIZE,
   ENABLE_SPARQL_BATCHING
-} from "../cfg";
+} from "../cfg.ts";
 // @ts-ignore
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 

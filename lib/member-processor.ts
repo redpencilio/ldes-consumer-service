@@ -1,10 +1,10 @@
 import { Quad, Term } from "@rdfjs/types";
 import { Member } from "ldes-client";
 import { RdfStore } from "rdf-stores";
-import { executeDeleteInsertQuery } from "./sparql-queries";
-import { convertBlankNodes } from './utils';
-import { INGEST_MODE, REPLACE_VERSIONS } from '../cfg';
-import { getLoggerFor } from "./logger";
+import { executeDeleteInsertQuery } from "./sparql-queries.ts";
+import { convertBlankNodes } from "./utils.ts";
+import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg.ts";
+import { getLoggerFor } from "./logger.ts";
 // @ts-ignore
 import { DataFactory } from "n3";
 
