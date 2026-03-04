@@ -31,8 +31,6 @@ The service can be configured with the following environment variables:
 | `LDES_REQUESTS_PER_MINUTE` | `0` (unlimited) | How many requests per minutes may be sent to the same host. This is optional, but any passed in value must be a positive number. |
 | `LDES_INFO_REQUEST_TIMEOUT` | `60000` | Number of milliseconds to wait on the LDES info at startup of the stream. If the info is not received in time, the process will be terminated. |
 | `LDES_ENDPOINT_HEADERS` | `{}` (no headers will be added) | Extra headers that will be added to the requests sent to the LDES endpoint. Recommended syntax:<pre>environment:<br>  LDES_ENDPOINT_HEADERS: ><br>    { "HEADER-NAME": "header-value" } # The leading whitespace is important!</pre> |
-| `LDES_VERSION_OF_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the link to the non version object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
-| `LDES_TIMESTAMP_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the timestamp of an object. If no value is provided and the LDES feed does not provide the metadata, the service will throw an error after starting. |
 | `LDES_SANITIZE_CONTENTS_STRING` | N/A | Optional string to search for in fetched LDES pages and replace with LDES_SANITIZE_CONTENTS_REPLACEMENT. For example, allows the removal of invalid content from triples, which would otherwise cause the parser to throw an exception. |
 | `LDES_SANITIZE_CONTENTS_REGEX` | N/A | Optional Regex to search for in fetched LDES pages and replace with LDES_SANITIZE_CONTENTS_REPLACEMENT (ignored if the string form is also passed). For example, allows the removal of invalid content from triples, which would otherwise cause the parser to throw an exception. While this is more flexible than passing a string, it can lead to high memory consumption. Note: special characters need to be escaped for both docker-compose and for node, so to search for `\u` it is necessary to pass `\\\\u` |
 | `LDES_SANITIZE_CONTENTS_REPLACEMENT` | `""` | Optional string to replace sanitized strings with. |
@@ -62,6 +60,9 @@ The service can be configured with the following environment variables:
 | Environment variable | Default | Description |
 |----------------------|---------|-------------|
 | `RUNONCE` | `false` | Set to true to run the consumer only once (e.g. when running the service as a Kubernetes CronJob). Replaced with `RUN_ONCE` environment variable. |
+| `LDES_VERSION_OF_PATH` | `undefined` (will use LDES feed metadata)  | The predicate to be used to find the link to the non version object. The underlying ldes-client does not support this option well and relies on the LDES feed metadata. |
+| `LDES_TIMESTAMP_PATH` | `undefined` (will use LDES feed metadata) | The predicate to be used to find the timestamp of an object. The underlying ldes-client does not support this option well and relies on the LDES feed metadata. |
+
 
 > [!CAUTION]
 > The following environment variables are **no longer supported**:
