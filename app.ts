@@ -2,7 +2,6 @@ import fs from 'fs';
 import { enhanced_fetch, LDESInfo, replicateLDES } from 'ldes-client';
 import {
   INGEST_MODE,
-  REPLACE_VERSIONS,
   PERSIST_STATE,
   LDES_ENDPOINT_VIEW,
   LDES_POLLING_INTERVAL,
@@ -12,6 +11,7 @@ import {
   logConfig,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
+  ORDERING_STRATEGY,
 } from './cfg';
 import { waitForDatabase } from './lib/database-helpers';
 import { memberProcessor } from './lib/member-processor';
@@ -76,7 +76,7 @@ async function main() {
           maxRetries: 5,
         }*/
       }, customFetch)
-    }, "ascending"
+    }, ORDERING_STRATEGY
   );
 
   ldesClient.on("error", (error: any) => {

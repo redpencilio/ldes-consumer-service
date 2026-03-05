@@ -51,6 +51,10 @@ export const REPLACE_VERSIONS =
     .get("REPLACE_VERSIONS")
     .default("true")
     .asEnum(INGEST_MODE === "ALL" ? ["true", "false"] : ["true"]) === "true";
+export const ORDERING_STRATEGY = env
+  .get("ORDERING_STRATEGY")
+  .default("ascending")
+  .asEnum(["ascending", "descending", "none"]);
 export const PERSIST_STATE = env.get("PERSIST_STATE").default("false").asBool();
 
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
