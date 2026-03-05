@@ -63,13 +63,12 @@ async function main() {
       polling: !RUN_ONCE,
       pollInterval: LDES_POLLING_INTERVAL,
       stateFile: PERSIST_STATE ? stateFilePath : undefined,
-      materialize: INGEST_MODE === 'MATERIALIZE',
-      lastVersionOnly: REPLACE_VERSIONS, // Won't emit members if they're known to be older than what is already in the state file
+      materialize: INGEST_MODE === "MATERIALIZE",
       loose: true, // Make this configurable? IPDC needs this to be true
       shapeFile,
       fetch: enhanced_fetch({
         safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
-        /* In comment are the default values, perhaps we want to make these configurable
+          /* In comment are the default values, perhaps we want to make these configurable
         concurrent: 10, // Amount of concurrent requests to a single domain
         retry: {
           codes: [408, 425, 429, 500, 502, 503, 504], // Which faulty HTTP status codes will trigger retry
@@ -77,7 +76,7 @@ async function main() {
           maxRetries: 5,
         }*/
       }, customFetch)
-    }
+    }, "ascending"
   );
 
   ldesClient.on("error", (error: any) => {
@@ -91,14 +90,14 @@ async function main() {
   const getLDESInfo = async (): Promise<LDESInfo> => {
     return new Promise(
       (resolve, reject) => {
-        // Avoid waiting forever on the 'description' event
-        const timer = setTimeout(() => {
+      // Avoid waiting forever on the 'description' event
+      const timer = setTimeout(() => {
           reject(new Error(`Didn't receive LDES feed info in ${LDES_INFO_REQUEST_TIMEOUT}ms. We will stop waiting.`));
-        }, LDES_INFO_REQUEST_TIMEOUT);
+      }, LDES_INFO_REQUEST_TIMEOUT);
         ldesClient.on('description', (info: LDESInfo) => {
-          clearTimeout(timer);
-          resolve(info);
-        });
+        clearTimeout(timer);
+        resolve(info);
+      });
       }
     )
   };

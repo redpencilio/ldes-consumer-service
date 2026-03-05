@@ -1,5 +1,5 @@
 import { Quad, Term } from "@rdfjs/types";
-import { Member } from "ldes-client";
+import type { Member } from "ldes-client/dist/lib/fetcher";
 import { RdfStore } from "rdf-stores";
 import { executeDeleteInsertQuery } from "./sparql-queries";
 import { convertBlankNodes } from './utils';

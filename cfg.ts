@@ -42,8 +42,15 @@ export const JWT_CONFIG = JWT_USE_JWT_AUTH
     }
   : undefined;
 
-export const INGEST_MODE = env.get("INGEST_MODE").default("ALL").asEnum(["ALL", "MATERIALIZE"]);
-export const REPLACE_VERSIONS = env.get("REPLACE_VERSIONS").default("true").asBool();
+export const INGEST_MODE = env
+  .get("INGEST_MODE")
+  .default("ALL")
+  .asEnum(["ALL", "MATERIALIZE"]);
+export const REPLACE_VERSIONS =
+  env
+    .get("REPLACE_VERSIONS")
+    .default("true")
+    .asEnum(INGEST_MODE === "ALL" ? ["true", "false"] : ["true"]) === "true";
 export const PERSIST_STATE = env.get("PERSIST_STATE").default("false").asBool();
 
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
