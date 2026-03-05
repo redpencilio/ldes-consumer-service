@@ -32,6 +32,7 @@
     "eslint-plugin-n": "^17.23.1",
     "eslint-plugin-promise": "^7.2.1",
     "globals": "^16.5.0",
+    "mu-types": "github:rahien/mu-types",
     "rdf-js": "^4.0.2",
     "release-it": "^15.2.0",
     "release-it-lerna-changelog": "^5.0.0",

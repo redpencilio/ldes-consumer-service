@@ -1,5 +1,4 @@
 import type { Quad, Term } from "@rdfjs/types";
-// eslint-disable-next-line n/no-extraneous-import
 import { RdfStore } from "rdf-stores";
 import { executeDeleteInsertQuery } from "./sparql-queries.ts";
 import { convertBlankNodes } from "./utils.ts";

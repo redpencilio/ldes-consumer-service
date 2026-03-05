@@ -25,8 +25,7 @@ import { customFetch } from "./lib/fetch/custom-fetch.ts";
 import { getLoggerFor } from "./lib/logger.ts";
 import { DataFactory } from "n3";
 
-// @ts-expect-error no type-declarations for mu
-// eslint-disable-next-line n/no-missing-import
+// @ts-expect-error no type-declarations for beforeExit
 import { beforeExit } from "mu";
 
 const { namedNode } = DataFactory;
