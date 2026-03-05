@@ -12,7 +12,8 @@
     "start": "ts-node app.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "release-it",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc"
   },
   "author": "redpencil <info@redpencil.io>",
   "license": "MIT",
@@ -23,7 +24,7 @@
     "@tsconfig/node20": "^20.1.8",
     "@types/cron": "^2.0.0",
     "@types/n3": "^1.10.4",
-    "@types/node": "^24.6.0",
+    "@types/node": "^20.19.35",
     "@types/rdfjs__namespace": "^2.0.10",
     "@types/uuid": "^10.0.0",
     "eslint": "^9.39.1",
@@ -33,6 +34,7 @@
     "rdf-js": "^4.0.2",
     "release-it": "^15.2.0",
     "release-it-lerna-changelog": "^5.0.0",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0"
   },
   "dependencies": {
