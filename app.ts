@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { enhanced_fetch, LDESInfo, replicateLDES } from 'ldes-client';
+import { Client, enhanced_fetch, LDESInfo, replicateLDES } from 'ldes-client';
 import {
   INGEST_MODE,
   PERSIST_STATE,
@@ -22,15 +22,11 @@ import { DataFactory } from 'n3';
 import { beforeExit } from 'mu';
 
 const { namedNode } = DataFactory;
-let ldesClient;
+let ldesClient: Client | undefined;
 
 logConfig();
 
 beforeExit( async () => {
-  console.log("Cancel LDES stream and persist state...");
-  if (ldesClient) {
-    await ldesClient.stateFactory.write();
-  }
   console.log("Finished cancelling LDES stream.");
 });
 
