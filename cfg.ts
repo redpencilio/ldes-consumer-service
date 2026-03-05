@@ -55,6 +55,8 @@ export const ORDERING_STRATEGY = env
   .get("ORDERING_STRATEGY")
   .default("ascending")
   .asEnum(["ascending", "descending", "none"]);
+export const EMIT_LAST_VERSION_ONLY = env.get("EMIT_LAST_VERSION_ONLY").default("false").asBool();
+
 export const PERSIST_STATE = env.get("PERSIST_STATE").default("false").asBool();
 
 export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";

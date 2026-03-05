@@ -12,6 +12,7 @@ import {
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
   ORDERING_STRATEGY,
+  EMIT_LAST_VERSION_ONLY,
 } from './cfg';
 import { waitForDatabase } from './lib/database-helpers';
 import { memberProcessor } from './lib/member-processor';
@@ -66,6 +67,7 @@ async function main() {
       materialize: INGEST_MODE === "MATERIALIZE",
       loose: true, // Make this configurable? IPDC needs this to be true
       shapeFile,
+      lastVersionOnly: EMIT_LAST_VERSION_ONLY,
       fetch: enhanced_fetch({
         safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
           /* In comment are the default values, perhaps we want to make these configurable
