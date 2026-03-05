@@ -16,13 +16,14 @@ const sanitizedFetch = !sanitizeMatch
   ? fetch
   : async (...args: FetchArgs) => {
       const res = await fetch(...args);
+
       const sanitizedBody = res.body?.pipeThrough(
         new StringReplaceTransformStream(
           sanitizeMatch,
           LDES_SANITIZE_CONTENTS_REPLACEMENT ?? ""
         )
       );
-
+      // @ts-expect-error fix this by piping sanitizedbody to a textencoder
       return new Response(sanitizedBody, {
         status: res.status,
         statusText: res.statusText,

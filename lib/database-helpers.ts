@@ -15,11 +15,11 @@ const isDatabaseUp = async function() {
   return isUp;
 };
 
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const waitForDatabase = async function(callback) {
+const waitForDatabase = async function(callback: () => unknown) {
   let loop = true;
   while (loop) {
     loop = !(await isDatabaseUp());

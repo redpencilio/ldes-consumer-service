@@ -16,10 +16,10 @@ let accessToken: AccessToken | undefined;
 let lastTokenRefresh: number | undefined;
 
 let jwk: JWK | undefined;
-async function getKey (keyPath: string) {
+async function getKey (keyPath: string): Promise<JWK> {
   if (!jwk) {
     const keyFile = await readFile(keyPath, { encoding: "utf8" });
-    jwk = JSON.parse(keyFile);
+    jwk = JSON.parse(keyFile) as JWK;
   }
   return jwk;
 }
@@ -49,7 +49,7 @@ async function refreshAccessToken ({
   tokenExpiry,
   tokenScope,
   clientAssertionType
-}: JwtAuthArgs) {
+}: JwtAuthArgs): Promise<AccessToken> {
   logger.info("Refreshing access token");
   let tokenReq: Response;
   try {
@@ -88,7 +88,7 @@ async function refreshAccessToken ({
     logger.error(new Error(`Unexpected response refreshing access token: ${tokenReq.statusText}`));
     process.exit(1);
   }
-  return tokenReq.json();
+  return tokenReq.json() as Promise<AccessToken>;
 }
 
 export async function setJwtAuthHeader (
