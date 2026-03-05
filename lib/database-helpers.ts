@@ -1,5 +1,3 @@
-// @ts-expect-error no types for `mu`
-// eslint-disable-next-line n/no-missing-import
 import { query } from 'mu';
 
 const PING_DB_INTERVAL_MILLIS = 2000;

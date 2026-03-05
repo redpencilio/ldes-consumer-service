@@ -5,6 +5,7 @@
     "forceConsistentCasingInFileNames": true,     
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "types": ["mu-types"]
   }
 }

@@ -36,6 +36,7 @@ export default defineConfig([
       "n/no-missing-import": [
         "error",
         {
+          allowModules: ['mu', 'uuid'],
           ignoreTypeImport: true,
         },
       ],
