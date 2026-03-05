@@ -1,9 +1,12 @@
-import * as RDF from "@rdfjs/types";
-import { BLANK } from "./namespaces";
+import type * as RDF from "@rdfjs/types";
+import { BLANK } from "./namespaces.ts";
+
+// eslint-disable-next-line n/no-missing-import
 import { v4 as uuidv4 } from "uuid";
-// @ts-ignore
+
+// @ts-expect-error no type declarations
+// eslint-disable-next-line n/no-missing-import
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
-// @ts-ignore
 import { DataFactory } from "n3";
 
 export function toString(term: RDF.Term): string {
