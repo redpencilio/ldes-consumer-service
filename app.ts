@@ -34,12 +34,7 @@ let ldesClient: Client | undefined;
 
 logConfig();
 
-beforeExit(async () => {
-  console.log("Cancel LDES stream and persist state...");
-  if (ldesClient) {
-    // @ts-expect-error accessing private property
-    await ldesClient.stateFactory.write();
-  }
+beforeExit( async () => {
   console.log("Finished cancelling LDES stream.");
 });
 
