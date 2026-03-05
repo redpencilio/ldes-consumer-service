@@ -19,12 +19,15 @@ consumer:
 
 ## Configuration
 
+
+### Environment variables
+
 The service can be configured with the following environment variables:
 
 | Environment variable | Default | Description |
 |----------------------|---------|-------------|
 | `INGEST_MODE` | `ALL` | How the LDES feed should be ingested. Valid options are `ALL` and `MATERIALIZE`. `ALL` will ingest all versioned members as-is and store them in the triplestore. `MATERIALIZE` will store the [materializations of the members](https://semiceu.github.io/LinkedDataEventStreams/#version-materializations). |
-| `REPLACE_VERSIONS` | `true` | Whether to remove old versions of a resource when adding a new version or not. Cannot be `false` when `INGEST_MODE` is `MATERIALIZE`. |
+| `REPLACE_VERSIONS` | `true` | Whether to remove old versions of a resource when adding a new version or not. Cannot be `false` when `INGEST_MODE` is `MATERIALIZE`. This setting is not used when configuring a custom member processor. |
 | `ORDERING_STRATEGY` | `ascending` | The strategy the ldes-client should use for fetching and emitting members. Possible values: `none`, `ascending`, `descending`. More info at https://github.com/rdf-connect/ldes-client?tab=readme-ov-file#fragment-fetcher |
 | `EMIT_LAST_VERSION_ONLY` | `false` | Whether the ldes-client only emits members which are the latest version of their underlying resource. Note that this overrides the `ORDERING_STRATEGY` to `descending`, as it will always start emitting members starting from the last (most recent) page of the provided LDES feed. This works best if your LDES feed has a seperate endpoint which returns the most recent page, as well as page relations pointing to the previous page. |
 | `PERSIST_STATE` | `false` | Whether to persist the state of the LDES client. The state is stored as a file in `/data/hostname($LDES_ENDPOINT_VIEW)-state.json`, make sure to mount the data folder to have access to store the state across container rebuilds! |
@@ -76,3 +79,18 @@ The service can be configured with the following environment variables:
 | `LDES_TIMESTAMP_PATH` | Materialization and versioning support is provided by the underlying library, which expects to find this information attached to the LDES feed. | The predicate to be used to find the timestamp of an object. |
 | `LDES_VERSION_OF_PATH` | Materialization and versioning support is provided by the underlying library, which expects to find this information attached to the LDES feed.| The predicate to be used to find the link to the non version object. |
 | `LDES_ENDPOINT_HEADER_<key>` | Newer versions of Node.js do not support environment variables with dashes in their name. Stuff like `LDES_ENDPOINT_HEADER_X-API-KEY` is no longer supported. | A header key-value combination which should be send as part of the headers to the LDES endpoint. E.g. `LDES_ENDPOINT_HEADER_X-API-KEY: <api_key>`. |
+
+### Custom member processing
+
+Aside from using the default member processor, you can also provide a custom `processMember` function.
+This can be useful if you want to process/enrich (certain) members in a more fine-tuned way.
+
+To provide a custom `processMember` function, you'll need to mount your own `config` directory to override the built-in one.
+
+The `processMember` function has the following signature:
+```ts
+async function processMember(
+  member: Member,
+  info: { versionOfPath?: Term; timestampPath?: Term },
+): Promise<unknown>
+```
