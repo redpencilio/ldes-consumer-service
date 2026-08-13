@@ -1,23 +1,14 @@
-import type { Quad, Term } from "@rdfjs/types";
+import type { Client } from "ldes-client";
+import type { Term } from "@rdfjs/types";
 import { RdfStore } from "rdf-stores";
-import { executeDeleteInsertQuery } from "./sparql-queries.ts";
-import { convertBlankNodes } from "./utils.ts";
-import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg.ts";
 import { getLoggerFor } from "./logger.ts";
-import { DataFactory } from "n3";
+import { processMember } from "../config/process-member.ts";
 import type { UnderlyingSink } from "node:stream/web";
 
-const { quad, variable, namedNode } = DataFactory;
-
-// Copied from `ldes-client` package, as it doesn't export this type
-type Member = {
-  id: Term;
-  quads: Quad[];
-  timestamp?: string | Date;
-  isVersionOf?: string;
-  type?: Term;
-  created?: Date;
-};
+// ldes-client doesn't expose the `Member` type directly...
+type Member =
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins
+  ReturnType<Client["stream"]> extends ReadableStream<infer M> ? M : never;
 
 export function memberProcessor(
   versionOfPath: Term,
@@ -38,7 +29,7 @@ export function memberProcessor(
           .map((quad) => quad.object)[0];
         if (!isVersionOf)
           throw new Error(
-            `Member did not contain a versionOf property (path: ${versionOfPath.value})`
+            `Member did not contain a versionOf property (path: ${versionOfPath.value})`,
           );
         member.isVersionOf = isVersionOf.value;
       }
@@ -49,58 +40,24 @@ export function memberProcessor(
           .map((quad) => quad.object)[0];
         if (!timestamp)
           throw new Error(
-            `Member did not contain a timestamp property (path: ${timestampPath.value})`
+            `Member did not contain a timestamp property (path: ${timestampPath.value})`,
           );
         member.timestamp = timestamp.value;
       }
       return member;
     } catch (e) {
       logger.error(
-        `Failed to enrich member with isVersionOf and timestamp metadata: ${e}`
+        `Failed to enrich member with isVersionOf and timestamp metadata: ${e}`,
       );
       throw e;
     }
-  };
-
-  const processMember = async (member: Member) => {
-    let baseResourceUri;
-    if (member.isVersionOf) {
-      baseResourceUri = namedNode(member.isVersionOf);
-    } else {
-      throw new Error(
-        `Member ${JSON.stringify(
-          member
-        )} does not contain isVersionOf information, cannot proceed`
-      );
-    }
-
-    member.quads = convertBlankNodes(member.quads);
-    const quadsToAdd: Quad[] = member.quads;
-    const quadsToRemove: Quad[] = [];
-    if (REPLACE_VERSIONS) {
-      if (versionOfPath === undefined) {
-        throw new Error(
-          `Consumer is configured to replace versions, but LDES feed did not contain versioning metadata (ldes:versionOfPath).`
-        );
-      }
-
-      if (INGEST_MODE === "MATERIALIZE") {
-        quadsToRemove.push(quad(baseResourceUri, variable("p"), variable("o")));
-      } else {
-        quadsToRemove.push(
-          quad(variable("s"), namedNode(versionOfPath?.value), baseResourceUri)
-        );
-        quadsToRemove.push(quad(variable("s"), variable("p"), variable("o")));
-      }
-    }
-    await executeDeleteInsertQuery(quadsToRemove, quadsToAdd);
   };
 
   const sink: UnderlyingSink = {
     async write(member: Member, controller) {
       try {
         member = enrichMember(member);
-        await processMember(member);
+        await processMember(member, { versionOfPath, timestampPath });
       } catch (e) {
         logger.error(e);
         controller.error(e);
