@@ -1,11 +1,8 @@
 import type * as RDF from "@rdfjs/types";
 import { BLANK } from "./namespaces.ts";
 
-// eslint-disable-next-line n/no-missing-import
 import { v4 as uuidv4 } from "uuid";
 
-// @ts-expect-error no type declarations
-// eslint-disable-next-line n/no-missing-import
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
 import { DataFactory } from "n3";
 

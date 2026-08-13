@@ -17,7 +17,7 @@ export default class ThrottledFetch {
   }
 
   public async throttled_fetch(
-    input: RequestInfo | URL,
+    input: string | URL | Request,
     init?: RequestInit,
     fetch_f: typeof fetch = fetch,
   ): Promise<Response> {
