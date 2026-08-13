@@ -2,14 +2,23 @@ import env from 'env-var';
 import { getLoggerFor } from "./lib/logger.ts";
 
 const logger = getLoggerFor("config");
-
 export const LDES_ENDPOINT_VIEW = env.get("LDES_ENDPOINT_VIEW").required().asString();
 export const LDES_POLLING_INTERVAL = env.get("LDES_POLLING_INTERVAL").default(60000).asIntPositive();
 export const LDES_REQUESTS_PER_MINUTE = env.get("LDES_REQUESTS_PER_MINUTE").default(0).asIntPositive();
 export const LDES_INFO_REQUEST_TIMEOUT = env.get("LDES_INFO_REQUEST_TIMEOUT").default(60000).asIntPositive();
 export const LDES_ENDPOINT_HEADERS_STRING = env.get("LDES_ENDPOINT_HEADERS").default("{}").asString();
+
+/** @deprecated. The versionOf path should be extracted from the ldes feed */
 export const LDES_VERSION_OF_PATH = env.get("LDES_VERSION_OF_PATH").asString();
+if (LDES_VERSION_OF_PATH) {
+  logger.warn("The LDES_VERSION_OF_PATH environment variable is deprecated. The versionOf path should be specified by the ldes feed using the https://w3id.org/ldes#versionOfPath predicate.");
+}
+/** @deprecated. The timestamp path should be extracted from the ldes feed */
 export const LDES_TIMESTAMP_PATH = env.get("LDES_TIMESTAMP_PATH").asString();
+if (LDES_TIMESTAMP_PATH) {
+  logger.warn("The LDES_TIMESTAMP_PATH environment variable is deprecated. The timestamp path should be specified by the ldes feed using the https://w3id.org/ldes#timestampPath predicate.");
+}
+
 export const LDES_SANITIZE_CONTENTS_REGEX = env.get("LDES_SANITIZE_CONTENTS_REGEX").asRegExp("g");
 export const LDES_SANITIZE_CONTENTS_STRING = env.get("LDES_SANITIZE_CONTENTS_STRING").asString();
 export const LDES_SANITIZE_CONTENTS_REPLACEMENT = env.get("LDES_SANITIZE_CONTENTS_REPLACEMENT").asString();
