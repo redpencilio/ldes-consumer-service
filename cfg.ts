@@ -80,6 +80,7 @@ export const RUN_ONCE = RUN_ONCE_VAR || RUNONCE_VAR;
 
 export const MU_APPLICATION_GRAPH = env.get("MU_APPLICATION_GRAPH").required().asString(); // Provided by template
 export const MU_SPARQL_ENDPOINT = env.get("MU_SPARQL_ENDPOINT").required().asString(); // Provided by template
+export const USE_SUDO_QUERIES = env.get("USE_SUDO_QUERIES").default("true").asBool();
 export const DEBUG_AUTH_HEADERS = env.get("DEBUG_AUTH_HEADERS").default("false").asBool();
 
 export const NODE_ENV = env.get("NODE_ENV").default("production").asEnum(["development", "production"]);
