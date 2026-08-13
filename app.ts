@@ -8,7 +8,6 @@ import {
 
 import {
   INGEST_MODE,
-  REPLACE_VERSIONS,
   PERSIST_STATE,
   LDES_ENDPOINT_VIEW,
   LDES_POLLING_INTERVAL,
@@ -18,6 +17,8 @@ import {
   logConfig,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
+  ORDERING_STRATEGY,
+  EMIT_LAST_VERSION_ONLY,
 } from "./cfg.ts";
 import { waitForDatabase } from "./lib/database-helpers.ts";
 import { memberProcessor } from "./lib/member-processor.ts";
@@ -69,30 +70,29 @@ async function main() {
   if (fs.existsSync("/config/shape.ttl")) {
     shapeFile = "/config/shape.ttl";
   }
-  ldesClient = replicateLDES({
-    url: LDES_ENDPOINT_VIEW,
-    urlIsView: true,
-    polling: !RUN_ONCE,
-    pollInterval: LDES_POLLING_INTERVAL,
-    stateFile: PERSIST_STATE ? stateFilePath : undefined,
-    materialize: INGEST_MODE === "MATERIALIZE",
-    lastVersionOnly: REPLACE_VERSIONS, // Won't emit members if they're known to be older than what is already in the state file
-    loose: true, // Make this configurable? IPDC needs this to be true
-    shapeFile,
-    fetch: enhanced_fetch(
-      {
+  ldesClient = replicateLDES(
+    {
+      url: LDES_ENDPOINT_VIEW,
+      urlIsView: true,
+      polling: !RUN_ONCE,
+      pollInterval: LDES_POLLING_INTERVAL,
+      stateFile: PERSIST_STATE ? stateFilePath : undefined,
+      materialize: INGEST_MODE === "MATERIALIZE",
+      loose: true, // Make this configurable? IPDC needs this to be true
+      shapeFile,
+      lastVersionOnly: EMIT_LAST_VERSION_ONLY,
+      fetch: enhanced_fetch({
         safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
-        /* In comment are the default values, perhaps we want to make these configurable
+          /* In comment are the default values, perhaps we want to make these configurable
         concurrent: 10, // Amount of concurrent requests to a single domain
         retry: {
           codes: [408, 425, 429, 500, 502, 503, 504], // Which faulty HTTP status codes will trigger retry
           base: 500, // Seems to be unused in the client code
           maxRetries: 5,
         }*/
-      },
-      customFetch,
-    ),
-  });
+      }, customFetch)
+    }, ORDERING_STRATEGY
+  );
 
   // @ts-expect-error we should check if we can refine the types of the `on` function
   ldesClient.on("error", (error: Error) => {
