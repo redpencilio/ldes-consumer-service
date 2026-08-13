@@ -1,55 +1,77 @@
-import { Quad, Term } from "@rdfjs/types";
-import { Member } from "ldes-client";
+import type { Quad, Term } from "@rdfjs/types";
 import { RdfStore } from "rdf-stores";
-import { executeDeleteInsertQuery } from "./sparql-queries";
-import { convertBlankNodes } from './utils';
-import { INGEST_MODE, REPLACE_VERSIONS } from '../cfg';
-import { getLoggerFor } from "./logger";
-// @ts-ignore
+import { executeDeleteInsertQuery } from "./sparql-queries.ts";
+import { convertBlankNodes } from "./utils.ts";
+import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg.ts";
+import { getLoggerFor } from "./logger.ts";
 import { DataFactory } from "n3";
+import type { UnderlyingSink } from "node:stream/web";
 
 const { quad, variable, namedNode } = DataFactory;
 
+// Copied from `ldes-client` package, as it doesn't export this type
+type Member = {
+  id: Term;
+  quads: Quad[];
+  timestamp?: string | Date;
+  isVersionOf?: string;
+  type?: Term;
+  created?: Date;
+};
+
 export function memberProcessor(
   versionOfPath: Term,
-  timestampPath: Term,
+  timestampPath: Term
 ): WritableStream<Member> {
   const logger = getLoggerFor("member-processor");
 
   const enrichMember = (member: Member) => {
-    if (member.isVersionOf && member.timestamp)
-      return member; // The member already contains the necessary metadata, no enrichment needed
+    if (member.isVersionOf && member.timestamp) return member; // The member already contains the necessary metadata, no enrichment needed
 
     const memberStore = RdfStore.createDefault();
     member.quads.forEach((q) => memberStore.addQuad(q));
 
     try {
       if (!member.isVersionOf) {
-        const isVersionOf = memberStore.getQuads(member.id, versionOfPath, null, null).map((quad) => quad.object)[0];
+        const isVersionOf = memberStore
+          .getQuads(member.id, versionOfPath, null, null)
+          .map((quad) => quad.object)[0];
         if (!isVersionOf)
-          throw new Error(`Member did not contain a versionOf property (path: ${versionOfPath.value})`);
+          throw new Error(
+            `Member did not contain a versionOf property (path: ${versionOfPath.value})`
+          );
         member.isVersionOf = isVersionOf.value;
       }
 
       if (!member.timestamp) {
-        const timestamp = memberStore.getQuads(member.id, timestampPath, null, null).map((quad) => quad.object)[0];
+        const timestamp = memberStore
+          .getQuads(member.id, timestampPath, null, null)
+          .map((quad) => quad.object)[0];
         if (!timestamp)
-          throw new Error(`Member did not contain a timestamp property (path: ${timestampPath.value})`);
+          throw new Error(
+            `Member did not contain a timestamp property (path: ${timestampPath.value})`
+          );
         member.timestamp = timestamp.value;
       }
       return member;
-    } catch (e: any) {
-      logger.error(`Failed to enrich member with isVersionOf and timestamp metadata: ${e}`);
+    } catch (e) {
+      logger.error(
+        `Failed to enrich member with isVersionOf and timestamp metadata: ${e}`
+      );
       throw e;
     }
-  }
+  };
 
   const processMember = async (member: Member) => {
     let baseResourceUri;
     if (member.isVersionOf) {
       baseResourceUri = namedNode(member.isVersionOf);
     } else {
-      throw new Error(`Member ${JSON.stringify(member)} does not contain isVersionOf information, cannot proceed`);
+      throw new Error(
+        `Member ${JSON.stringify(
+          member
+        )} does not contain isVersionOf information, cannot proceed`
+      );
     }
 
     member.quads = convertBlankNodes(member.quads);
@@ -57,7 +79,9 @@ export function memberProcessor(
     const quadsToRemove: Quad[] = [];
     if (REPLACE_VERSIONS) {
       if (versionOfPath === undefined) {
-        throw new Error(`Consumer is configured to replace versions, but LDES feed did not contain versioning metadata (ldes:versionOfPath).`);
+        throw new Error(
+          `Consumer is configured to replace versions, but LDES feed did not contain versioning metadata (ldes:versionOfPath).`
+        );
       }
 
       if (INGEST_MODE === "MATERIALIZE") {
@@ -77,7 +101,7 @@ export function memberProcessor(
       try {
         member = enrichMember(member);
         await processMember(member);
-      } catch (e: any) {
+      } catch (e) {
         logger.error(e);
         controller.error(e);
       }
