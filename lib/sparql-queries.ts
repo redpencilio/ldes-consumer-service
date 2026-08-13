@@ -1,5 +1,5 @@
-import * as RDF from "@rdfjs/types";
-import { extractEndpointHeadersFromEnv, toString } from "./utils";
+import type * as RDF from "@rdfjs/types";
+import { extractEndpointHeadersFromEnv, toString } from "./utils.ts";
 import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
@@ -7,8 +7,9 @@ import {
   SPARQL_ENDPOINT_HEADER_PREFIX,
   SPARQL_BATCH_SIZE,
   ENABLE_SPARQL_BATCHING
-} from "../cfg";
-// @ts-ignore
+} from "../cfg.ts";
+
+// @ts-expect-error has no type declarations
 import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
@@ -71,6 +72,7 @@ async function update (queryStr: string) {
   return await updateSudo(queryStr, headers, connectionOptions);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function query (queryStr: string) {
   const headers : Record<string, number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
   const connectionOptions : ConnectionOptions = {};

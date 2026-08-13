@@ -7,17 +7,17 @@ const isDatabaseUp = async function() {
   try {
     await sendDummyQuery();
     isUp = true;
-  } catch (e) {
+  } catch (_e) {
     console.log("Waiting for database... ");
   }
   return isUp;
 };
 
-function sleep(ms) {
+function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const waitForDatabase = async function(callback) {
+const waitForDatabase = async function(callback: () => unknown) {
   let loop = true;
   while (loop) {
     loop = !(await isDatabaseUp());
@@ -28,7 +28,7 @@ const waitForDatabase = async function(callback) {
 
 const sendDummyQuery = async function() {
   try {
-    const result = await query(`
+    const _result = await query(`
       SELECT ?s
       WHERE {
         GRAPH ?g {
@@ -37,8 +37,8 @@ const sendDummyQuery = async function() {
       }
       LIMIT 1
     `);
-  } catch (e) {
-    throw new Error(e.toString());
+  } catch (e: unknown) {
+    throw new Error((e as Error).toString());
   }
 };
 
