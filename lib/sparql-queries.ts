@@ -10,8 +10,9 @@ import {
   SPARQL_QUERY_DELAY_MS,
 } from "../cfg.ts";
 
-// @ts-expect-error has no type declarations
-import { querySudo, updateSudo, ConnectionOptions } from "@lblod/mu-auth-sudo";
+ 
+// eslint-disable-next-line n/no-missing-import
+import { update as muUpdate, query as muQuery } from './utils/sparql.js'
 
 const SPARQL_ENDPOINT_HEADERS = extractEndpointHeadersFromEnv(SPARQL_ENDPOINT_HEADER_PREFIX);
 
@@ -63,25 +64,21 @@ export function constructSelectQuery (
   return sparqlQuery;
 }
 
-async function update (queryStr: string) {
+export async function update (queryStr: string) {
   const headers : Record<string, number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
-  const connectionOptions : ConnectionOptions = {};
   if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
-    connectionOptions.authUser = SPARQL_AUTH_USER;
-    connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
+    headers['Authorization'] = btoa(SPARQL_AUTH_USER + ':' + SPARQL_AUTH_PASSWORD); 
   }
-  return await updateSudo(queryStr, headers, connectionOptions);
+  return await muUpdate(queryStr, { extraHeaders: headers, sudo: true })
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function query (queryStr: string) {
+ 
+export async function query (queryStr: string) {
   const headers : Record<string, number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
-  const connectionOptions : ConnectionOptions = {};
   if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
-    connectionOptions.authUser = SPARQL_AUTH_USER;
-    connectionOptions.authPassword = SPARQL_AUTH_PASSWORD;
+    headers['Authorization'] = btoa(SPARQL_AUTH_USER + ':' + SPARQL_AUTH_PASSWORD); 
   }
-  return await querySudo(queryStr, headers, connectionOptions);
+  return await muQuery(queryStr, { extraHeaders: headers, sudo: true });
 }
 
 export async function executeInsertQuery (quads: RDF.Quad[]) {
