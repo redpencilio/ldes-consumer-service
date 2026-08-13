@@ -1,5 +1,11 @@
-import fs from 'fs';
-import { Client, enhanced_fetch, LDESInfo, replicateLDES } from 'ldes-client';
+import fs from "fs";
+import {
+  Client,
+  ClientEvents,
+  enhanced_fetch,
+  replicateLDES,
+} from "ldes-client";
+
 import {
   INGEST_MODE,
   PERSIST_STATE,
@@ -13,13 +19,15 @@ import {
   LDES_TIMESTAMP_PATH,
   ORDERING_STRATEGY,
   EMIT_LAST_VERSION_ONLY,
-} from './cfg';
-import { waitForDatabase } from './lib/database-helpers';
-import { memberProcessor } from './lib/member-processor';
-import { customFetch } from './lib/fetch/custom-fetch';
-import { getLoggerFor } from './lib/logger';
-import { DataFactory } from 'n3';
-import { beforeExit } from 'mu';
+} from "./cfg.ts";
+import { waitForDatabase } from "./lib/database-helpers.ts";
+import { memberProcessor } from "./lib/member-processor.ts";
+import { customFetch } from "./lib/fetch/custom-fetch.ts";
+import { getLoggerFor } from "./lib/logger.ts";
+import { DataFactory } from "n3";
+
+// @ts-expect-error no type-declarations for beforeExit
+import { beforeExit } from "mu";
 
 const { namedNode } = DataFactory;
 let ldesClient: Client | undefined;
@@ -35,7 +43,9 @@ waitForDatabase(() => {
     main();
   } else {
     const timeout = 10_000; // Make this configurable?
-    console.log(`Starting LDES consumer in ${timeout}ms, connect to your debugger now :)`);
+    console.log(
+      `Starting LDES consumer in ${timeout}ms, connect to your debugger now :)`,
+    );
     setTimeout(main, timeout);
   }
 });
@@ -45,13 +55,13 @@ async function main() {
   try {
     const url = new URL(LDES_ENDPOINT_VIEW);
     statePath = `/data/${url.host}-state/`;
-  } catch (e: any) {
+  } catch (_e) {
     throw new Error("Provided endpoint couldn't be parsed as URL, double check your settings.");
   }
 
-  let shapeFile;
-  if (fs.existsSync('/config/shape.ttl')) {
-    shapeFile = '/config/shape.ttl';
+  let shapeFile: string | undefined;
+  if (fs.existsSync("/config/shape.ttl")) {
+    shapeFile = "/config/shape.ttl";
   }
   ldesClient = replicateLDES(
     {
@@ -77,54 +87,71 @@ async function main() {
     }, ORDERING_STRATEGY
   );
 
-  ldesClient.on("error", (error: any) => {
+  // @ts-expect-error we should check if we can refine the types of the `on` function
+  ldesClient.on("error", (error: Error) => {
     logger.info("Received an error from the LDES client!");
     logger.error(error);
     logger.error(error.stack);
     process.exit(1);
-  })
+  });
 
   // Wrap 'description' event of ldes-client lib in a Promise
-  const getLDESInfo = async (): Promise<LDESInfo> => {
-    return new Promise(
-      (resolve, reject) => {
+  const getLDESInfo = async (): Promise<ClientEvents["description"]> => {
+    return new Promise((resolve, reject) => {
       // Avoid waiting forever on the 'description' event
       const timer = setTimeout(() => {
-          reject(new Error(`Didn't receive LDES feed info in ${LDES_INFO_REQUEST_TIMEOUT}ms. We will stop waiting.`));
+        reject(
+          new Error(
+            `Didn't receive LDES feed info in ${LDES_INFO_REQUEST_TIMEOUT}ms. We will stop waiting.`,
+          ),
+        );
       }, LDES_INFO_REQUEST_TIMEOUT);
-        ldesClient.on('description', (info: LDESInfo) => {
+      ldesClient!.on("description", (info) => {
         clearTimeout(timer);
         resolve(info);
       });
-      }
-    )
+    });
   };
 
-  const logger = getLoggerFor('main');
-  logger.info('Starting stream...');
+  const logger = getLoggerFor("main");
+  logger.info("Starting stream...");
   const ldesStream = ldesClient.stream({ highWaterMark: 10 });
   try {
-    logger.info('Waiting for LDES info...');
+    logger.info("Waiting for LDES info...");
     const { versionOfPath, timestampPath } = await getLDESInfo();
     if (versionOfPath !== undefined && timestampPath !== undefined) {
-      logger.info(`Received LDES info: ${JSON.stringify({ versionOfPath, timestampPath })}`);
-    } else if (LDES_VERSION_OF_PATH !== undefined && LDES_TIMESTAMP_PATH !== undefined) {
-      logger.info(`LDES feed info contained no versionOfPath & timestampPath, using provided values: ${JSON.stringify({ LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH })}`);
+      logger.info(
+        `Received LDES info: ${JSON.stringify({
+          versionOfPath,
+          timestampPath,
+        })}`,
+      );
+    } else if (
+      LDES_VERSION_OF_PATH !== undefined &&
+      LDES_TIMESTAMP_PATH !== undefined
+    ) {
+      logger.info(
+        `LDES feed info contained no versionOfPath & timestampPath, using provided values: ${JSON.stringify(
+          { LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH },
+        )}`,
+      );
     } else {
-      throw new Error('LDES feed info contained no versionOfPath & timestampPath and no LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH were provided to service, exiting.');
+      throw new Error(
+        "LDES feed info contained no versionOfPath & timestampPath and no LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH were provided to service, exiting.",
+      );
     }
 
     await ldesStream.pipeTo(
       memberProcessor(
         versionOfPath ?? namedNode(LDES_VERSION_OF_PATH as string),
         timestampPath ?? namedNode(LDES_TIMESTAMP_PATH as string),
-      )
+      ),
     );
 
-    logger.info('Finished processing stream');
+    logger.info("Finished processing stream");
     await ldesStream.cancel();
   } catch (e) {
-    logger.error('Processing stream failed');
+    logger.error("Processing stream failed");
     logger.error(e);
     await ldesStream.cancel();
     process.exit(1);

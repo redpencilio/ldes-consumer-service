@@ -1,10 +1,16 @@
-import { Member } from "ldes-client/dist/lib/fetcher";
+import type { Client } from "ldes-client";
 import { DataFactory } from "n3";
-import { convertBlankNodes } from "../lib/utils";
+import { convertBlankNodes } from "../lib/utils.ts";
+// eslint-disable-next-line n/no-missing-import
 import { Quad, Term } from "@rdfjs/types";
-import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg";
-import { executeDeleteInsertQuery } from "../lib/sparql-queries";
+import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg.ts";
+import { executeDeleteInsertQuery } from "../lib/sparql-queries.ts";
 const { namedNode, quad, variable } = DataFactory;
+
+// ldes-client doesn't expose the `Member` type directly...
+type Member =
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins
+  ReturnType<Client["stream"]> extends ReadableStream<infer M> ? M : never;
 
 export async function processMember(
   member: Member,

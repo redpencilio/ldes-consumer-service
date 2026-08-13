@@ -1,16 +1,18 @@
-import {  Term } from "@rdfjs/types";
-import type { Member } from "ldes-client/dist/lib/fetcher";
+import type { Client } from "ldes-client";
+import type { Term } from "@rdfjs/types";
 import { RdfStore } from "rdf-stores";
-import { getLoggerFor } from "./logger";
-// @ts-ignore
-import { DataFactory } from "n3";
-import { processMember } from "../config/process-member";
+import { getLoggerFor } from "./logger.ts";
+import { processMember } from "../config/process-member.ts";
+import type { UnderlyingSink } from "node:stream/web";
 
-const { quad, variable, namedNode } = DataFactory;
+// ldes-client doesn't expose the `Member` type directly...
+type Member =
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins
+  ReturnType<Client["stream"]> extends ReadableStream<infer M> ? M : never;
 
 export function memberProcessor(
   versionOfPath: Term,
-  timestampPath: Term,
+  timestampPath: Term
 ): WritableStream<Member> {
   const logger = getLoggerFor("member-processor");
 
@@ -43,7 +45,7 @@ export function memberProcessor(
         member.timestamp = timestamp.value;
       }
       return member;
-    } catch (e: any) {
+    } catch (e) {
       logger.error(
         `Failed to enrich member with isVersionOf and timestamp metadata: ${e}`,
       );
@@ -56,7 +58,7 @@ export function memberProcessor(
       try {
         member = enrichMember(member);
         await processMember(member, { versionOfPath, timestampPath });
-      } catch (e: any) {
+      } catch (e) {
         logger.error(e);
         controller.error(e);
       }
