@@ -68,7 +68,7 @@ export function constructSelectQuery(
 export async function update (queryStr: string) {
   const headers : Record<string, number | string | string[]> = SPARQL_ENDPOINT_HEADERS ?? {};
   if (SPARQL_AUTH_USER && SPARQL_AUTH_PASSWORD) {
-    headers['Authorization'] = btoa(SPARQL_AUTH_USER + ':' + SPARQL_AUTH_PASSWORD); 
+    headers['Authorization'] = `Basic ${btoa(SPARQL_AUTH_USER + ':' + SPARQL_AUTH_PASSWORD)}`; 
   }
   return await muUpdate(queryStr, { extraHeaders: headers, sudo: USE_SUDO_QUERIES })
 }
