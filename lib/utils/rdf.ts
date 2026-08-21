@@ -1,23 +1,23 @@
 import type * as RDF from "@rdfjs/types";
-import { BLANK } from "./namespaces.ts";
+import { BLANK } from "../namespaces.ts";
 
 import { v4 as uuidv4 } from "uuid";
 
 import { sparqlEscapeString, sparqlEscapeUri } from "mu";
 import { DataFactory } from "n3";
 
-export function toString(term: RDF.Term): string {
+export function toString (term: RDF.Term): string {
   switch (term.termType) {
     case "NamedNode":
       return sparqlEscapeUri(term.value);
     case "Literal":
-      {
-        let result = sparqlEscapeString(term.value);
+    {
+      let result = sparqlEscapeString(term.value);
 
-        if (term.language) result += `@${term.language}`;
-        else if (term.datatype) { result += `^^${sparqlEscapeUri(term.datatype.value)}`; }
-        return result;
-      }
+      if (term.language) result += `@${term.language}`;
+      else if (term.datatype) { result += `^^${sparqlEscapeUri(term.datatype.value)}`; }
+      return result;
+    }
     case "Quad":
       return `${toString(term.subject)} ${toString(
         term.predicate
@@ -29,7 +29,7 @@ export function toString(term: RDF.Term): string {
   }
 }
 
-export function convertBlankNodes(quads: RDF.Quad[]) {
+export function convertBlankNodes (quads: RDF.Quad[]) {
   const blankNodesMap = new Map<RDF.Term, RDF.NamedNode>();
   return quads.map((quad) => {
     if (quad.subject.termType === "BlankNode") {
@@ -50,17 +50,4 @@ export function convertBlankNodes(quads: RDF.Quad[]) {
       return quad;
     }
   });
-}
-
-export function extractEndpointHeadersFromEnv(prefix: string) {
-  const headers: Record<string, number | string | string[]> = {};
-  for (const [key, value] of Object.entries(process.env)) {
-    if (key.startsWith(prefix)) {
-      const headerKey = key.split(prefix).pop();
-      if (headerKey && value) {
-        headers[headerKey.toLowerCase()] = value;
-      }
-    }
-  }
-  return headers;
 }

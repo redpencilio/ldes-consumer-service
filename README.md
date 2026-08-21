@@ -45,8 +45,9 @@ The service can be configured with the following environment variables:
 | `SPARQL_AUTH_PASSWORD` | N/A | Optional value to provide a password to be used in a digest auth to be sent to the SPARQL endpoint. |
 | `BLANK_NODE_NAMESPACE` | `http://mu.semte.ch/blank#` | namespace to use for skolemizing blank nodes. |
 | `RUN_ONCE` | `false` | Set to true to run the consumer only once, this disables polling. (useful when running the service as a Kubernetes CronJob).
-| `MU_APPLICATION_GRAPH` | See [semantic.works default graph](https://github.com/mu-semtech/mu-javascript-template/blob/d3281b8dff24502919a75147f7737b83d4dd724f/Dockerfile#L8) | The graph where the data should be ingested. |
+| `MU_APPLICATION_GRAPH` | See [semantic.works default graph](https://github.com/mu-semtech/mu-javascript-template/blob/d3281b8dff24502919a75147f7737b83d4dd724f/Dockerfile#L8) | The graph where the data should be ingested. Note: this parameter is only used if `USE_SUDO_QUERIES` is `true` |
 | `MU_SPARQL_ENDPOINT` | `http://database:8890/sparql` | SPARQL endpoint to connect to. |
+| `USE_SUDO_QUERIES` | `true` | Whether or not to pass the `mu-auth-sudo` header when querying the SPARQL endpoint. |
 | `LOG_SPARQL_ALL` | `false` | Log executed SPARQL queries |
 | `DEBUG_AUTH_HEADERS` | `false` | Debugging of [mu-authorization](https://github.com/mu-semtech/mu-authorization) access-control related headers |
 | `JWT_USE_JWT_AUTH` | `false` | Whether to use a JWT based access token authentication flow when fetching the feed. |

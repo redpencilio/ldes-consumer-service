@@ -1,4 +1,4 @@
-import { query } from 'mu';
+import { query } from "./sparql-queries.ts";
 
 const PING_DB_INTERVAL_MILLIS = 2000;
 
