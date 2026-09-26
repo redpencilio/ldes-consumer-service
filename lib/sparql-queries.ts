@@ -1,6 +1,7 @@
 import type * as RDF from "@rdfjs/types";
 import { extractEndpointHeadersFromEnv } from "./utils/http.ts";
 import { toString } from "./utils/rdf.ts";
+import { sleep } from "./utils/general.ts";
 import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
@@ -9,6 +10,7 @@ import {
   SPARQL_BATCH_SIZE,
   ENABLE_SPARQL_BATCHING,
   USE_SUDO_QUERIES,
+  SPARQL_QUERY_DELAY_MS,
 } from "../cfg.ts";
 
 // eslint-disable-next-line n/no-missing-import
@@ -100,6 +102,7 @@ export async function executeInsertQuery(quads: RDF.Quad[]) {
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructInsertQuery(quadsBatch);
     await update(queryStr);
+    await sleep(SPARQL_QUERY_DELAY_MS);
   }
 }
 
@@ -120,6 +123,7 @@ export async function executeDeleteQuery(quads: RDF.Quad[]) {
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructDeleteQuery(quadsBatch);
     await update(queryStr);
+    await sleep(SPARQL_QUERY_DELAY_MS);
   }
 }
 

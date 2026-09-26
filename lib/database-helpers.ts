@@ -1,4 +1,5 @@
 import { query } from "./sparql-queries.ts";
+import { sleep } from './utils/general.ts';
 
 const PING_DB_INTERVAL_MILLIS = 2000;
 
@@ -12,10 +13,6 @@ const isDatabaseUp = async function() {
   }
   return isUp;
 };
-
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 const waitForDatabase = async function(callback: () => unknown) {
   let loop = true;

@@ -41,6 +41,7 @@ The service can be configured with the following environment variables:
 | `LDES_SANITIZE_CONTENTS_REPLACEMENT` | `""` | Optional string to replace sanitized strings with. |
 | `SPARQL_ENDPOINT_HEADER_<key>` | N/A | A header key-value combination which should be send as part of the headers to the SPARQL endpoint. |
 | `SPARQL_BATCH_SIZE` | `0` (disabled) | The amount of triples sent per query, used to work around triplestore query-length limitations. Value must be a non-negative integer. If set to 0, no batching will be applied. |
+| `SPARQL_QUERY_DELAY_MS` | `100` | Amount of milliseconds to wait after sending a sparql query to the database. |
 | `SPARQL_AUTH_USER` | N/A | Optional value to provide a username to be used in a digest auth to be sent to the SPARQL endpoint. |
 | `SPARQL_AUTH_PASSWORD` | N/A | Optional value to provide a password to be used in a digest auth to be sent to the SPARQL endpoint. |
 | `BLANK_NODE_NAMESPACE` | `http://mu.semte.ch/blank#` | namespace to use for skolemizing blank nodes. |
