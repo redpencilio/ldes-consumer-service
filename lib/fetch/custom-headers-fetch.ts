@@ -1,6 +1,6 @@
-import { JWT_CONFIG, JWT_USE_JWT_AUTH, LDES_ENDPOINT_HEADERS } from "../../cfg";
-import { getLoggerFor } from "../logger";
-import { setJwtAuthHeader } from "./jwt-auth";
+import { JWT_CONFIG, JWT_USE_JWT_AUTH, LDES_ENDPOINT_HEADERS } from "../../cfg.ts";
+import { getLoggerFor } from "../logger.ts";
+import { setJwtAuthHeader } from "./jwt-auth.ts";
 
 type FetchArgs = Parameters<typeof fetch>;
 const logger = getLoggerFor("custom-headers-fetch");

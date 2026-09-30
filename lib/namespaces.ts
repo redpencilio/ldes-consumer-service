@@ -1,5 +1,5 @@
 import namespace from "@rdfjs/namespace";
-import { BLANK_NODE_NAMESPACE } from "../cfg";
+import { BLANK_NODE_NAMESPACE } from "../cfg.ts";
 
 export const PROV = namespace("http://www.w3.org/ns/prov#");
 export const DCTERMS = namespace("http://purl.org/dc/terms/");

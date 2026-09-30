@@ -1,7 +1,8 @@
 import { readFile } from "fs/promises";
+// eslint-disable-next-line n/no-missing-import
 import { v4 as uuidv4 } from "uuid";
 import { importJWK, JWK, SignJWT } from "jose";
-import { getLoggerFor } from "../logger";
+import { getLoggerFor } from "../logger.ts";
 
 const logger = getLoggerFor("jwt-auth");
 

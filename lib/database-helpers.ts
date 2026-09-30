@@ -1,3 +1,5 @@
+// @ts-expect-error no types for `mu`
+// eslint-disable-next-line n/no-missing-import
 import { query } from 'mu';
 
 const PING_DB_INTERVAL_MILLIS = 2000;
@@ -7,7 +9,7 @@ const isDatabaseUp = async function() {
   try {
     await sendDummyQuery();
     isUp = true;
-  } catch (e) {
+  } catch (_e) {
     console.log("Waiting for database... ");
   }
   return isUp;
@@ -28,7 +30,7 @@ const waitForDatabase = async function(callback) {
 
 const sendDummyQuery = async function() {
   try {
-    const result = await query(`
+    const _result = await query(`
       SELECT ?s
       WHERE {
         GRAPH ?g {
@@ -37,8 +39,8 @@ const sendDummyQuery = async function() {
       }
       LIMIT 1
     `);
-  } catch (e) {
-    throw new Error(e.toString());
+  } catch (e: unknown) {
+    throw new Error((e as Error).toString());
   }
 };
 

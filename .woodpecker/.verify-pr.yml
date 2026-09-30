@@ -1,0 +1,14 @@
+steps:
+  install:
+    image: node:20-slim
+    commands:
+      - npm config set ignore-scripts true
+      - npm ci
+  lint:
+    image: node:20-slim
+    depends_on: [install]
+    commands:
+      - npm run lint
+when:
+  event:
+    - pull_request

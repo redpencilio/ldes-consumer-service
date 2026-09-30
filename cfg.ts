@@ -1,5 +1,5 @@
 import env from "env-var";
-import { getLoggerFor } from "./lib/logger";
+import { getLoggerFor } from "./lib/logger.ts";
 
 const logger = getLoggerFor("config");
 
@@ -17,7 +17,7 @@ export let LDES_ENDPOINT_HEADERS = {};
 
 try {
   LDES_ENDPOINT_HEADERS = JSON.parse(LDES_ENDPOINT_HEADERS_STRING);
-} catch (e: any) {
+} catch (e) {
   logger.error(`Failed to parse contents of LDES_ENDPOINT_HEADERS. Faulty content: ${LDES_ENDPOINT_HEADERS_STRING}`);
   logger.error(e);
   throw e;
