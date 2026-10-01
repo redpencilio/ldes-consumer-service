@@ -34,12 +34,7 @@ let ldesClient: Client | undefined;
 
 logConfig();
 
-beforeExit(async () => {
-  console.log("Cancel LDES stream and persist state...");
-  if (ldesClient) {
-    // @ts-expect-error accessing private property
-    await ldesClient.stateFactory.write();
-  }
+beforeExit( async () => {
   console.log("Finished cancelling LDES stream.");
 });
 
@@ -56,14 +51,12 @@ waitForDatabase(() => {
 });
 
 async function main() {
-  let stateFilePath;
+  let statePath;
   try {
     const url = new URL(LDES_ENDPOINT_VIEW);
-    stateFilePath = `/data/${url.host}-state.json`;
+    statePath = `/data/${url.host}-state/`;
   } catch (_e) {
-    throw new Error(
-      "Provided endpoint couldn't be parsed as URL, double check your settings.",
-    );
+    throw new Error("Provided endpoint couldn't be parsed as URL, double check your settings.");
   }
 
   let shapeFile: string | undefined;
@@ -76,7 +69,7 @@ async function main() {
       urlIsView: true,
       polling: !RUN_ONCE,
       pollInterval: LDES_POLLING_INTERVAL,
-      stateFile: PERSIST_STATE ? stateFilePath : undefined,
+      statePath: PERSIST_STATE ? statePath : undefined,
       materialize: INGEST_MODE === "MATERIALIZE",
       loose: true, // Make this configurable? IPDC needs this to be true
       shapeFile,
