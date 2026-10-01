@@ -1,6 +1,6 @@
 import type { Client } from "ldes-client";
 import { DataFactory } from "n3";
-import { convertBlankNodes } from "../lib/utils.ts";
+import { convertBlankNodes } from "../lib/utils/rdf.ts";
 // eslint-disable-next-line n/no-missing-import
 import { Quad, Term } from "@rdfjs/types";
 import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg.ts";
