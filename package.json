@@ -1,7 +1,7 @@
 {
   "name": "ldes-consumer-service",
   "description": "This service listens to resource additions to a time-based LDES stream and publishes those additions to a virtuoso triplestore.",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "type": "module",
   "repository": {
     "type": "git",
@@ -55,5 +55,19 @@
   },
   "volta": {
     "node": "20.19.0"
+  },
+  "changelog": {
+    "labels": {
+      "breaking": "💥 Breaking Change",
+      "enhancement": "🚀 Enhancement",
+      "bug": "🐛 Bug Fix",
+      "documentation": "📝 Documentation",
+      "internal": "🏠 Internal",
+      "deprecation": "⚠️ Deprecation"
+    },
+    "ignoreCommitters": [
+      "dependabot[bot]",
+      "greenkeeper[bot]"
+    ]
   }
 }
