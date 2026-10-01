@@ -36,6 +36,7 @@ export default defineConfig([
       "n/no-missing-import": [
         "error",
         {
+          allowModules: ['mu', 'uuid'],
           ignoreTypeImport: true,
         },
       ],
@@ -62,5 +63,11 @@ export default defineConfig([
     plugins: { json },
     language: "json/json",
     extends: ["json/recommended"],
+  },
+  {
+    files: ['tsconfig.json'],
+    plugins: { json },
+    language: 'json/jsonc',
+    extends: ['json/recommended'],
   },
 ]);

@@ -9,6 +9,11 @@ steps:
     depends_on: [install]
     commands:
       - npm run lint
+  types:
+    image: node:20-slim
+    depends_on: [install]
+    commands:
+      - npm run typecheck
 when:
   event:
     - pull_request
