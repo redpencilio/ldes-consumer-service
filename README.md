@@ -24,7 +24,9 @@ The service can be configured with the following environment variables:
 | Environment variable | Default | Description |
 |----------------------|---------|-------------|
 | `INGEST_MODE` | `ALL` | How the LDES feed should be ingested. Valid options are `ALL` and `MATERIALIZE`. `ALL` will ingest all versioned members as-is and store them in the triplestore. `MATERIALIZE` will store the [materializations of the members](https://semiceu.github.io/LinkedDataEventStreams/#version-materializations). |
-| `REPLACE_VERSIONS` | `true` | Whether to remove old versions of a resource when adding a new version or not. |
+| `REPLACE_VERSIONS` | `true` | Whether to remove old versions of a resource when adding a new version or not. Cannot be `false` when `INGEST_MODE` is `MATERIALIZE`. |
+| `ORDERING_STRATEGY` | `ascending` | The strategy the ldes-client should use for fetching and emitting members. Possible values: `none`, `ascending`, `descending`. More info at https://github.com/rdf-connect/ldes-client?tab=readme-ov-file#fragment-fetcher |
+| `EMIT_LAST_VERSION_ONLY` | `false` | Whether the ldes-client only emits members which are the latest version of their underlying resource. Note that this overrides the `ORDERING_STRATEGY` to `descending`, as it will always start emitting members starting from the last (most recent) page of the provided LDES feed. This works best if your LDES feed has a seperate endpoint which returns the most recent page, as well as page relations pointing to the previous page. |
 | `PERSIST_STATE` | `false` | Whether to persist the state of the LDES client. The state is stored as a file in `/data/hostname($LDES_ENDPOINT_VIEW)-state.json`, make sure to mount the data folder to have access to store the state across container rebuilds! |
 | `LDES_ENDPOINT_VIEW` | N/A (required) | The view of the LDES endpoint that will be ingested. If not set, the service will not start. |
 | `LDES_POLLING_INTERVAL` | `60000` | Number of milliseconds before refetching uncacheable fragments |
