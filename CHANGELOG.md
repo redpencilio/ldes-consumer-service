@@ -1,3 +1,22 @@
+
+## 0.13.0 (2026-10-01)
+
+#### 🚀 Enhancement
+* [#50](https://github.com/redpencilio/ldes-consumer-service/pull/50) Add mechanism to handle an access token from a JWT access flow ([@piemonkey](https://github.com/piemonkey))
+* [#49](https://github.com/redpencilio/ldes-consumer-service/pull/49) Add overridden fetch to sanitize feed contents ([@piemonkey](https://github.com/piemonkey))
+
+#### 🏠 Internal
+* [#56](https://github.com/redpencilio/ldes-consumer-service/pull/56) Fix typescript types ([@elpoelma](https://github.com/elpoelma))
+* [#55](https://github.com/redpencilio/ldes-consumer-service/pull/55) Internal/modernize tooling ([@elpoelma](https://github.com/elpoelma))
+
+#### ⚠️  Deprecation
+* [#52](https://github.com/redpencilio/ldes-consumer-service/pull/52) Deprecate `LDES_VERSION_OF_PATH` and `LDES_TIMESTAMP_PATH` options ([@elpoelma](https://github.com/elpoelma))
+
+#### Committers: 2
+- Elena Poelman ([@elpoelma](https://github.com/elpoelma))
+- [@piemonkey](https://github.com/piemonkey)
+
+
 ## 0.12.2 (2025-09-23)
 #### :bug: Bug Fix
 * Retry on failed request by bumping ldes-client to v2.0.4
