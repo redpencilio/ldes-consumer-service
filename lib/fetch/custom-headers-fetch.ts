@@ -1,29 +1,34 @@
-import { JWT_CONFIG, JWT_USE_JWT_AUTH, LDES_ENDPOINT_HEADERS } from "../../cfg.ts";
+import type { JwtAuthArgs } from "./jwt-auth.ts";
 import { getLoggerFor } from "../logger.ts";
 import { setJwtAuthHeader } from "./jwt-auth.ts";
 
 type FetchArgs = Parameters<typeof fetch>;
 const logger = getLoggerFor("custom-headers-fetch");
 
-export async function customHeadersFetch (
-  input: FetchArgs[0],
-  init?: FetchArgs[1],
-  fetchF: typeof fetch = fetch
-): Promise<Response> {
-  const reqInit = init || {};
+export interface HeadersFetchOptions {
+  endpointHeaders: Record<string, string | undefined>;
+  jwt: (JwtAuthArgs & { useJwtAuth: boolean }) | undefined;
+}
 
-  const headers = new Headers(reqInit.headers);
+export function createHeadersFetch (options: HeadersFetchOptions, fetchF: typeof fetch = fetch): typeof fetch {
+  return async (input: FetchArgs[0], init?: FetchArgs[1]): Promise<Response> => {
+    const reqInit = init || {};
 
-  for (const [header, value] of Object.entries(LDES_ENDPOINT_HEADERS)) {
-    headers.append(header, value as string);
-  }
+    const headers = new Headers(reqInit.headers);
 
-  if (JWT_USE_JWT_AUTH && JWT_CONFIG) {
-    reqInit.headers = await setJwtAuthHeader(headers, JWT_CONFIG);
-  } else {
-    reqInit.headers = headers;
-  }
+    for (const [header, value] of Object.entries(options.endpointHeaders)) {
+      if (value !== undefined) {
+        headers.append(header, value);
+      }
+    }
 
-  logger.debug(`Fetching ${input}`);
-  return fetchF(input, reqInit);
+    if (options.jwt?.useJwtAuth) {
+      reqInit.headers = await setJwtAuthHeader(headers, options.jwt);
+    } else {
+      reqInit.headers = headers;
+    }
+
+    logger.debug(`Fetching ${input}`);
+    return fetchF(input, reqInit);
+  };
 }

@@ -11,21 +11,36 @@ type AccessToken = {
   scope: string;
   expires_in: number;
 };
-let accessToken: AccessToken | undefined;
-let lastTokenRefresh: number | undefined;
 
-let jwk: JWK | undefined;
-async function getKey (keyPath: string): Promise<JWK> {
-  if (!jwk) {
-    const keyFile = await readFile(keyPath, { encoding: "utf8" });
-    jwk = JSON.parse(keyFile) as JWK;
-  }
-  return jwk;
+// Tokens per JWT configuration, keyed on the configuration defining them
+type TokenCacheEntry = { accessToken: AccessToken; lastTokenRefresh: number };
+const tokenCache = new Map<string, TokenCacheEntry>();
+const jwkCache = new Map<string, JWK>();
+
+function cacheKey (args: JwtAuthArgs): string {
+  return [
+    args.clientId,
+    args.keyPath,
+    args.keyAlgorithm,
+    args.tokenUrl,
+    args.tokenAudience,
+    args.tokenExpiry,
+    args.tokenScope,
+    args.clientAssertionType,
+  ].join("|");
 }
 
-function isCloseToExpiry (token: AccessToken) {
+async function getKey (keyPath: string): Promise<JWK> {
+  if (!jwkCache.has(keyPath)) {
+    const keyFile = await readFile(keyPath, { encoding: "utf8" });
+    jwkCache.set(keyPath, JSON.parse(keyFile) as JWK);
+  }
+  return jwkCache.get(keyPath) as JWK;
+}
+
+function isCloseToExpiry (entry: TokenCacheEntry) {
   const now = Date.now() / 1000;
-  return !lastTokenRefresh || (now - lastTokenRefresh) > (token.expires_in * 0.95);
+  return !entry.lastTokenRefresh || (now - entry.lastTokenRefresh) > (entry.accessToken.expires_in * 0.95);
 }
 
 export interface JwtAuthArgs {
@@ -52,7 +67,6 @@ async function refreshAccessToken ({
   logger.info("Refreshing access token");
   let tokenReq: Response;
   try {
-    lastTokenRefresh = Date.now() / 1000;
     const secret = await importJWK(await getKey(keyPath));
     const jwt = await new SignJWT({
       iss: clientId,
@@ -94,9 +108,13 @@ export async function setJwtAuthHeader (
   headers: Headers,
   jwtAuthArgs: JwtAuthArgs
 ): Promise<Headers> {
-  if (!accessToken || isCloseToExpiry(accessToken)) {
-    accessToken = await refreshAccessToken(jwtAuthArgs);
+  const key = cacheKey(jwtAuthArgs);
+  let entry = tokenCache.get(key);
+  if (!entry || isCloseToExpiry(entry)) {
+    entry = { accessToken: await refreshAccessToken(jwtAuthArgs), lastTokenRefresh: Date.now() / 1000 };
+    tokenCache.set(key, entry);
   }
+  const accessToken = entry.accessToken;
   if (!accessToken) {
     throw new Error("no access token when making request");
   }

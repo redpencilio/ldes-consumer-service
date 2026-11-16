@@ -1,27 +1,21 @@
 import env from 'env-var';
 import { getLoggerFor } from "./lib/logger.ts";
+import type { JwtAuthArgs } from "./lib/fetch/jwt-auth.ts";
 
 const logger = getLoggerFor("config");
-export const LDES_ENDPOINT_VIEW = env.get("LDES_ENDPOINT_VIEW").required().asString();
+
+// Feed-specific configuration is read from the database (see lib/ldes-config-repository.ts).
+// Only configuration that is shared between all feeds stays in the environment.
+
 export const LDES_POLLING_INTERVAL = env.get("LDES_POLLING_INTERVAL").default(60000).asIntPositive();
 export const LDES_REQUESTS_PER_MINUTE = env.get("LDES_REQUESTS_PER_MINUTE").default(0).asIntPositive();
 export const LDES_INFO_REQUEST_TIMEOUT = env.get("LDES_INFO_REQUEST_TIMEOUT").default(60000).asIntPositive();
 export const LDES_ENDPOINT_HEADERS_STRING = env.get("LDES_ENDPOINT_HEADERS").default("{}").asString();
 
-/** @deprecated. The versionOf path should be extracted from the ldes feed */
-export const LDES_VERSION_OF_PATH = env.get("LDES_VERSION_OF_PATH").asString();
-if (LDES_VERSION_OF_PATH) {
-  logger.warn("The LDES_VERSION_OF_PATH environment variable is deprecated. The versionOf path should be specified by the ldes feed using the https://w3id.org/ldes#versionOfPath predicate.");
-}
-/** @deprecated. The timestamp path should be extracted from the ldes feed */
-export const LDES_TIMESTAMP_PATH = env.get("LDES_TIMESTAMP_PATH").asString();
-if (LDES_TIMESTAMP_PATH) {
-  logger.warn("The LDES_TIMESTAMP_PATH environment variable is deprecated. The timestamp path should be specified by the ldes feed using the https://w3id.org/ldes#timestampPath predicate.");
-}
-
 export const LDES_SANITIZE_CONTENTS_REGEX = env.get("LDES_SANITIZE_CONTENTS_REGEX").asRegExp("g");
 export const LDES_SANITIZE_CONTENTS_STRING = env.get("LDES_SANITIZE_CONTENTS_STRING").asString();
 export const LDES_SANITIZE_CONTENTS_REPLACEMENT = env.get("LDES_SANITIZE_CONTENTS_REPLACEMENT").asString();
+
 export let LDES_ENDPOINT_HEADERS = {};
 
 try {
@@ -34,18 +28,46 @@ try {
 
 export const JWT_USE_JWT_AUTH = env.get("JWT_USE_JWT_AUTH").default("false").asBool();
 
-export const JWT_CONFIG = JWT_USE_JWT_AUTH
-  ? {
-      clientId: env.get("JWT_CLIENT_ID").required().asString(),
-      keyPath: env.get("JWT_KEY_PATH").default("/data/jwk.json").asString(),
-      keyAlgorithm: env.get("JWT_KEY_ALGORITHM").default("RS256").asString(),
-      tokenUrl: env.get("JWT_TOKEN_URL").required().asString(),
-      tokenAudience: env.get("JWT_TOKEN_REQUEST_AUDIENCE").required().asString(),
-      tokenExpiry: env.get("JWT_TOKEN_REQUEST_EXPIRY").default("10minutes").asString(),
-      tokenScope: env.get("JWT_TOKEN_SCOPE").required().asString(),
-      clientAssertionType: env.get("JWT_CLIENT_ASSERTION_TYPE").default("urn:ietf:params:oauth:client-assertion-type:jwt-bearer").asString()
-    }
-  : undefined;
+export const JWT_ENV_AUTH_ARGS = {
+  clientId: env.get("JWT_CLIENT_ID").default("").asString(),
+  keyPath: env.get("JWT_KEY_PATH").default("/data/jwk.json").asString(),
+  keyAlgorithm: env.get("JWT_KEY_ALGORITHM").default("RS256").asString(),
+  tokenUrl: env.get("JWT_TOKEN_URL").default("").asString(),
+  tokenAudience: env.get("JWT_TOKEN_REQUEST_AUDIENCE").default("").asString(),
+  tokenExpiry: env.get("JWT_TOKEN_REQUEST_EXPIRY").default("10minutes").asString(),
+  tokenScope: env.get("JWT_TOKEN_SCOPE").default("").asString(),
+  clientAssertionType: env.get("JWT_CLIENT_ASSERTION_TYPE").default("urn:ietf:params:oauth:client-assertion-type:jwt-bearer").asString()
+};
+
+const JWT_REQUIRED_KEYS: (keyof JwtAuthArgs)[] = ["clientId", "tokenUrl", "tokenAudience", "tokenScope"];
+
+/**
+ * Validates and merges the JWT environment defaults with any feed-specific overrides.
+ * Feed-level values in the database win over the environment (https://redpencil.data.gift/ldes-consumer/ predicates).
+ */
+export function resolveJwtArgs(
+  feedOverrides: Partial<JwtAuthArgs> & { useJwtAuth?: boolean } | undefined,
+  feedView: string
+): JwtAuthArgs & { useJwtAuth: boolean } {
+  const useJwtAuth = feedOverrides?.useJwtAuth ?? JWT_USE_JWT_AUTH;
+  if (!useJwtAuth) {
+    return { ...JWT_ENV_AUTH_ARGS, useJwtAuth };
+  }
+  const { useJwtAuth: _ignored, ...rest } = feedOverrides ?? {};
+  const merged = { ...JWT_ENV_AUTH_ARGS, ...rest };
+  const missing = JWT_REQUIRED_KEYS.filter((key) => !merged[key]);
+  if (missing.length > 0) {
+    throw new Error(
+      `JWT auth is enabled for LDES feed ${feedView}, but required JWT configuration is missing: ${missing.join(", ")}. Provide it via the environment or the feed configuration.`
+    );
+  }
+  return { ...merged, useJwtAuth };
+}
+
+// Keep the previous fail-fast behaviour when JWT auth is only configured through the environment
+if (JWT_USE_JWT_AUTH) {
+  resolveJwtArgs(undefined, "environment");
+}
 
 export const INGEST_MODE = env
   .get("INGEST_MODE")
@@ -84,7 +106,39 @@ export const MU_APPLICATION_GRAPH = env.get("MU_APPLICATION_GRAPH").required().a
 export const MU_SPARQL_ENDPOINT = env.get("MU_SPARQL_ENDPOINT").required().asString(); // Provided by template
 export const DEBUG_AUTH_HEADERS = env.get("DEBUG_AUTH_HEADERS").default("false").asBool();
 
+// Optional mu-auth-scope in which the feed configuration queries run.
+export const LDES_CONFIG_SCOPE = env.get("LDES_CONFIG_SCOPE").asString();
+
 export const NODE_ENV = env.get("NODE_ENV").default("production").asEnum(["development", "production"]);
+
+// #region deprecated environment variables
+// Kept for deprecation support only; remove entries (and their usage in app.ts) when dropping them.
+export const LDES_VERSION_OF_PATH = env.get("LDES_VERSION_OF_PATH").asString();
+export const LDES_TIMESTAMP_PATH = env.get("LDES_TIMESTAMP_PATH").asString();
+
+const DEPRECATION_WARNINGS: { variable: string; value: string | undefined; message: string }[] = [
+  {
+    variable: "LDES_ENDPOINT_VIEW",
+    value: env.get("LDES_ENDPOINT_VIEW").asString(),
+    message: "The LDES view URL is now the subject of a ldesConsumer:LdesFeed configuration in the database. LDES_ENDPOINT_VIEW is no longer used."
+  },
+  {
+    variable: "LDES_VERSION_OF_PATH",
+    value: LDES_VERSION_OF_PATH,
+    message: "The LDES_VERSION_OF_PATH environment variable is deprecated. The versionOf path should be specified by the feed's LDES metadata or via the ldesConsumer:versionOfPath predicate of the feed configuration."
+  },
+  {
+    variable: "LDES_TIMESTAMP_PATH",
+    value: LDES_TIMESTAMP_PATH,
+    message: "The LDES_TIMESTAMP_PATH environment variable is deprecated. The timestamp path should be specified by the feed's LDES metadata or via the ldesConsumer:timestampPath predicate of the feed configuration."
+  }
+];
+for (const { value, message } of DEPRECATION_WARNINGS) {
+  if (value) {
+    logger.warn(message);
+  }
+}
+// #endregion
 
 export function logConfig () {
   // Should this use the logger instead?
@@ -92,7 +146,6 @@ export function logConfig () {
     INGEST_MODE,
     REPLACE_VERSIONS,
     PERSIST_STATE,
-    LDES_ENDPOINT_VIEW,
     LDES_POLLING_INTERVAL,
     LDES_REQUESTS_PER_MINUTE,
     LDES_INFO_REQUEST_TIMEOUT,
@@ -110,6 +163,6 @@ export function logConfig () {
     LDES_SANITIZE_CONTENTS_STRING,
     LDES_SANITIZE_CONTENTS_REPLACEMENT,
     JWT_USE_JWT_AUTH,
-    JWT_CONFIG
+    LDES_CONFIG_SCOPE
   });
 }

@@ -12,9 +12,14 @@ type Member =
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
   ReturnType<Client["stream"]> extends ReadableStream<infer M> ? M : never;
 
+export interface ProcessMemberOptions {
+  replaceVersions?: boolean;
+}
+
 export async function processMember(
   member: Member,
   info: { versionOfPath?: Term; timestampPath?: Term },
+  { replaceVersions = REPLACE_VERSIONS }: ProcessMemberOptions = {},
 ) {
   let baseResourceUri;
   if (member.isVersionOf) {
@@ -28,7 +33,7 @@ export async function processMember(
   member.quads = convertBlankNodes(member.quads);
   const quadsToAdd: Quad[] = member.quads;
   const quadsToRemove: Quad[] = [];
-  if (REPLACE_VERSIONS) {
+  if (replaceVersions) {
     const { versionOfPath } = info;
     if (versionOfPath === undefined) {
       throw new Error(

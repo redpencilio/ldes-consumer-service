@@ -9,32 +9,31 @@ import {
 import {
   INGEST_MODE,
   PERSIST_STATE,
-  LDES_ENDPOINT_VIEW,
   LDES_POLLING_INTERVAL,
-  LDES_INFO_REQUEST_TIMEOUT,
   RUN_ONCE,
   NODE_ENV,
   logConfig,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
-  ORDERING_STRATEGY,
-  EMIT_LAST_VERSION_ONLY,
-} from "./cfg.ts";
-import { waitForDatabase } from "./lib/database-helpers.ts";
-import { memberProcessor } from "./lib/member-processor.ts";
-import { customFetch } from "./lib/fetch/custom-fetch.ts";
-import { getLoggerFor } from "./lib/logger.ts";
+  LDES_ENDPOINT_HEADERS,
+} from "./cfg.js";
+import { waitForDatabase } from "./lib/database-helpers.js";
+import { memberProcessor } from "./lib/member-processor.js";
+import { createCustomFetch } from "./lib/fetch/custom-fetch.js";
+import { getLoggerFor } from "./lib/logger.js";
+import { fetchLdesFeedConfigs } from "./lib/ldes-config-repository.js";
+import type { LdesFeedConfig } from "./lib/ldes-config-repository.js";
 import { DataFactory } from "n3";
 
 // @ts-expect-error no type-declarations for beforeExit
 import { beforeExit } from "mu";
 
 const { namedNode } = DataFactory;
-let ldesClient: Client | undefined;
+const ldesClients: Client[] = [];
 
 logConfig();
 
-beforeExit( async () => {
+beforeExit(async () => {
   console.log("Finished cancelling LDES stream.");
 });
 
@@ -51,21 +50,51 @@ waitForDatabase(() => {
 });
 
 async function main() {
-  let statePath;
-  try {
-    const url = new URL(LDES_ENDPOINT_VIEW);
-    statePath = `/data/${url.host}-state/`;
-  } catch (_e) {
-    throw new Error("Provided endpoint couldn't be parsed as URL, double check your settings.");
+  const logger = getLoggerFor("main");
+
+  const feedConfigs = await fetchLdesFeedConfigs();
+  if (feedConfigs.length === 0) {
+    logger.warn("No LDES feed configurations found in the database, nothing to do.");
+    return;
   }
+  logger.info(`Found ${feedConfigs.length} LDES feed(s): ${feedConfigs.map((c) => c.view).join(", ")}`);
 
   let shapeFile: string | undefined;
   if (fs.existsSync("/config/shape.ttl")) {
     shapeFile = "/config/shape.ttl";
   }
-  ldesClient = replicateLDES(
+
+  // Feeds are consumed sequentially: the next feed is only started
+  // once the initial (back)ingest of the previous feed has finished.
+  // From that moment on, each feed continues to process in the background.
+  for (const feedConfig of feedConfigs) {
+    await consumeFeed(feedConfig, shapeFile);
+  }
+}
+
+async function consumeFeed(
+  feedConfig: LdesFeedConfig,
+  shapeFile: string | undefined,
+): Promise<void> {
+  const logger = getLoggerFor(`main(${feedConfig.view})`);
+
+  let statePath;
+  try {
+    const url = new URL(feedConfig.view);
+    statePath = `/data/${url.host}-state/`;
+  } catch (_e) {
+    throw new Error(`Provided endpoint couldn't be parsed as URL (${feedConfig.view}), double check your settings.`);
+  }
+
+  const customFetch = createCustomFetch({
+    sanitize: feedConfig.sanitize,
+    jwt: feedConfig.jwt,
+    endpointHeaders: LDES_ENDPOINT_HEADERS,
+  });
+
+  const ldesClient = replicateLDES(
     {
-      url: LDES_ENDPOINT_VIEW,
+      url: feedConfig.view,
       urlIsView: true,
       polling: !RUN_ONCE,
       pollInterval: LDES_POLLING_INTERVAL,
@@ -73,19 +102,20 @@ async function main() {
       materialize: INGEST_MODE === "MATERIALIZE",
       loose: true, // Make this configurable? IPDC needs this to be true
       shapeFile,
-      lastVersionOnly: EMIT_LAST_VERSION_ONLY,
+      lastVersionOnly: feedConfig.emitLastVersionOnly,
       fetch: enhanced_fetch({
         safe: true, // In case of an exception being thrown by fetch, this will just retry the call in a while (true) loop until it stops throwing? Not great.
-          /* In comment are the default values, perhaps we want to make these configurable
-        concurrent: 10, // Amount of concurrent requests to a single domain
-        retry: {
-          codes: [408, 425, 429, 500, 502, 503, 504], // Which faulty HTTP status codes will trigger retry
-          base: 500, // Seems to be unused in the client code
-          maxRetries: 5,
-        }*/
+        /* In comment are the default values, perhaps we want to make these configurable
+      concurrent: 10, // Amount of concurrent requests to a single domain
+      retry: {
+        codes: [408, 425, 429, 500, 502, 503, 504], // Which faulty HTTP status codes will trigger retry
+        base: 500, // Seems to be unused in the client code
+        maxRetries: 5,
+      }*/
       }, customFetch)
-    }, ORDERING_STRATEGY
+    }, feedConfig.orderingStrategy
   );
+  ldesClients.push(ldesClient);
 
   // @ts-expect-error we should check if we can refine the types of the `on` function
   ldesClient.on("error", (error: Error) => {
@@ -102,54 +132,65 @@ async function main() {
       const timer = setTimeout(() => {
         reject(
           new Error(
-            `Didn't receive LDES feed info in ${LDES_INFO_REQUEST_TIMEOUT}ms. We will stop waiting.`,
+            `Didn't receive LDES feed info from ${feedConfig.view} in ${feedConfig.infoRequestTimeout}ms. We will stop waiting.`,
           ),
         );
-      }, LDES_INFO_REQUEST_TIMEOUT);
-      ldesClient!.on("description", (info) => {
+      }, feedConfig.infoRequestTimeout);
+      ldesClient.on("description", (info) => {
         clearTimeout(timer);
         resolve(info);
       });
     });
   };
 
-  const logger = getLoggerFor("main");
-  logger.info("Starting stream...");
   const ldesStream = ldesClient.stream({ highWaterMark: 10 });
   try {
     logger.info("Waiting for LDES info...");
     const { versionOfPath, timestampPath } = await getLDESInfo();
-    if (versionOfPath !== undefined && timestampPath !== undefined) {
-      logger.info(
-        `Received LDES info: ${JSON.stringify({
-          versionOfPath,
-          timestampPath,
-        })}`,
-      );
-    } else if (
-      LDES_VERSION_OF_PATH !== undefined &&
-      LDES_TIMESTAMP_PATH !== undefined
-    ) {
-      logger.info(
-        `LDES feed info contained no versionOfPath & timestampPath, using provided values: ${JSON.stringify(
-          { LDES_VERSION_OF_PATH, LDES_TIMESTAMP_PATH },
-        )}`,
-      );
-    } else {
+
+    const versionOfPathFallback = feedConfig.versionOfPath ?? LDES_VERSION_OF_PATH;
+    const timestampPathFallback = feedConfig.timestampPath ?? LDES_TIMESTAMP_PATH;
+    if ((versionOfPath === undefined && versionOfPathFallback === undefined) || (timestampPath === undefined && timestampPathFallback === undefined)) {
       throw new Error(
-        "LDES feed info contained no versionOfPath & timestampPath and no LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH were provided to service, exiting.",
+        `LDES feed info of ${feedConfig.view} contained no versionOfPath & timestampPath, and no versionOfPath & timestampPath were configured for the feed (or via deprecated LDES_VERSION_OF_PATH & LDES_TIMESTAMP_PATH environment variables), exiting.`,
       );
     }
-
-    await ldesStream.pipeTo(
-      memberProcessor(
-        versionOfPath ?? namedNode(LDES_VERSION_OF_PATH as string),
-        timestampPath ?? namedNode(LDES_TIMESTAMP_PATH as string),
-      ),
+    const versionOf = versionOfPath ?? namedNode(versionOfPathFallback as string);
+    const timestamp = timestampPath ?? namedNode(timestampPathFallback as string);
+    logger.info(
+      `Received LDES info from ${feedConfig.view}: ${JSON.stringify({ versionOfPath, timestampPath })}`,
     );
 
-    logger.info("Finished processing stream");
-    await ldesStream.cancel();
+    logger.info("Starting ingest...");
+    const processor = memberProcessor(
+      versionOf,
+      timestamp,
+      { replaceVersions: feedConfig.replaceVersions }
+    );
+    const processed = ldesStream.pipeTo(processor);
+    // Fail fast when the member processing pipeline goes wrong in the background
+    processed.catch(async (e: unknown) => {
+      logger.error("Processing stream failed");
+      logger.error(e);
+      await ldesStream.cancel();
+      process.exit(1);
+    });
+
+    // The 'poll' event fires when an entire fetch cycle has drained, i.e.
+    // the initial (back)ingest of this feed is complete. When polling is
+    // disabled, the stream finishes and the pipeline completes instead.
+    await Promise.race([
+      new Promise<void>((resolve) => {
+        // Note: 'poll' also fires before each subsequent polling cycle
+        ldesClient.on("poll", () => resolve());
+      }),
+      processed,
+    ]);
+
+    // await ldesClient.close();
+
+    logger.info(`Finished initial ingest of ${feedConfig.view}`);
+    // debugger;
   } catch (e) {
     logger.error("Processing stream failed");
     logger.error(e);

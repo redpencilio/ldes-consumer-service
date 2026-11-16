@@ -4,6 +4,7 @@ import { RdfStore } from "rdf-stores";
 import { getLoggerFor } from "./logger.ts";
 import { processMember } from "../config/process-member.ts";
 import type { UnderlyingSink } from "node:stream/web";
+import { REPLACE_VERSIONS } from "../cfg.ts";
 
 // ldes-client doesn't expose the `Member` type directly...
 type Member =
@@ -12,7 +13,8 @@ type Member =
 
 export function memberProcessor(
   versionOfPath: Term,
-  timestampPath: Term
+  timestampPath: Term,
+  options: { replaceVersions: boolean } = { replaceVersions: REPLACE_VERSIONS }
 ): WritableStream<Member> {
   const logger = getLoggerFor("member-processor");
 
@@ -57,7 +59,7 @@ export function memberProcessor(
     async write(member: Member, controller) {
       try {
         member = enrichMember(member);
-        await processMember(member, { versionOfPath, timestampPath });
+        await processMember(member, { versionOfPath, timestampPath }, options);
       } catch (e) {
         logger.error(e);
         controller.error(e);
