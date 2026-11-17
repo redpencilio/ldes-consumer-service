@@ -15,7 +15,6 @@ import {
   logConfig,
   LDES_VERSION_OF_PATH,
   LDES_TIMESTAMP_PATH,
-  LDES_ENDPOINT_HEADERS,
 } from "./cfg.js";
 import { waitForDatabase } from "./lib/database-helpers.js";
 import { memberProcessor } from "./lib/member-processor.js";
@@ -89,7 +88,7 @@ async function consumeFeed(
   const customFetch = createCustomFetch({
     sanitize: feedConfig.sanitize,
     jwt: feedConfig.jwt,
-    endpointHeaders: LDES_ENDPOINT_HEADERS,
+    endpointHeaders: feedConfig.endpointHeaders,
   });
 
   const ldesClient = replicateLDES(

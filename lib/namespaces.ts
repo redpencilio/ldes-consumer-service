@@ -8,3 +8,5 @@ export const XSD = namespace("http://www.w3.org/2001/XMLSchema#");
 export const BLANK = namespace(BLANK_NODE_NAMESPACE);
 export const LDES = namespace("https://w3id.org/ldes#");
 export const LDES_CONSUMER = namespace("http://redpencil.data.gift/ldes-consumer/");
+export const UCO_OBSERVABLE = namespace("https://ontology.unifiedcyberontology.org/observable#");
+export const UCO_TYPES = namespace("https://ontology.unifiedcyberontology.org/co/1.0/uco/types/");

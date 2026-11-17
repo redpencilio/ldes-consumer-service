@@ -72,6 +72,16 @@ The service consumes all configured feeds sequentially. Values set in the databa
 | `ldesConsumer:jwtUseJwtAuth`                                                                                                                                                                                                                           | `JWT_USE_JWT_AUTH` (`false`)                                     | Whether this feed uses JWT authentication.                                                            |
 | `ldesConsumer:jwtClientId`, `ldesConsumer:jwtKeyPath`, `ldesConsumer:jwtKeyAlgorithm`, `ldesConsumer:jwtTokenUrl`, `ldesConsumer:jwtTokenAudience`, `ldesConsumer:jwtTokenExpiry`, `ldesConsumer:jwtTokenScope`, `ldesConsumer:jwtClientAssertionType` | The corresponding `JWT_*` env vars                               | Optional per-feed overrides of the JWT configuration.                                                 |
 
+HTTP headers can be configured per feed through a UCO dictionary: `ucoObservable:httpRequestHeader` links the feed to a `ucoTypes:Dictionary` with `ucoTypes:entry` values of type `ucoTypes:DictionaryEntry`, each carrying a `ucoTypes:key` and `ucoTypes:value`. These headers extend the `LDES_ENDPOINT_HEADERS` environment variable; configured headers win over environment ones with the same key.
+
+```ttl
+<view-url> a ldesConsumer:LdesFeed ;
+  ucoObservable:httpRequestHeader [ a ucoTypes:Dictionary ;
+    ucoTypes:entry [ a ucoTypes:DictionaryEntry ;
+      ucoTypes:key "Authorization" ;
+      ucoTypes:value "Bearer <token>" ] ] .
+```
+
 > [!WARNING]
 > The following environment variables are **deprecated** and slated to be removed at a later time, but still supported:
 
