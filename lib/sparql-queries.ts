@@ -1,12 +1,13 @@
 import type * as RDF from "@rdfjs/types";
-import { extractEndpointHeadersFromEnv, toString } from "./utils.ts";
+import { extractEndpointHeadersFromEnv, sleep, toString } from "./utils.ts";
 import {
   MU_APPLICATION_GRAPH,
   SPARQL_AUTH_USER,
   SPARQL_AUTH_PASSWORD,
   SPARQL_ENDPOINT_HEADER_PREFIX,
   SPARQL_BATCH_SIZE,
-  ENABLE_SPARQL_BATCHING
+  ENABLE_SPARQL_BATCHING,
+  SPARQL_QUERY_DELAY_MS,
 } from "../cfg.ts";
 
 // @ts-expect-error has no type declarations
@@ -99,6 +100,7 @@ export async function executeInsertQuery (quads: RDF.Quad[]) {
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructInsertQuery(quadsBatch);
     await update(queryStr);
+    await sleep(SPARQL_QUERY_DELAY_MS);
   }
 }
 
@@ -117,6 +119,7 @@ export async function executeDeleteQuery (quads: RDF.Quad[]) {
     const quadsBatch = quads.slice(iQuads, iQuads + batchSize);
     const queryStr = constructDeleteQuery(quadsBatch);
     await update(queryStr);
+    await sleep(SPARQL_QUERY_DELAY_MS);
   }
 }
 

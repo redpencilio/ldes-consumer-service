@@ -69,6 +69,8 @@ export const SPARQL_ENDPOINT_HEADER_PREFIX = "SPARQL_ENDPOINT_HEADER_";
 export const SPARQL_BATCH_SIZE = env.get("SPARQL_BATCH_SIZE").default(0).asIntPositive();
 export const ENABLE_SPARQL_BATCHING = SPARQL_BATCH_SIZE > 0;
 
+export const SPARQL_QUERY_DELAY_MS = env.get("SPARQL_QUERY_DELAY_MS").default(100).asIntPositive();
+
 export const SPARQL_AUTH_USER = env.get("SPARQL_AUTH_USER").asString();
 export const SPARQL_AUTH_PASSWORD = env.get("SPARQL_AUTH_PASSWORD").asString();
 
