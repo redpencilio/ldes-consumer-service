@@ -1,5 +1,5 @@
-import { query } from 'mu';
-import { sleep } from './utils.ts';
+import { query } from "./sparql-queries.ts";
+import { sleep } from './utils/general.ts';
 
 const PING_DB_INTERVAL_MILLIS = 2000;
 
