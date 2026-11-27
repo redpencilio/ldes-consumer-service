@@ -4,6 +4,8 @@ import { convertBlankNodes } from "../lib/utils.ts";
 // eslint-disable-next-line n/no-missing-import
 import { Quad, Term } from "@rdfjs/types";
 import { INGEST_MODE, REPLACE_VERSIONS } from "../cfg.ts";
+import type { LdesFeedConfig } from "../lib/ldes-config-repository.ts";
+import { PROV } from "../lib/namespaces.ts";
 import { executeDeleteInsertQuery } from "../lib/sparql-queries.ts";
 const { namedNode, quad, variable } = DataFactory;
 
@@ -14,12 +16,13 @@ type Member =
 
 export interface ProcessMemberOptions {
   replaceVersions?: boolean;
+  feedConfig: LdesFeedConfig;
 }
 
 export async function processMember(
   member: Member,
   info: { versionOfPath?: Term; timestampPath?: Term },
-  { replaceVersions = REPLACE_VERSIONS }: ProcessMemberOptions = {},
+  { replaceVersions = REPLACE_VERSIONS, feedConfig }: ProcessMemberOptions,
 ) {
   let baseResourceUri;
   if (member.isVersionOf) {
@@ -33,6 +36,10 @@ export async function processMember(
   member.quads = convertBlankNodes(member.quads);
   const quadsToAdd: Quad[] = member.quads;
   const quadsToRemove: Quad[] = [];
+  const feedUri = namedNode(feedConfig.view);
+  for (const subject of new Set(member.quads.map((q) => q.subject))) {
+    quadsToAdd.push(quad(subject, PROV("wasGeneratedBy"), feedUri));
+  }
   if (replaceVersions) {
     const { versionOfPath } = info;
     if (versionOfPath === undefined) {

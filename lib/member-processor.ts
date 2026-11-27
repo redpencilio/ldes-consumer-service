@@ -3,6 +3,7 @@ import type { Term } from "@rdfjs/types";
 import { RdfStore } from "rdf-stores";
 import { getLoggerFor } from "./logger.ts";
 import { processMember } from "../config/process-member.ts";
+import type { LdesFeedConfig } from "./ldes-config-repository.ts";
 import type { UnderlyingSink } from "node:stream/web";
 import { REPLACE_VERSIONS } from "../cfg.ts";
 
@@ -14,7 +15,9 @@ type Member =
 export function memberProcessor(
   versionOfPath: Term,
   timestampPath: Term,
-  options: { replaceVersions: boolean } = { replaceVersions: REPLACE_VERSIONS }
+  options: { replaceVersions?: boolean; feedConfig: LdesFeedConfig } = {
+    replaceVersions: REPLACE_VERSIONS,
+  } as { replaceVersions?: boolean; feedConfig: LdesFeedConfig },
 ): WritableStream<Member> {
   const logger = getLoggerFor("member-processor");
 

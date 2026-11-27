@@ -164,7 +164,7 @@ async function consumeFeed(
     const processor = memberProcessor(
       versionOf,
       timestamp,
-      { replaceVersions: feedConfig.replaceVersions }
+      { replaceVersions: feedConfig.replaceVersions, feedConfig }
     );
     const processed = ldesStream.pipeTo(processor);
     // Fail fast when the member processing pipeline goes wrong in the background
